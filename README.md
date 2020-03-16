@@ -7,4 +7,5 @@ GLIBC="/opt/glibc-2.31/lib"
 export LD_LIBRARY_PATH=$GLIBC
 
 
-
+make menuconfig
+make

@@ -1,6 +1,7 @@
 *.o
+*.cmd
 hvep-arm64
 hvep.map
 hvep.strip
 .hvep*
-
+output

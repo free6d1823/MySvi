@@ -1,5 +1,5 @@
 #include <target/utils.h>
-#include "vc8000e.h"
+#include "vc8000d.h"
 #include <stdio.h>
 #include <target/cmdline.h>
 #include <target/memory.h>
@@ -7,9 +7,13 @@
 /*************************************************
 ** VC8000E IP specific definitions 
 **************************************************/
-#define CORE_0_IO_ADDR		0xBC020000
+#define CORE_0_IO_ADDR		0xBC000000
 #define CORE_0_IO_SIZE		(272*4)
-#define INT_PIN_CORE_0		197
+#define CORE_1_IO_ADDR          0xBC010000
+#define CORE_1_IO_SIZE          (272*4)
+
+#define VPU_DEC_INTR		195
+#define VPU_DEC_L2_INTR		196
 #define SWREG0				0x0000
 #define SWREG1				0x0004
 #define SWREG4				0x0010
@@ -77,16 +81,16 @@ typedef struct
 
 static int total_core_number = 0;
 static CORE_CONFIG core_array[] = {
-	{(uintptr_t)CORE_0_IO_ADDR, CORE_0_IO_SIZE, INT_PIN_CORE_0, false},
+	{(uintptr_t)CORE_0_IO_ADDR, CORE_0_IO_SIZE, VPU_DEC_INTR, false},
 };
 
 
-int vc8000e_start(int id)
+int vc8000d_start(int id)
 {
 
 	return 0;
 }
-int vc8000e_init(int id)
+int vc8000d_init(int id)
 {
 	int i;
 	total_core_number = sizeof(core_array)/sizeof(core_array[0]);
@@ -113,7 +117,7 @@ int vc8000e_init(int id)
 	return 0;
 }
 
-int vc8000e_dump(int id)
+int vc8000d_dump(int id)
 {
 	int i;
 	
@@ -126,7 +130,7 @@ int vc8000e_dump(int id)
 	return 0;
 }
 
-static int cmd_vc8000e(int argc, char **argv)
+static int cmd_vc8000d(int argc, char **argv)
 {
 	int core_id = 0;
 	if (argc < 2)
@@ -135,11 +139,11 @@ static int cmd_vc8000e(int argc, char **argv)
 		core_id = argv[2][0] - '0';
 
 	if (argv[1][0] == 'i') {
-		vc8000e_init(core_id);
+		vc8000d_init(core_id);
 	} else if (argv[1][0] == 'd') {
-		vc8000e_dump(core_id);
+		vc8000d_dump(core_id);
 	} else if (argv[1][0] == 's') {
-		vc8000e_start(core_id);
+		vc8000d_start(core_id);
 	} 	else {
 		return -EUSAGE;
 	}
@@ -148,9 +152,9 @@ static int cmd_vc8000e(int argc, char **argv)
 }
 
 
-MK_CMD(vc8e, cmd_vc8000e, "VSI VC8000E test",
-	"VC8000E test cases\n"
-	"vc8e [init|dump|start|stop] core_id\n" 
+MK_CMD(vc8d, cmd_vc8000d, "VSI VC8000D test",
+	"VC8000D test cases\n"
+	"vc8d [init|dump|start|stop] core_id\n" 
     "    init    - show IP information\n"
 	"    dump    - dump all registers\n"
 	"    start   - start encode one frame\n"

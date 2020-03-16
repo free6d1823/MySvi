@@ -133,7 +133,7 @@ source drivers/pci/Kconfig
 source drivers/d71/Kconfig
 source drivers/watchdog/Kconfig
 source drivers/vc8000e/Kconfig
-
+source drivers/vc8000d/Kconfig
 endmenu
 
 menu "Advanced kernel features"

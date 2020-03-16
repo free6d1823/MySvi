@@ -54,3 +54,5 @@ obj-$(CONFIG_FDT) += libfdt/
 obj-$(CONFIG_D71) += d71/
 obj-$(CONFIG_DW_WDT) += watchdog/
 obj-$(CONFIG_VC8000E) += vc8000e/
+obj-$(CONFIG_VC8000D) += vc8000d/
+

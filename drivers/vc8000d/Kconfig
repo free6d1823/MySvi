@@ -1,0 +1,2 @@
+config VC8000D
+	bool "VC8000D VPU decoder driver"
