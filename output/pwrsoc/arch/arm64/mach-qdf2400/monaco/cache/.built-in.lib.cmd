@@ -1,0 +1,1 @@
+cmd_arch/arm64/mach-qdf2400/monaco/cache/built-in.lib :=  aarch64-linux-gnu-ld -EL  -maarch64linux  -r -o arch/arm64/mach-qdf2400/monaco/cache/built-in.lib arch/arm64/mach-qdf2400/monaco/cache/l3_init.o

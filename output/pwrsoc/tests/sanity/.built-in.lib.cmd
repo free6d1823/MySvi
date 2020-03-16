@@ -1,0 +1,1 @@
+cmd_tests/sanity/built-in.lib :=  aarch64-linux-gnu-ld -EL  -maarch64linux  -r -o tests/sanity/built-in.lib tests/sanity/tcmtest.o tests/sanity/s_asmpercpu.o tests/sanity/c_asmpercpu.o tests/sanity/memrand.o

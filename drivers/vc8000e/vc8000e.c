@@ -34,7 +34,7 @@
 #define SW_ENC_BUS_ERROR_STATUS 0x00000008	//Interrupt status bit bus. Error response from bus.
 #define SW_ENC_FRAME_RDY_STATUS 0x00000004	//Interrupt status bit encoder. When this bit is high encoder has encoded a picture.
 #define SW_ENC_IRQ_DIS			0x00000002	//Encoder IRQ disable. When high there are no interrupts concerning encoder from HW. Polling must be used to see the interrupt statuses.
-#define SW_ENC_IRQ_DIS			0x00000001	//Encoder IRQ. When high encoder requests an interrupt. SW will reset this after interrupt is handled.
+#define SW_ENC_IRQ			0x00000001	//Encoder IRQ. When high encoder requests an interrupt. SW will reset this after interrupt is handled.
 /* SWREG4: Control Register 0 */
 #define SW_ENC_MODE				0xE0000000	//Encoding mode. streamType.1=hevc. 2=h264. 4=jpeg
 #define SW_ENC_MIN_CB_SIZE		0x06000000	//RO min cb size:0-8x8:1-16x16:2-32x32:3-64x64:we only support 8x8
@@ -69,15 +69,15 @@
 **************************************************/
 typedef struct 
 {
-	void __iomem * base_addr;
+	uintptr_t base_addr;
 	unsigned int iosize;
 	int irq;
 	bool valid;
 } CORE_CONFIG;
 
-int total_core_number = 0
+int total_core_number = 0;
 CORE_CONFIG core_array[] = {
-	{CORE_0_IO_ADDR, CORE_0_IO_SIZE, INT_PIN_CORE_0, false},
+	{(uintptr_t)CORE_0_IO_ADDR, CORE_0_IO_SIZE, INT_PIN_CORE_0, false},
 };
 
 
@@ -120,7 +120,7 @@ int vc8000e_dump(int id)
 	printf("Reg dump start\n");
 	for (i=0; i< core_array[id].iosize; i+= 4) {
 		uintptr_t base = core_array[id].base_addr;
-		printf("\tOffset %02X = %08X\n", readl((uintptr_t)(base + i));
+		printf("\tOffset %02X = %08X\n", readl((uintptr_t)(base + i)));
 	}
 	printf("Reg dump end\n");
 	return 0;

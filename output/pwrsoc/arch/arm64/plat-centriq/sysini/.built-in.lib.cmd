@@ -1,0 +1,1 @@
+cmd_arch/arm64/plat-centriq/sysini/built-in.lib :=  aarch64-linux-gnu-ld -EL  -maarch64linux  -r -o arch/arm64/plat-centriq/sysini/built-in.lib arch/arm64/plat-centriq/sysini/QcHydraHelper.o arch/arm64/plat-centriq/sysini/hy_sysini.o arch/arm64/plat-centriq/sysini/hy_sysini_config.o
