@@ -1,1 +1,0 @@
-cmd_arch/arm64/mach-se1000/built-in.lib :=  aarch64-linux-gnu-ld -EL  -maarch64linux  -r -o arch/arm64/mach-se1000/built-in.lib arch/arm64/mach-se1000/timer.o arch/arm64/mach-se1000/board.o arch/arm64/mach-se1000/psci_se1000.o
