@@ -1,0 +1,234 @@
+Converting dwc_cinit_reg_struct.h to systemverilog
+Converting dwc_cinit_regs.h to systemverilog
+Converting dwc_cinit_cfg.h to systemverilog
+Converting dwc_cinit_types.h to systemverilog
+Converting dwc_cinit_dyn_struct.h to systemverilog
+Converting dwc_cinit_qdyn_struct.h to systemverilog
+Converting dwc_cinit_static_struct.h to systemverilog
+Generating header file DWC_ddrctl_header.h
+Generating header file DWC_ddrctl.h
+Processing /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/src/DWC_ddrctl_cc_constants.svh...
+Processing /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/testbench/macros/dwc_ddrphy_VDEFINES.v...
+Generated /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl.h
+Compiling dwc_cinit.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit.c:22:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+Compiling dwc_cinit_amap_reg_prgm.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_amap_reg_prgm.c:26:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+Compiling dwc_cinit_arb_reg_prgm.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:26:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c: In function 'cinit_prgm_PCCFG':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:79: warning: unused variable 'density_mbits'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:78: warning: unused variable 'x16'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:77: warning: unused variable 'pre_cfg'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c: In function 'cinit_prgm_PCFGIDMASKCH':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1538: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1543: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1548: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1553: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1558: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1563: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1568: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1573: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1578: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1583: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1588: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1593: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1598: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1604: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1608: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:1529: warning: unused variable 'cfg'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c: In function 'cinit_prgm_PCFGIDVALUECH':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2860: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2865: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2870: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2875: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2880: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2885: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2890: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2895: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2900: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2905: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2910: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2915: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2920: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2926: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2930: warning: assignment from incompatible pointer type
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:2850: warning: unused variable 'cfg'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c: In function 'cinit_prgm_SBRRANGE0':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:4196: warning: unused variable 'cfg'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c: In function 'cinit_prgm_SBRRANGE1':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_arb_reg_prgm.c:4209: warning: unused variable 'cfg'
+Compiling dwc_cinit_ddr_jedec.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/custom/dwc_cinit_custom.h:1,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/log.h:22,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddr_jedec.c:20:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+Compiling dwc_cinit_ddrc_reg_prgm.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:28:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c: In function 'cinit_prgm_ddrc_regs':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:50: warning: implicit declaration of function 'cinit_prgm_DERATECTL1'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:116: warning: implicit declaration of function 'cinit_prgm_CRCPOISONCTL0'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:118: warning: implicit declaration of function 'cinit_prgm_LNKECCCTL0'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:119: warning: implicit declaration of function 'cinit_prgm_LNKECCCTL1'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:120: warning: implicit declaration of function 'cinit_prgm_LNKECCPOISONCTL0'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c: In function 'cinit_prgm_DERATECTL0':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:748: warning: unused variable 'cfg'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c: At top level:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:788: warning: conflicting types for 'cinit_prgm_DERATECTL1'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:50: note: previous implicit declaration of 'cinit_prgm_DERATECTL1' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c: In function 'cinit_prgm_ADVECCINDEX':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:1478: warning: unused variable 'pre_cfg'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c: At top level:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:1827: warning: conflicting types for 'cinit_prgm_CRCPOISONCTL0'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:116: note: previous implicit declaration of 'cinit_prgm_CRCPOISONCTL0' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:1861: warning: conflicting types for 'cinit_prgm_LNKECCCTL0'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:118: note: previous implicit declaration of 'cinit_prgm_LNKECCCTL0' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:1876: warning: conflicting types for 'cinit_prgm_LNKECCCTL1'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:119: note: previous implicit declaration of 'cinit_prgm_LNKECCCTL1' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:1895: warning: conflicting types for 'cinit_prgm_LNKECCPOISONCTL0'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_ddrc_reg_prgm.c:120: note: previous implicit declaration of 'cinit_prgm_LNKECCPOISONCTL0' was here
+Compiling dwc_cinit_freq_reg_prgm.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:26:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c: In function 'cinit_prgm_freq_regs':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:39: warning: implicit declaration of function 'cinit_prgm_DFILPTMG1'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:69: warning: implicit declaration of function 'cinit_prgm_DRAMSET1TMG30'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:107: warning: implicit declaration of function 'cinit_prgm_DRAMSET1TMG28'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:108: warning: implicit declaration of function 'cinit_prgm_DRAMSET1TMG29'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:133: warning: implicit declaration of function 'cinit_prgm_CRCPARTMG1'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c: At top level:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:1074: warning: conflicting types for 'cinit_prgm_DRAMSET1TMG30'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:69: note: previous implicit declaration of 'cinit_prgm_DRAMSET1TMG30' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c: In function 'cinit_prgm_DRAMSET1TMG30':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:1083: warning: unused variable 'spd'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c: In function 'cinit_prgm_RFSHSET1TMG2':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:1506: warning: unused variable 'timing'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c: In function 'cinit_prgm_ZQSET1TMG0':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:1593: warning: unused variable 'qdyn'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c: In function 'cinit_prgm_SCHEDTMG0':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:1675: warning: unused variable 'qdyn'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c: In function 'cinit_prgm_RANKTMG0':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:1809: warning: unused variable 'trpst_wck'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:1808: warning: unused variable 'trpre_wck'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:1807: warning: unused variable 'ratio'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c: In function 'cinit_prgm_RANKTMG1':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:2683: warning: unused variable 'tck_ps'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:2673: warning: unused variable 'timing'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c: At top level:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:2735: warning: conflicting types for 'cinit_prgm_DRAMSET1TMG28'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:107: note: previous implicit declaration of 'cinit_prgm_DRAMSET1TMG28' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:2758: warning: conflicting types for 'cinit_prgm_DRAMSET1TMG29'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:108: note: previous implicit declaration of 'cinit_prgm_DRAMSET1TMG29' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:2959: warning: conflicting types for 'cinit_prgm_CRCPARTMG1'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:133: note: previous implicit declaration of 'cinit_prgm_CRCPARTMG1' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:3041: warning: conflicting types for 'cinit_prgm_DFILPTMG1'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_freq_reg_prgm.c:39: note: previous implicit declaration of 'cinit_prgm_DFILPTMG1' was here
+Compiling dwc_cinit_lpddr_jedec.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/custom/dwc_cinit_custom.h:1,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/log.h:22,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_lpddr_jedec.c:20:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_lpddr_jedec.c: In function 'map_tck_ps_to_l_lpddr5_data_rate':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_lpddr_jedec.c:1602: warning: control reaches end of non-void function
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_lpddr_jedec.c: In function 'map_tck_ps_to_l_lpddr4_data_rate':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_lpddr_jedec.c:1558: warning: control reaches end of non-void function
+Compiling dwc_cinit_phyinit_setuserinput.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_phyinit_setuserinput.c:20:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_phyinit_setuserinput.c: In function 'dwc_cinit_phyinit_setuserinput':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_phyinit_setuserinput.c:531: warning: unused variable 'mr'
+Compiling dwc_cinit_pre_cfg.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:18:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c: In function 'cinit_pre_cfg':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:220: warning: implicit declaration of function 'cal_lpddr5_odtlon'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:505: warning: implicit declaration of function 'cinit_cal_rd2wr_dr'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:506: warning: implicit declaration of function 'cinit_cal_wr2rd_dr'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:507: warning: implicit declaration of function 'cinit_cal_diff_rank_rd_gap'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:508: warning: implicit declaration of function 'cinit_cal_diff_rank_wr_gap'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:513: warning: implicit declaration of function 'cinit_cal_mrr2rdwr'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c: At top level:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:664: warning: conflicting types for 'cinit_cal_rd2wr_dr'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:505: note: previous implicit declaration of 'cinit_cal_rd2wr_dr' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c: In function 'cinit_cal_rd2wr_dr':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:669: warning: unused variable 'cl'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:667: warning: unused variable 'cfg'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c: At top level:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:707: warning: conflicting types for 'cinit_cal_wr2rd_dr'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:506: note: previous implicit declaration of 'cinit_cal_wr2rd_dr' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c: In function 'cinit_cal_wr2rd_dr':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:712: warning: unused variable 'cl'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:710: warning: unused variable 'cfg'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c: At top level:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:746: warning: conflicting types for 'cinit_cal_diff_rank_rd_gap'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:507: note: previous implicit declaration of 'cinit_cal_diff_rank_rd_gap' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c: In function 'cinit_cal_diff_rank_rd_gap':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:756: warning: unused variable 'tck_ps'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:751: warning: unused variable 'cl'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:749: warning: unused variable 'cfg'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c: At top level:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:783: warning: conflicting types for 'cinit_cal_diff_rank_wr_gap'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:508: note: previous implicit declaration of 'cinit_cal_diff_rank_wr_gap' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c: In function 'cinit_cal_diff_rank_wr_gap':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:788: warning: unused variable 'cl'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:786: warning: unused variable 'cfg'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c: At top level:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:816: warning: conflicting types for 'cinit_cal_mrr2rdwr'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:513: note: previous implicit declaration of 'cinit_cal_mrr2rdwr' was here
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c: In function 'cinit_cal_mrr2rdwr':
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:821: warning: unused variable 'cl'
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_pre_cfg.c:819: warning: unused variable 'cfg'
+Compiling dwc_cinit_reg_prgm.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_cinit_reg_prgm.c:26:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+Compiling dwc_ddr_jedec_timing.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/custom/dwc_cinit_custom.h:1,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/log.h:22,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/src/dwc_ddr_jedec_timing.c:21:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+Compiling dwc_cinit_assert.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/custom/dwc_cinit_custom.h:1,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/custom/dwc_cinit_assert.c:5:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+Compiling dwc_cinit_log.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/custom/dwc_cinit_custom.h:1,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/custom/dwc_cinit_log.c:6:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+Compiling dwc_cinit_print.c
+In file included from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/dwc_cinit.h:39,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/custom/dwc_cinit_custom.h:1,
+                 from /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/custom/dwc_cinit_print.c:4:
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5655:1: warning: "PCFGQOS0_RegisterResetValue" redefined
+/projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/include/DWC_ddrctl_header.h:5137:1: warning: this is the location of the previous definition
+Linking shared library libcinit_phyinit_lpddr5.so
+rm /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_print.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_ddr_jedec.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_reg_prgm.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_arb_reg_prgm.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_freq_reg_prgm.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_assert.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_ddrc_reg_prgm.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_pre_cfg.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_phyinit_setuserinput.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_lpddr_jedec.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_amap_reg_prgm.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit_log.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_cinit.o /projects/soc_prj1/se1000/shuo.zhang/se1000/thirdip/ddrctl/DWC_ddrctl_v2.0/sim_mctl/sw_utilities/cinit/library/build/dwc_ddr_jedec_timing.o

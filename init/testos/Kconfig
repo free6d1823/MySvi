@@ -1,0 +1,83 @@
+
+if TESTOS
+
+menu "TestOS options"
+
+config TESTOS_PATTERN
+	bool "Enable standalone patterns"
+	help
+	  TestOS allows patterns to be linked as standalone programs.
+	  Without enabling this options, HVEP only compiles one
+	  program - an interactive TestOS console.
+
+if TESTOS_PATTERN
+
+menu "Benchmark patterns"
+
+config TESTOS_DHRYSTONE
+	bool "Standalone dhrystone pattern"
+	select DHRYSTONE
+
+config TESTOS_LINPACK
+	bool "Standalone linpack pattern"
+	select LINPACK
+
+config TESTOS_LINPACK_TIMEOUT
+	int "Linpack running timeout"
+	depends TESTOS_LINPACK
+	range -1 30000000
+	default 5000 if TESTOS
+
+config TESTOS_SAXPY
+	bool "Standalone saxpy pattern"
+	select SAXPY
+
+config TESTOS_QPOWER
+	bool "Standalone qpower (power virus) pattern"
+	depends ARM64
+	select QPOWER
+
+endmenu
+
+menu "Readiness test patterns"
+
+config TESTOS_ATEINIT
+	bool "ATE IMC dispatcher"
+	help
+	  Demonstrate ATE pattern dispatching via IMC.
+	  ATE programmer can re-program next pattern address via
+	  ate_setup structure, and ate_setup change monitor running
+	  on IMC can notice the change and re-dispatch the pattern.
+
+config TESTOS_GLKTEST
+	bool "ACPI global lock emulation"
+	depends DEBUG_DCC
+	select CONSOLE_IMC_BUFFERING
+
+config TESTOS_TCMTEST
+	bool "TCM memory accessibility"
+	depends TCM
+	select TCMTEST
+
+config TESTOS_ASMPERCPU
+	bool "Assmebly percpu API readiness"
+	depends SMP
+	select ASMPERCPU
+
+config TESTOS_MEMRAND
+	bool "Random memory access"
+	depends TCM
+	select MEMRAND
+
+config TESTOS_ARM64ISA
+	bool "ARM64 ISA converity"
+	depends ARM64
+	select RAVEN
+
+endmenu
+
+endif
+
+endmenu
+
+endif

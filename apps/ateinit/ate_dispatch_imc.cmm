@@ -1,0 +1,5 @@
+break
+y.create.l ATE_SETUP_TEST_ENTRY 0xff70400048
+y.create.done
+d.s A:ATE_SETUP_TEST_ENTRY %LE %longlong 0x000000ff6f802300
+go
