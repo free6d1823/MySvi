@@ -1,0 +1,21 @@
+
+if PWRSOC
+
+menu "Pwrsoc options"
+
+menuconfig PWRSOC_BENCH
+	bool "Enable bench support"
+
+if PWRSOC_BENCH
+
+config PWRSOC_POWERVIRUS
+       bool "Enable powervirus support"
+
+config PWRSOC_ATOMICTEST
+       bool "Enable atomic test patterns"
+
+endif
+
+endmenu
+
+endif

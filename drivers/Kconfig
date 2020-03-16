@@ -1,0 +1,156 @@
+#
+# Firmware Features
+#
+
+menu "Feature setup"
+
+menu "Generic kernel features"
+
+config IRQ_FORBIDDEN
+	bool
+
+config IRQ_POLL_FORBIDDEN
+	bool
+
+choice
+	prompt "IRQ handling model"
+	default IRQ
+
+config IRQ_POLLING
+	bool "Polling IRQs in BH"
+	depends !IRQ_POLL_FORBIDDEN
+	help
+	  No hardware interrupt handlers will be registered, all hardware
+	  events are examined through polling.
+	  This is a suitable architecture for those bootloaders that would
+	  use an unsafe different interrupt vectors from the loaded
+	  firmware.
+
+config IRQ
+	bool "IRQ interrupted BH"
+	depends on !IRQ_FORBIDDEN
+	help
+	  Hardware interrupt handlers will be registered, while some
+	  hardware events will still be implemented in synchronous way.
+	  This is a suitable architecture for those firmwares that would
+	  expect faster process of interrupts and the firmware itself
+	  does not require high resolution realtime responsiveness.
+
+endchoice
+
+config ARCH_HAS_IRQC
+	bool
+
+menu "Address space layout (.text) support"
+
+config XIP
+	bool "Enable eXecute In Place (XIP) support"
+
+config TEXT_ROM_BASE
+	hex "Base offset of the .text section in the ROM"
+	default 0
+	help
+	  In XIP firmware, this could be used in the linker script to
+	  determine the load address of the .text section.  While in
+	  non-XIP firmware, this might be used to calculate the load
+	  address of the variables created in the linker script.
+
+endmenu
+
+menu "Interactive console (term) support"
+
+config CONSOLE_OUTPUT
+	bool "Enable console output"
+
+config CONSOLE_INPUT
+	bool "Enable console input"
+
+config CONSOLE_COMMAND
+	bool "Enable console commands"
+	select CONSOLE_OUTPUT
+	select CONSOLE_INPUT
+
+choice
+	prompt "Debugging output"
+
+config DEBUG_NONE
+	bool "None"
+
+config DEBUG_UART
+	bool "UART"
+	select UART
+
+config DEBUG_DCC
+	bool "ARM DCC"
+	select DCC if ARM64
+
+endchoice
+
+endmenu
+
+config SMP
+	bool "Symmetrical Multi-Processing (SMP)"
+
+config ARCH_HAS_GPIO
+	bool
+
+
+config GPIO
+	bool "General purpose Input/Output (GPIO) support"
+	depends ARCH_HAS_GPIO
+
+config HEAP_GENERIC
+    bool "generic heap supporting"
+    default n
+
+config DMM
+    bool "Dynamic Memory Management"
+    default n
+    depends !HEAP_GENERIC
+
+source drivers/ddr/Kconfig
+source drivers/uart/Kconfig
+source drivers/i2c/Kconfig
+source drivers/i2c/dw/Kconfig
+source drivers/spi/dw/Kconfig
+source drivers/spi/master/Kconfig
+source drivers/spi/slave/Kconfig
+source drivers/emac/Kconfig
+source drivers/XGmac/Kconfig
+source drivers/trng/Kconfig
+source drivers/pcie/Kconfig
+source drivers/sata/Kconfig
+source drivers/GICv2/Kconfig
+source drivers/sae_smmu/Kconfig
+source drivers/arm_smmu/Kconfig
+source drivers/hidma/Kconfig
+source drivers/usb2/Kconfig
+source drivers/ufs/Kconfig
+source drivers/mmc/Kconfig
+source drivers/dwc_mshc/Kconfig
+source drivers/libfdt/Kconfig
+source drivers/pci/Kconfig
+source drivers/d71/Kconfig
+source drivers/watchdog/Kconfig
+source drivers/vc8000e/Kconfig
+
+endmenu
+
+menu "Advanced kernel features"
+
+config RAS
+	bool "Reliability Availability Serviceability (RAS) support"
+
+config PERF
+	bool "Performance counting (perf) support"
+
+config SEMIHOST
+	bool "enable semihosting"
+	default n
+
+config CRC32
+	bool "enable crc32 count"
+	default n
+endmenu
+
+endmenu

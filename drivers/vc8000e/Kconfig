@@ -1,0 +1,2 @@
+config VC8000E
+	bool "VC8000E driver"

@@ -1,52 +1,70 @@
-# Prerequisites
+.*
+hvep
+hvep-arm64
+dhrystone
+linpack
+saxpy
+qpower
+ateinit
+glktest
+tcmtest
+asmpercpu
+memrand
+arm64isa
+power_*
+testos
+testos_imc
+testos_apc
+hdts_imc*
+hdts_apc*
+*.strip
+.tmp_versions
+.kernelrelease
+.tmpconfig*
+.config*
+.*.cmd
+*.tmp
 *.d
-
-# Object files
 *.o
-*.ko
-*.obj
-*.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
+*.ihx
+*.lnk
 *.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
+*.srec
+*.mem
+*.map
+*.usg
+*.omf
+*.cdb
+*.lk
 *.hex
+*.tar.gz
+cscope*
+tags
+*.bak
+*.swp
+*.stackdump
+*.log
+*.wrn
+*.err
+*.opt
+*.plg
+*.ncb
+*.pyc
+*.sign
+unsigned
+sign
+output
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+# quilt files
+.pc
+patches
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# elcipse project files
+.settings
+.project
+.cproject
+
+# vscode
+.vscode/
+
+.clang-format

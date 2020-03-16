@@ -1,0 +1,15 @@
+config UFS
+	bool "UFS support"
+	---help---
+	  UFS storage driver.
+
+if UFS
+
+config DW_UFS
+	bool "Synopsys UFS support"
+	---help---
+	  Support Synopsys UFS.
+
+endif
+
+

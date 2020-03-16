@@ -1,0 +1,8 @@
+
+#menuconfig arm_SMMU
+#	bool "arm smmu support
+
+config ARM_SMMU
+	bool "ARM SMMU feature support"
+	default n
+

@@ -1,0 +1,5 @@
+
+config SPI_SLAVE
+	bool "SPI_slave support"
+
+

@@ -1,0 +1,5 @@
+#
+# pci enum
+#
+config PCI
+	bool "pci enum"

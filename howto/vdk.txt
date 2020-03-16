@@ -1,0 +1,28 @@
+0. make se1000_defconfig
+
+1. produce the required images:
+Assuming that we have Image/dtb/vdkrom, we need to have four elf files loaded by vdk.
+
+dtc -I dts -O dtb se1000.dts >se1000.dtb
+./bin2elf.sh se1000.dtb 0x60200000
+./bin2elf.sh ~/linux/arch/arm64/boot/Image 0x60280000
+./bin2elf.sh rootfs.cpio.gz 0x64000000
+
+vdkrom.elf is provided by default.
+./bin2elf.sh vdkrom 0xa4000000
+
+2. set the Images config of VDK
+add hvep, se1000.dtb.elf, Image.elf, vdkrom.elf, rootfs.cpio.gz.elf into the initial_image of AP_SS
+
+3. launch kernel
+After running simulation, type "kernel 0x60280000 0x60200000" in svi console.
+
+4. debug kernel
+After debugging with GDB, use the following command to dump the log of kernel.
+dump memory log __log_buf __log_buf+sizeof(__log_buf)
+
+==================================================================================
+what's the vdkrom?
+vdkrom is two line assembly code to jump from boot ROM to AP
+1. ldr x0, =0x10000
+2. br  x0

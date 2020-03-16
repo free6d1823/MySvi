@@ -1,0 +1,90 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu 'Generic setup'
+
+config EXPERIMENTAL
+	bool "Prompt for development"
+	help
+	  Some of the various things that HVEP supports can be in a state
+	  of development where the functionality, stability, or the level of
+	  testing is not yet high enough for general use. This is usually
+	  known as the "alpha-test" phase among developers. If a feature is
+	  currently in alpha-test, then the developers usually discourage
+	  uninformed widespread use of this feature by the general public to
+	  avoid "Why doesn't this work?" type mail messages. However, active
+	  testing and use of these systems is welcomed. Just be aware that it
+	  may not meet the normal level of reliability or it may fail to work
+	  in some special cases. Detailed bug reports from people familiar
+	  with the kernel internals are usually welcomed by the developers
+	  This option will also make obsoleted drivers available. These are
+	  drivers that have been replaced by something else, and/or are
+	  scheduled to be removed in a future kernel release.
+	  Unless you intend to help test and develop a feature or driver that
+	  falls into this category, or you have a situation that requires
+	  using these features, you should probably say N here, which will
+	  cause the configurator to present you with fewer choices. If
+	  you say Y here, you will be offered the choice of using features or
+	  drivers that are currently considered to be in the alpha-test phase.
+
+config BSS_IN_DATA
+	bool "Allocate BSS in DATA section"
+	depends EXPERIMENTAL
+	default n
+	help
+	  Normally BSS will be allocated in the BSS section and BSS will be
+	  cleared at startup. This option will allocate BSS in DATA section.
+	  It will increase the size of image. Anyway, the time will be saved
+	  at startup because clearing BSS is not needed.
+
+config CC_OPT_SIZE
+	bool "Optimize for size"
+	default y
+	help
+	  Enabling this option will pass "-Os" to compiler resulting in a
+	  smaller kernel.
+	  If unsure, say N.
+
+config CC_OPT_SPEED
+	bool "Optimize for speed"
+	default y
+	help
+	  Enabling this option will pass "-O2" to compiler resulting in a
+	  faster kernel.
+	  If unsure, say N.
+
+menuconfig DEBUG
+	bool 'Debugging options'
+	depends EXPERIMENTAL
+
+if DEBUG
+
+config CC_GEN_DEBUG
+	bool "Compile with debug info"
+	help
+          If you say Y here the resulting kernel image will include
+	  debugging info resulting in a larger kernel image.
+	  This adds debug symbols to the kernel and modules (gcc -g), and
+	  is needed if you intend to use kernel crashdump or binary object
+	  tools like crash, kgdb, LKCD, gdb, etc on the kernel.
+	  Say Y here only if you plan to debug the kernel.
+
+	  If unsure, say N.
+
+endif
+
+config CPU_MASK
+	hex "configure cpu mask (0x1-0xffffffffffff)"
+	default "0xffffffffffff" if TESTOS_HWP
+	default "0x3f" if (PRE_Z1 || PRE_S1 || PRE_HAPS)
+	default "0xffffffffffff"
+
+config LLC_MASK
+	hex "configure last level cache mask (0x1-0xffffff)"
+	default "0xffffff" if (TESTOS_HWP || PRE_Z1)
+	default "0xf" if (PRE_S1 || PRE_HAPS)
+	default "0xffffff"
+
+endmenu

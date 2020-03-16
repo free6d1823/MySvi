@@ -1,0 +1,15 @@
+config DWC_MSHC
+	bool "DWC_MSHC support"
+	---help---
+	  DWC_MSHC storage driver.
+
+if DWC_MSHC
+
+config MMC_WRITE
+	bool "Synopsys DWC_mshc write support"
+	---help---
+	  Support Synopsys DWC_mshc.
+
+endif
+
+

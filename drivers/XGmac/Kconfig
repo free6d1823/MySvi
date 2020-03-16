@@ -1,0 +1,11 @@
+
+#menuconfig XGMAC
+#	bool "Ethernet 10GMAC support"
+
+#if HDTS
+
+config XGMAC
+	bool "HDTS 10G mac feature support"
+	default n
+
+#endif

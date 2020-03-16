@@ -1,0 +1,15 @@
+#
+# Library Features
+#
+
+menu "Library setup"
+
+config CRC16_CCITT
+        bool "Enable crc16"
+
+config COMMON_C_LIB
+        bool "Enable common C lib for memmove function"
+        default n
+
+endmenu
+

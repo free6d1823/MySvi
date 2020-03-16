@@ -1,0 +1,19 @@
+(1) use the following toolchain
+https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/8-2019q3/RC1.1/gcc-arm-none-eabi-8-2019-q3-update-linux.tar.bz2
+
+(2) add toolchain into path:
+	export PATH=/opt/gcc-arm-none-eabi-8-2019-q3-update/bin:$PATH
+
+(3) compile:
+	export ARCH=armv7m CROSS_COMPILE=arm-none-eabi-
+	make m4_defconfig
+	make clean;make
+
+(4) add hevp-armv7m into initial_image of SMP_Subsystem
+    add hvep(arm64) and vdkrom.elf into the initial_image of AP_SS
+
+(5) start simulation
+
+(6) input "mw l 0xa00c2000 1" into UART_0_PHY to start m4 CPU (on arm64 console)
+
+(7) check UART_1_PHY (on m4 console)

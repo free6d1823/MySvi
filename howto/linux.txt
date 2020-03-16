@@ -1,0 +1,14 @@
+Quick guide to build kernel:
+
+export ARCH=arm64
+export CROSS_COMPILE=aarch64-linux-gnu-
+#export CROSS_COMPILE=aarch64-none-elf-
+make defconfig
+
+make
+make Image
+make Image -j 8
+
+Only "make Image" is to save time and not to build modules.
+
+Find your image at "arch/arm64/boot/Image"

@@ -1,0 +1,5 @@
+howto/bin4zebu.sh arch/arm64/boot/hvep.bin 0x10000
+
+./bin4zebu.sh se1000_zebu.dtb 0x00200000
+./bin4zebu.sh ~/linux/arch/arm64/boot/Image 0x00280000
+./bin4zebu.sh rootfs.cpio.gz 0x04000000

@@ -1,0 +1,10 @@
+
+menuconfig I2C
+	bool "Inter-integrated circuit (I2C) support"
+
+if I2C
+
+config I2CS
+	bool "I2C slave support"
+
+endif

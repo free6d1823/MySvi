@@ -1,0 +1,14 @@
+1. create a new image, you'd better know it's contents.
+2. add a image into the initial_image of /SE1000_mini_soc/SFC_Subsystem/DWC_UFS_TLM_BB_0/LUN3
+3. input ufs commands.
+	(1)ufs init
+		- ufs init.
+	(2)ufs enum
+		- dump LUN0~31
+	(3)ufs read 3 0 0x70000000 0x1000
+		- ufs read data(size=0x1000) from LUN3 to 0x70000000
+	(4)md l 0x70000000 0x100
+		- check 0x70000000
+
+4. if you want to test other LUN_X, you need to fill the value of BL1.vpcfg->Parameters->/SE1000_mini_soc/SFC_Subsystem/DWC_UFS_TLM_BB_0/UFSDevice/CapacityInBytes_LUN_X
+5. repeat step 2~3

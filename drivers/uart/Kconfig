@@ -1,0 +1,59 @@
+#
+# UART Devices
+#
+
+config ARCH_HAS_UART
+	bool
+
+config UART
+	bool "Universal asynchronous RX/TX (UART) support"
+	depends ARCH_HAS_UART
+
+menu "CoreLink peripherals"
+
+config UART_PL01X
+	bool "PrimeCell UART (PL01x)"
+	select ARCH_HAS_UART
+	help
+	  PrimeCell UART (PL010/PL011) offers similar functionality to the
+	  industry-standard 16C550 UART.
+
+config UART_DW16550
+	bool "Synopsis 16550 uart"
+	select ARCH_HAS_UART
+	help
+	  16550 compatible uart driver
+
+if UART_PL01X || UART_DW16550
+choice
+	prompt "which UART for debug consoles"
+	default UART_PL01X_DEV0
+	help
+	  Select serial port used for DEBUG_PRINT and CONSOLE.
+	  Currently only one device can be selected as CONSOLE
+
+
+config UART_PL01X_DEV0
+	bool "uart device 0"
+
+config UART_PL01X_DEV1
+	bool "uart device 1"
+
+config UART_DW16550_DEV0
+	bool "uart device 3"
+
+config UART_DW16550_DEV1
+	bool "uart device 4"
+
+endchoice
+endif
+
+endmenu
+
+if UART
+
+config UART_CON_BAUDRATE
+  int "configure console uart baudrate:"
+	default 115200
+
+endif

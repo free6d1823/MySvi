@@ -1,0 +1,6 @@
+#
+# PCIe for Qcom
+#
+
+config PCIE_QCOM
+	bool "Qcom PCIe controller"

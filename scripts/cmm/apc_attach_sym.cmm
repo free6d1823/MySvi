@@ -1,0 +1,28 @@
+local &image
+local &cpu
+local &arguments
+local &cmm_dir
+local &top_dir
+local &sym_dir
+local &saved_dir
+
+entry %line &arguments
+
+&cmm_dir=os.ppd()
+&saved_dir=os.pwd()
+cd &cmm_dir/../..
+&top_dir=os.pwd()
+&sym_dir=string.split("&top_dir","\",-1)
+
+&image=STRing.SCANAndExtract(string.lwr("&arguments"), "image=", "hvep")
+&cpu=STRing.SCANAndExtract(string.lwr("&arguments"), "cpu=", "0")
+
+sys.attach
+core.select &cpu
+
+r /spotlight
+d.l
+data.load &image /StripPart "&sym_dir" /Path &top_dir /nocode
+mode.HLL
+
+break

@@ -1,0 +1,90 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_CENTRIQ
+
+menu "Qualcomm Centriq platform options"
+
+menu "Power management support"
+
+config PMIC_SPMI
+	bool "SPMI based QDF2400 PMIC Arbiter support"
+
+config PMIC_PMBUS
+	bool "PMBUS based QDF2400 PMIC (CVR) support"
+	select I2C
+
+endmenu
+
+config QCOM_DDRSS
+	bool "Qualcomm DDR subsystem (DDRSS) support"
+	select MONACO
+	select MONACO_MEMORY
+	select I2C
+
+config TCM
+	bool "L3 Tightly Coupled Memory (TCM) support"
+	select MONACO
+	select MONACO_CACHE
+	select MONACO_SLAVE_CACHE
+
+source "arch/arm64/plat-centriq/monaco/Kconfig"
+
+config GPIO_TLMM
+	bool "Qualcomm Top Level Module Multiplexer (TLMM) support"
+
+
+config I2C_QUP
+	bool "Qualcomm Universal Peripheral (QUP) I2C support"
+
+config SPI_QUP
+	bool "Qualcomm Universal Peripheral (QUP) SPI support"
+
+config QDSS
+	bool "Qualcomm Debug Subsystem (QDSS) support"
+
+if QDSS
+
+config QDSS_CTI
+	bool "Qualcomm Cross Trigger Interface (QCOM CTI) support"
+
+config QDSS_PMU
+	bool "Qualcomm Performance Monitor Unit (QCOM PMU) support"
+
+config QDSS_DBG
+	bool "Qualcomm Debug component support"
+	help
+	  DEVTYPE.major=4, DEVTYPE.sub=0.
+
+config QDSS_TPDA
+	bool "Trace, Performance Monitoring & Diagnostics Aggregator (TPDA) support"
+
+config QDSS_TPDM
+	bool "Trace, Profiling & Diagnostics Monitor (TPDM) support"
+
+config QDSS_SWITCH_DBG
+	bool "Qualcomm switch debugger support"
+
+config QDSS_SWITCH_PMU
+	bool "Qualcomm switch performance monitor support"
+
+config QDSS_SWITCH_CFG
+	bool "Qualcomm switch configuration support"
+	help
+	  DFTSU config.
+
+config QDSS_SKITTER_CFG
+	bool "Qualcomm skitter configuration support"
+
+endif
+
+config SPM_CFG
+	bool "Subsystem Power Manager (SPM) support"
+
+config FUSE_CFG
+	bool "Fuse Print Function support"
+endmenu
+
+endif

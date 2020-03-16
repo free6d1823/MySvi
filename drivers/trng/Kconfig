@@ -1,0 +1,10 @@
+
+menuconfig TRNG
+	bool "True Random Number Generator support"
+
+if TRNG
+
+config HDTS_TRNG
+	bool "HDTS TRNG feature support"
+
+endif

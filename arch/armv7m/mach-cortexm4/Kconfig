@@ -1,0 +1,21 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_QDF2400
+
+menu "cortexm4 soc options"
+
+endmenu
+
+config APM
+	bool "switch power supply"
+
+config TSENS
+	bool "Support tsens"
+
+config CPUCHAR
+	bool "Support cpuchar"
+
+endif

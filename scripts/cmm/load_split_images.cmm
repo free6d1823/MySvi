@@ -1,0 +1,50 @@
+local &plat
+local &image
+local &bp
+local &offset
+local &arguments
+local &cmm_dir
+local &top_dir
+local &sym_dir
+local &saved_dir
+entry %Line &arguments
+
+&cmm_dir=os.ppd()
+&saved_dir=os.pwd()
+cd &cmm_dir/..
+&top_dir=os.pwd()
+&sym_dir=string.split("&top_dir","\",-1)
+
+&plat=STRing.SCANAndExtract(string.lwr("&arguments"), "plat=", "platform")
+&image=STRing.SCANAndExtract(string.lwr("&arguments"), "image=", "testos_app")
+&bp=STRing.SCANAndExtract(string.lwr("&arguments"), "bp=", "entry")
+&offset=STRing.SCANAndExtract(string.lwr("&arguments"), "offset=", "0xff70000000")
+
+sys.down
+sys.up
+
+r /spotlight
+d.l
+
+cd &top_dir/output/&plat/&image/bin/
+data.load &image /StripPart "&sym_dir" /Path &top_dir
+
+cd &top_dir/output/&plat/testos_kern/bin/
+data.load testos_kern /StripPart "&sym_dir" /Path &top_dir
+IF (("&offset"!=""))
+(
+    y.create.l TESTOS_CPU_ENTRY_POINT 0xff70400000
+    y.create.done
+    d.s A:TESTOS_CPU_ENTRY_POINT %LE %longlong &offset
+)
+
+mode.HLL
+
+b.d /all
+IF (("&bp"!=""))
+(
+    b.s &bp
+    go
+)
+
+cd &saved_dir

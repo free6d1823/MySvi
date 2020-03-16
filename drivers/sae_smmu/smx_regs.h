@@ -1,0 +1,139 @@
+#ifndef _SMX_REGS_H_
+#define _SMX_REGS_H_
+
+#define IMC_MSA_CTRL 	0xFF6FBC0300
+#define IMC_PROTNS_CTRL 0xFF6FBC0304
+
+#define SMXACC0_SMX_BASE 0xff60070000   
+#define SMXACC1_SMX_BASE 0xff60870000
+#define SMX_CLK_OFFSET 0x70000   /*ce0_smxacc_ctrl-smxacc_base */
+#define CE0_SMXACC_CTRL 0xff600e0000
+#define CE1_SMXACC_CTRL 0xff608e0000
+
+#define SMxAcc0_addr_high_rd_data 0x08
+#define SMxAcc1_addr_high_rd_data 0x08
+#define SMxAcc0_addr_high_wr_data 0x0C
+#define SMxAcc1_addr_high_wr_data 0x0C
+#define SMxAcc0_addr_high_rd_ddt 0x10
+#define SMxAcc1_addr_high_rd_ddt 0x10
+#define SMxAcc0_addr_high_expend 0x14
+#define SMxAcc1_addr_high_expend 0x14 //default 0
+
+#define SMX_STATUS_OK			0
+#define SMX_STATUS_ICV_FAIL		1
+#define SMX_STATUS_MEMORY_ERROR		2
+#define SMX_STATUS_BLOCK_ERROR		3
+#define SMX_STATUS_SECURITY_ERROR	4
+
+#define SMX_IRQ_CTRL_CFIFOT_MASK		0x3F
+
+#define SMX_FIFO_STAT_STAT_CNT 		8
+#define SMX_FIFO_STAT_STAT_CNT_MASK	(0x7 << SMX_FIFO_STAT_STAT_CNT)
+#define SPA_STATUS_RC_OFFSET		24
+#define SPA_STATUS_RC_MASK			(0x7 << SPA_STATUS_RES_CODE_OFFSET)
+#define SMX_KEY_SZ_CTX_INDEX_OFFSET	8
+#define SMX_KEY_SZ_CIPHER_OFFSET	0
+#define SMX_STATUS_RC_MASK			0x07000000
+#define SMX_STATUS_RC_OFFSET		24
+
+#define SMX_IRQ_EN_REG_OFFSET		0x00000000
+#define SMX_IRQ_STAT_REG_OFFSET		0x00000004
+#define SMX_IRQ_CTRL_REG_OFFSET		0x00000008
+#define SMX_FIFO_STAT_REG_OFFSET	0x0000000C
+#define SMX_SDMA_BRST_SZ_REG_OFFSET	0x00000010
+#define SMX_STAT_WD_CTRL_REG_OFFSET	0x00000014
+
+#define SMX_SECURE_CTRL_REG_OFFSET      0x00000080
+#define SMX_SECURE_CTX_RELEASE_REG_OFFSET      0x00000084
+#define SMX_CTX_RELEASE_STS_REG_OFFSET      0x00000088
+#define SMX_CLR_FIFO_REG_OFFSET         0x0000008c 
+
+
+#define SMX_SRC_PTR_REG_OFFSET		0x00000020
+#define SMX_DST_PTR_REG_OFFSET		0x00000024
+#define SMX_OFFSET_REG_OFFSET		0x00000028
+#define SMX_PRE_AAD_LEN_REG_OFFSET	0x0000002c
+
+#define SMX_PROC_LEN_REG_OFFSET		0x00000034
+#define SMX_ICV_OFFSET_REG_OFFSET	0x0000003C
+#define SMX_IV_OFFSET_REG_OFFSET	0x00000040
+#define SMX_AUX_INFO_REG_OFFSET		0x00000048
+#define SMX_CTRL_REG_OFFSET		0x0000004C
+
+#define SMX_STAT_POP_REG_OFFSET		0x00000050
+#define SMX_STATUS_REG_OFFSET		0x00000054
+
+
+#define SMX_CTX_CIPH_KEY 0x100 
+
+#define SMX_CTRL_CA_ALG_IDX			1
+#define SMX_CTRL_HA_ALG_IDX			2
+#define SMX_CTRL_CIPH_MODE_IDX		        4
+#define SMX_CTRL_CTX_IDX		8	
+#define SMX_CTRL_ENCRYPT_IDX	12	
+
+#define _SMX_CTRL_ICV_APPEND 14
+#define CTRL_SET_ICV_APPEND (1UL << _SMX_CTRL_ICV_APPEND )
+#define  ICV_AFTER_MODE 0
+#define  ICV_BEFORE_MODE 1
+
+/////////////comfirm above///////////////////////////////////
+#define SMX_CTRL_AAD_COPY_IDX		25
+#define SMX_CTRL_SK_IDX				31
+
+#define SMX_KEY_SZ_CTX_IDX			8
+#define SMX_KEY_SZ_SZ_IDX			0
+
+#define SMX_IRQ_CTRL_SFIFOT_IDX		16
+
+#define SMX_IRQ_EN_CIE_SET			1 
+#define SMX_IRQ_EN_SIE_SET			(1 << 1)
+#define SMX_IRQ_EN_SWIE_SET			(1 << 7)
+#define SMX_IRQ_EN_GIE_SET			(1 << 31)
+
+#define SMX_IRQ_STAT_SIF_MASK		(1 << 1) 
+#define SMX_IRQ_STAT_SIF_SET		(1 << 1)
+#define SMX_IRQ_STAT_SWIF_MASK		(1 << 12)
+#define SMX_IRQ_STAT_SWIF_SET		(1 << 12)
+
+#define SMX_IV_OFFSET_IVF_IDX		31
+
+#define SMX_CTRL_CIPH_ALG_NULL		0x0
+#define SMX_CTRL_CIPH_ALG_SM4		0x1
+#define SMX_CTRL_HASH_ALG_NULL		(0x0 << SMX_CTRL_HASH_ALG_IDX)
+#define SMX_CTRL_HASH_ALG_SM3		(0x1 << SMX_CTRL_HASH_ALG_IDX)
+
+#define SMX_CTRL_CIPH_MODE_NULL		(0x00)
+#define SMX_CTRL_CIPH_MODE_ECB		(0x00)
+#define SMX_CTRL_CIPH_MODE_CBC		(0x01)
+#define SMX_CTRL_CIPH_MODE_CFB		(0x04)
+#define SMX_CTRL_CIPH_MODE_CTR		(0x02)
+#define SMX_CTRL_CIPH_MODE_OFB		(0x03)
+#define SMX_CTRL_CIPH_MODE_GCM		(0x05)
+
+#define SMX_FIFO_STAT_SFIFOE		(1 << 31)
+#define SMX_FIFO_STAT_SFIFOCNT_MASK	(0x3F << 16)
+#define SMX_FIFO_STAT_CFIFOF		(1 << 15)
+#define SMX_FIFO_STAT_CFIFOCNT_MASK	(0x3F << 0)
+
+#define SMX_GET_STATUS_RET_CODE(x)		((x) << 24)
+#define SMX_STATUS_SEC_CMD_IDX		30
+
+#define SMX_AUX_INFO_BITALIGN_IDX	1
+
+#define TOP_SMX_RST_OFFSET 4
+
+#define SMX_SET_CIPHER_KEY_SZ(x) 			(x << SMX_KEY_SZ_SZ_IDX)
+#define SMX_SET_KEY_CTX(x) 					(x << SMX_CTRL_CTX_IDX)
+
+#define CTRL_SET_KEY_EXP        (1UL << _SMX_CTRL_KEY_EXP)
+#define _SMX_CTRL_KEY_EXP        15 
+
+#define SMX_STAT_OK_MASK 1
+#define SMX_STAT_ERR_CMD_SEC_MASK (1<<1)
+#define SMX_STAT_ERR_KCP_MASK (1<<2)
+#define SMX_STAT_ERR_ICV_MASK (1<<3)
+#define SMX_STAT_ERR_MEM_MASK (1<<4)
+#define SMX_STAT_ERR_CMD_MASK (1<<5)
+
+#endif /* _SMX_REGS_H_ */

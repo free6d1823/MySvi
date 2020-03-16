@@ -1,0 +1,13 @@
+
+menuconfig SPI
+	bool "Inter-integrated circuit (SPI) support"
+
+if SPI
+
+config SPI_NOR
+	bool "SPI_nor support"
+
+config AVSBUS
+	bool "AVSBUS support"
+
+endif

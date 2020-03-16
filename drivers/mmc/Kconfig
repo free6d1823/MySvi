@@ -1,0 +1,17 @@
+#menuconfig mmc
+
+config MMC
+	bool "MMC support"
+	---help---
+	  MMC storage driver.
+
+if MMC
+
+config DW_EMMC
+	bool "Synopsys emmc support"
+	---help---
+	  Support Synopsys emmc.
+
+endif
+
+

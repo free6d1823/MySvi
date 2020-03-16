@@ -1,0 +1,6 @@
+#
+# IMC_GICv2
+#
+
+menuconfig IMC_GICv2
+	bool "IMC Generic Interrupt Controller support"

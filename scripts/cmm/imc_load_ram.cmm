@@ -1,0 +1,152 @@
+local &image
+local &bp
+local &t32
+local &arguments
+local &cmm_dir
+local &top_dir
+local &sym_dir
+local &saved_dir
+
+entry %line &arguments
+
+&saved_dir=os.pwd()
+
+&cmm_dir=os.pwd()
+cd &cmm_dir/../..
+&top_dir=os.pwd()
+&sym_dir=string.split("&top_dir","\",-1)
+
+&image=STRing.SCANAndExtract(string.lwr("&arguments"), "image=", "hvep")
+&bp=STRing.SCANAndExtract("&arguments", "bp=", "entry") ;; don't need to convert to upper for func name
+&t32=STRing.SCANAndExtract("&arguments", "t32=", "0") ;; if 1, using t32 area window for output
+
+sys.down
+sys.up
+
+r /spotlight ;; open register window
+d.l ;; open source window
+
+cd &top_dir
+data.load &image /StripPart "&sym_dir" /Path &top_dir
+mode.HLL
+b.d /all ;; may comment out for using latest bp settings
+
+IF (("&bp"!=""))
+(
+    b.s &bp
+    go
+)
+
+IF (("&t32"!="0"))
+(
+    AREA.view ;display the default AREA window
+    AREA.RESet ;reset the AREA window
+
+    PRINT "t32 is set to &t32 and using t32 IO window"
+
+    B:
+    ; ; winclear
+    ; winpos 0% 0 49% 100%
+    ; area.create HXTBareMetal
+    ; area.view HXTBareMetal
+    ; area.clear HXTBareMetal
+    ; area.select HXTBareMetal
+    ; wintop HXTBareMetal
+    ; screen.display
+
+    ; stop before readline calling
+    break.set readline
+    go
+    wait !run()
+
+    ; set var for t32 IO output
+    Var.set HxtBMShell_UART=FALSE
+
+    ; clean bp and stop at readline_mode
+    Break.Delete readline
+    break.set readline_mode /onchip /program
+    go
+    wait !run()
+
+    ;; print prompt once
+    LOCAL &Input &CommandLen &iLoop
+LOOP:
+    print "HDTS:>"
+    enter %LINE &Input
+    print
+
+    ; got user input and then stop at readline
+    Break.Delete readline_mode
+    break.set readline
+
+    &Input=string.trim("&Input")
+    &CommandLen=string.len("&Input")
+    &iLoop=0.
+    while &iLoop<&CommandLen
+    (
+        &c=string.char("&Input", &iLoop)
+        Var.set bare_metal_param.cmd_input[&iLoop]=&c
+        &iLoop=&iLoop+1
+    )
+    &c= 0.
+    Var.set bare_metal_param.cmd_input[&iLoop]=&c
+    Var.set bare_metal_param.cmd_status=1.
+
+    ; run BM code
+    go
+
+    ; check results and print output buffer
+    gosub check_status
+    Break.Delete readline
+    break.set readline_mode
+
+    goto LOOP
+)
+
+cd &saved_dir
+
+enddo (0==0)
+
+;=====================================================
+; --- Function to check command status return
+;       and exit if 0x100
+;=====================================================
+check_status:
+  local &Result
+  wait !run()
+
+  gosub printOutputBuffer
+
+  &Result=V.VALUE(bare_metal_param.cmd_status)
+  return
+
+printOutputBuffer:
+    local &outputBufferLength
+    local &currentChar
+    local &i
+
+    &i=0.
+    &outputBufferLength=V.VALUE(t32_output_buffer_length)
+
+    while &i<&outputBufferLength
+    (
+        &currentChar=V.VALUE(t32_output_buffer[&i])
+        if (&currentChar==0xA)
+        (
+            print
+        )
+        else if (&currentChar==0xD)
+        (
+            ;print
+        )
+
+        else
+        (
+            print %CONTINUE conv.char(&currentChar)
+        )
+        &i=&i+1.
+    )
+
+    Var.SET t32_output_buffer_length=0
+
+    return

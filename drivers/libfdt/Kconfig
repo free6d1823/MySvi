@@ -1,0 +1,2 @@
+config FDT
+	bool "FDT support"

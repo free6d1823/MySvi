@@ -1,0 +1,2 @@
+config DW_WDT
+	bool "designware wdt driver"

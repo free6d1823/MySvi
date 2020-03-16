@@ -1,0 +1,9 @@
+obj-$(CONFIG_USB) += usb.o usb_hub.o
+obj-$(CONFIG_USB) += usb_cmd.o
+
+obj-$(CONFIG_USB_XHCI_HCD) += xhci.o xhci-mem.o xhci-ring.o
+#obj-$(CONFIG_USB_XHCI_HCD) += usbport.o
+obj-$(CONFIG_USB_XHCI_PCI) += xhci-pci.o
+
+obj-$(CONFIG_USB_EHCI_HCD) += ehci-hcd.o
+obj-$(CONFIG_USB_STORAGE) += usb_storage.o

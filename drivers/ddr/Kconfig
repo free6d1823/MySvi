@@ -1,0 +1,33 @@
+
+menuconfig DDR
+	bool "Double Data Rate (DDR) support"
+
+if DDR
+choice
+	prompt "select ddr controller"
+	default DDR_MEMC_SNPS
+	
+config DDR_MEMC_SNPS
+	bool "snps memc & phy support"
+	
+config DDR_INIT_DEFAULT
+	bool "Defaultly init the DDR"
+	select QCOM_DDRSS
+endchoice
+
+if DDR_MEMC_SNPS
+choice
+	prompt "select snps ddr phy"
+	default DDR_PHY_LPDDR4
+
+config DDR_PHY_LPDDR4
+	bool "lpddr4 phy"
+
+config DDR_PHY_LPDDR5
+	bool "lpddr5_phy"
+
+endchoice
+endif
+
+endif
+

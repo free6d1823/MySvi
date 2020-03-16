@@ -1,0 +1,11 @@
+
+if M4BENCH
+
+menu "Cortex-m4 bench options"
+
+menuconfig M4_BENCH
+	bool "Enable bench support"
+
+endmenu
+
+endif

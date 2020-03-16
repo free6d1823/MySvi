@@ -1,0 +1,11 @@
+
+#menuconfig EMAC
+#	bool "Ethernet MAC support"
+
+#if HDTS
+
+config EMAC
+	bool "HDTS EMAC feature support"
+	default n
+
+#endif

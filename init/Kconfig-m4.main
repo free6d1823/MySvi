@@ -1,0 +1,88 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "Program setup"
+
+config TESTOS
+	bool
+	select GPIO
+
+choice
+	prompt "Target Program"
+	default PWRSOC
+
+config M4BENCH
+	bool "Cortex-m4 Bench"
+	select CONSOLE_COMMAND
+	help
+	  This option is used to run patterns in an interactive command
+	  line environment, which requires special configurations that are
+	  conflict to what are used for building standalone patters.
+	  The hvep image built by this option should always include
+	  console inputs.
+
+config PWRSOC
+	bool "Power Bench"
+	select CONSOLE_COMMAND
+	help
+	  This option is used to run patterns in an interactive command
+	  line environment, which requires special configurations that are
+	  conflict to what are used for building standalone patters.
+	  The hvep image built by this option should always include
+	  console inputs.
+
+config TESTOS_COMBINED
+	bool "TestOS combined IMC/APC"
+	select SMP
+	select TESTOS
+	help
+	  This option is used to run patterns in standalone styles.
+	  The hvep image built by this option may not include console
+	  inputs.
+
+endchoice
+
+choice
+	prompt "Target platform"
+	default TESTOS_HWP
+
+config TESTOS_HWP
+	bool "Real hardware platforms (SDP/REP)"
+	select UART
+
+config TESTOS_DBG
+	bool "Real hardware platform with debugger (T32)"
+	select DCC
+
+config TESTOS_EMU
+	bool "Emulators"
+
+config TESTOS_ATE
+	bool "Testers (ATE/Bench)"
+
+endchoice
+
+if TESTOS_EMU
+
+choice
+	prompt "Emulator type"
+
+config PRE_Z1
+	bool "Palladium Z1"
+
+config PRE_S1
+	bool "Prodium S1"
+
+config PRE_HAPS
+	bool "Synopsys HAPS"
+
+endchoice
+
+endif
+
+source "init/pwrsoc/Kconfig"
+source "init/m4bench/Kconfig"
+
+endmenu

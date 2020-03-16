@@ -1,0 +1,34 @@
+
+menu "Kernel feature sanity validations"
+
+config SPINLOCK_TEST
+	bool "Spinlock test"
+
+config TCMTEST
+	bool "TCM integrity validation"
+	depends TCM
+
+config ASMPERCPU
+	bool "ASM PERCPU API validation"
+	depends SMP
+
+config MEMRAND
+	bool "Random memory access stress test"
+	depends TCM
+
+if MEMRAND
+
+choice
+	prompt "Cache hit/miss"
+
+config MEMRAND_L1HIT
+	bool "L1 hit"
+
+config MEMRAND_L1MISS
+	bool "L1 miss"
+
+endchoice
+
+endif
+
+endmenu

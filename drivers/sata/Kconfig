@@ -1,0 +1,16 @@
+#
+# SATA
+#
+
+menuconfig SATA
+	bool "Serial Advanced Technology Attachment (SATA) support"
+
+if SATA
+
+config HDTS_SATA
+    bool "HDTS SATA feature support"
+
+config PWRSOC_SATA
+    bool "PWRSOC SATA feature support"
+
+endif

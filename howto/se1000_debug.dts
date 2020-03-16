@@ -1,0 +1,148 @@
+/dts-v1/;
+
+/ {
+	interrupt-parent = <0x8001>;
+	#size-cells = <0x2>;
+	#address-cells = <0x2>;
+	compatible = "linux,se1000";
+
+	psci {
+		cpu_on = <0xc4000003>;
+		method = "smc";
+		compatible = "arm,psci-0.2", "arm,psci";
+	};
+
+	memory@60200000 {
+		reg = <0x0 0x60200000 0x0 0x7000000>;
+		device_type = "memory";
+	};
+
+	uart@c1200000 {
+		device_type = "serial";
+		compatible = "ns16550a";
+		reg = <0x0 0xc1200000 0x0 0x10000>;
+		clocks = <&apbclk>;
+		current-speed = <115200>;
+		interrupts = <0 79 4>;
+		baud = <115200>;
+		reg-shift = <2>;
+		reg-io-width = <4>;
+		no-loopback-test = <1>;
+	};
+
+	/* UFS
+	ufs: ufs@a4030000 {
+		compatible = "snps,g210-tc-6.00-20bit";
+		reg = <0x0 0xa4030000 0x0 0x10000>;
+		interrupts = <0 0 4>;
+		clocks = <&ufsclk>, <&ufsclk>;
+		clock-names = "ref_clk", "phy_clk";
+		freq-table-hz = <0 0>, <0 0>;
+	};
+
+	ufsclk: ufs-pclk {
+		phandle = <0x8003>;
+		clock-output-names = "ufsrefclk52mhz";
+		clock-frequency = <52000000>;
+		#clock-cells = <0x0>;
+		compatible = "fixed-clock";
+	};
+	*/
+
+	intc@b6000000 {
+		phandle = <0x8001>;
+		interrupts = <0x1 0x9 0x4>;
+		reg = <0x0 0xb6000000 0x0 0x10000 0x0 0xb6060000 0x0 0x200000>;
+		#redistributor-regions = <0x1>;
+		compatible = "arm,gic-v3";
+		ranges;
+		#size-cells = <0x2>;
+		#address-cells = <0x2>;
+		interrupt-controller;
+		#interrupt-cells = <0x3>;
+	};
+
+	cpus {
+		#size-cells = <0x0>;
+		#address-cells = <0x1>;
+
+		cpu@0 {
+			reg = <0x000>;
+			enable-method = "psci";
+			compatible = "arm,cortex-a72";
+			device_type = "cpu";
+		};
+/*
+		cpu@1 {
+			reg = <0x100>;
+			enable-method = "psci";
+			compatible = "arm,cortex-a72";
+			device_type = "cpu";
+		};
+
+		cpu@2 {
+			reg = <0x200>;
+			enable-method = "psci";
+			compatible = "arm,cortex-a72";
+			device_type = "cpu";
+		};
+
+		cpu@3 {
+			reg = <0x300>;
+			enable-method = "psci";
+			compatible = "arm,cortex-a72";
+			device_type = "cpu";
+		};
+
+		cpu@4 {
+			reg = <0x400>;
+			enable-method = "psci";
+			compatible = "arm,cortex-a72";
+			device_type = "cpu";
+		};
+
+		cpu@5 {
+			reg = <0x500>;
+			enable-method = "psci";
+			compatible = "arm,cortex-a72";
+			device_type = "cpu";
+		};
+
+		cpu@6 {
+			reg = <0x600>;
+			enable-method = "psci";
+			compatible = "arm,cortex-a72";
+			device_type = "cpu";
+		};
+
+		cpu@7 {
+			reg = <0x700>;
+			enable-method = "psci";
+			compatible = "arm,cortex-a72";
+			device_type = "cpu";
+		};
+*/
+	};
+
+	timer {
+		interrupts = <0x1 0xd 0x4 0x1 0xe 0x4 0x1 0xb 0x4 0x1 0xa 0x4>;
+		always-on;
+		compatible = "arm,armv8-timer", "arm,armv7-timer";
+	};
+
+	apbclk: apb-pclk {
+		phandle = <0x8000>;
+		clock-output-names = "clk24mhz";
+		clock-frequency = <1843200>;
+		#clock-cells = <0x0>;
+		compatible = "fixed-clock";
+	};
+
+	chosen {
+		linux,initrd-start = <0x64000000>;
+		/* linux,initrd-end = <0x6427d7e0>; rootfs.cpio.gz version */
+		linux,initrd-end = <0x64670200>; /* rootfs.cpio version */
+		stdout-path = "/uart@c1200000";
+		bootargs = "console=ttyS0,115200n8 earlycon=ns16550a,mmio32,0xc1200000";
+	};
+};

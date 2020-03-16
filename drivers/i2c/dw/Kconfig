@@ -1,0 +1,3 @@
+
+config DW_I2C
+	bool "designware I2C support"

@@ -1,0 +1,10 @@
+
+#menuconfig SAE_SMMU
+#	bool "sae smmu support"
+
+#if SAE_SMMU
+
+config SAE_SMMU
+	bool "SAE SMMU feature support"
+
+#endif

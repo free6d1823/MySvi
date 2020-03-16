@@ -1,0 +1,3 @@
+
+config DW_SPI
+	bool "designware SPI support"

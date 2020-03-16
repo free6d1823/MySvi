@@ -1,0 +1,110 @@
+
+menu "Standard benchmarks tests"
+
+config PATTERN_BENCHMARK
+	bool
+
+config BENCH_OPTIMIZED
+	depends PATTERN_BENCHMARK
+	depends !CC_OPT_SPEED
+	bool "Build bench tests with -O2"
+
+config DHRYSTONE
+	bool "Dhrystone"
+	select TCM
+	select PATTERN_BENCHMARK
+
+config DHRYSTONE_TIMEOUT
+	int "Dhrystone timeout (usecs)"
+	depends DHRYSTONE
+	range -1 1000000
+	default -1 if TESTOS
+
+config DHRYSTONE_REPEATS
+	int "Dhyrstone number of runs"
+	depends DHRYSTONE
+	range 5000 5000000
+	default 5000 if TESTOS
+
+config DHRYSTONE_SPECIFIC_PERCPU
+	bool "Use dhrystone specific PERCPU mechanism"
+
+config LINPACK
+	bool "Linpack"
+	select TCM
+	select PATTERN_BENCHMARK
+
+config LINPACK_CALIBRATION_TIMEOUT
+	int "Linpack calibration timeout (usecs)"
+	depends LINPACK
+	range 1 1000000
+	default 1 if TESTOS
+
+config LINPACK_CALIBRATION_REPEATS
+	int "Linpack calibration repeats"
+	depends LINPACK
+	range 1 10
+	default 1 if TESTOS
+
+config LINPACK_SPECIFIC_PERCPU
+	bool "Use linpack specific PERCPU mechanism"
+
+config SAXPY
+	bool "Saxpy"
+	select PATTERN_BENCHMARK
+
+if SAXPY
+
+config SAXPY_SIZE
+	int "Saxpy array size"
+	range 2 81920
+	default 81920 if TCM
+
+config SAXPY_EXPECT
+	bool "Sanity check saxpy results"
+	depends EXPERIMENTAL
+	help
+	  This requires very large percpu area.
+	  If unsure, say 'N'
+
+config SAXPY_TIMEOUT
+	int "Saxpy timeout (usecs)"
+	depends SAXPY
+	range -1 1000000
+	default 1000000 if !TESTOS
+	default 50000 if TESTOS
+
+config SAXPY_REPEATS
+	int "Saxpy number of runs"
+	depends SAXPY
+	range -1 5000000
+	default 50000 if !TESTOS
+	default -1 if TESTOS
+
+endif
+
+config QPOWER
+	bool "Power virus (QPower)"
+	depends ARM64
+
+if QPOWER
+
+config QPOWER_TIMEOUT
+	int "QPower timeout (usecs)"
+	depends QPOWER
+	range -1 1000000
+	default 1000000
+
+config QPOWER_REPEATS
+	int "QPower number of runs"
+	depends QPOWER
+	range -1 5000000
+	default 50000
+
+endif
+
+config HPOWER10
+	bool "Power virus (HPower 1.0)"
+	depends ARM64
+
+endmenu

@@ -1,0 +1,30 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menuconfig MONACO
+	bool "Qualcomm ring bus (Monaco) support"
+	help
+	  QDF2400 has Monaco subsystem.
+
+if MONACO
+
+config MONACO_RING
+	bool "Monoco ring support"
+	help
+	  Select ring bus.
+
+config MONACO_MEMORY
+	bool "Monaco memory support"
+	select MONACO_RING
+	help
+	  Select ddr controller and ddr phy.
+
+config MONACO_CACHE
+	bool "Monaco cache support"
+	select MONACO_RING
+	help
+	  Select L3 cache.
+
+endif

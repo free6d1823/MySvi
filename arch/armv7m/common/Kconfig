@@ -1,0 +1,41 @@
+# CORTEXM4
+config SOC_CORTEXM4
+	bool
+	select CPU_armv7m
+	help
+	  1 Cortex-m4 soc.
+
+# Figure out what processor architecture version we should be using.
+# This defines the compiler instruction set which depends on the machine type.
+
+config CPU_armv7m
+	bool
+
+config NVIC
+	bool "NVIC support"
+	depends on CPU_armv7m
+	help
+	  NVIC supported.
+
+config DCC
+	bool "Debug Communications Channel (DCC)"
+	select ARCH_HAS_UART
+	select IRQ_FORBIDDEN
+	help
+	  The Debug Communications Channel, DCC, is a channel for passing
+	  data between the PE and an external agent, such as a debugger.
+	  The DCC provides a communications channel between:
+	  * An external debugger, described as the debug host.
+	  * The debug implementation on the PE, described as the debug
+	    target.
+	  The DCC can be used:
+	  * As a 32-bit full-duplex channel.
+	  * As a 64-bit half-duplex channel.
+	  The DCC is an essential part of Debug state operation and can
+	  also be used in Non-debug state.
+	  The driver currently only support IRQ polling.
+
+config CONSOLE_IMC_BUFFERING
+	bool "IMC outputs to the APC buffer"
+	depends DEBUG_DCC
+	depends CONSOLE_OUTPUT

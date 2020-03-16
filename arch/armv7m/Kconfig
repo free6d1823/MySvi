@@ -1,0 +1,49 @@
+#
+# For a description of the syntax of this configuration file,
+# see Documentation/kbuild/kconfig-language.txt.
+#
+
+mainmenu "Open Kernel Lab L4 Kernel Configuration"
+
+source "init/Kconfig-m4.main"
+
+config ARMV7M
+	bool
+	default y
+	help
+
+menu "ARMV7M system options"
+
+choice
+	prompt "ARMV7M system type"
+	default ARCH_CORTEXM4
+
+config ARCH_CORTEXM4
+	bool "cortex-m4 soc"
+	select ARCH_HAS_UART
+	select ARCH_HAS_IRQC
+	select NVIC if IRQ
+	select SOC_CORTEXM4
+	select M4BENCH
+	help
+	  This enables support for cortex-m4 platform.
+
+endchoice
+
+
+config ARMV7M_NO_PRINT_64BIT
+	bool "Not Support 64bit Print"
+	default y
+	help
+	  This enables support for print 64 bit on armv7m platform.
+
+source arch/armv7m/common/Kconfig
+
+endmenu
+
+source "arch/armv7m/mach-cortexm4/Kconfig"
+
+source "drivers/Kconfig"
+#source "tests/Kconfig"
+source "lib/Kconfig"
+source "init/Kconfig"

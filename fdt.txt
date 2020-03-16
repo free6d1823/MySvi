@@ -1,0 +1,16 @@
+There are four commands:
+
+1.fdt open addr
+e.g fdt open 0x60000000
+
+2.fdt print [<path>] [<prop>]: print one level starting at path or the property of the path
+e.g (1)fdt print
+       = fdt print /
+    (2)fdt print /chosen
+    (3)fdt print /chosen bootargs
+
+3.fdt set <path> <prop> [<val>]: set the val to property.
+e.g fdt set /chosen bootargs tttttttt
+
+4.fdt chosen [<start> <end>]: add/update the /chosen branch in the tree,<start>/<end> - initrd start/end addr
+e.g fdt chosen 0x1 0x2
