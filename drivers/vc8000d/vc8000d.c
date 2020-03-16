@@ -8,68 +8,16 @@
 ** VC8000E IP specific definitions 
 **************************************************/
 #define CORE_0_IO_ADDR		0xBC000000
-#define CORE_0_IO_SIZE		(272*4)
-#define CORE_1_IO_ADDR          0xBC010000
-#define CORE_1_IO_SIZE          (272*4)
+#define CORE_0_IO_SIZE		(437*4)
 
 #define VPU_DEC_INTR		195
 #define VPU_DEC_L2_INTR		196
-#define SWREG0				0x0000
-#define SWREG1				0x0004
-#define SWREG4				0x0010
-#define SWREG5				0x0014
-#define SWREG80				0x0140
-#define SWREG214			0x0358
 
-/* SWREG0: ID Register */
-#define PRODUCT_ID(id)		((id >> 16) & 0xFFFF)
-#define ENC_HW_ID1			0x8000
-#define ENC_HW_ID2			0x4832
-#define MAJOR_NUMBER(id)	((id & 0x0000FF00) >>8)
-#define MINOR_NUMBER(id)	(id & 0x000000FF)
-/* SWREG1: Interrupt Register */
-#define SW_ENC_TIMEOUT_INT		0x00000800	//enable timeout interrupt when 1
-#define SW_ENC_IRQ_FUSE_ERROR	0x00000200	//Interrupt Interrupt status bit encoder. When this bit is high encoder has a FUSE error. SW try to setup feature but HW miss the feature set
-#define SW_ENC_SLICE_RDY_STATUS	0x00000100	//Interrupt status bit encoder. When this bit is high encoder has encoded a slice.
-#define SW_ENC_IRQ_LINE_BUFFER	0x00000080	//Interrupt status bit encoder linebuffer empty. When setting. Encoder has finished encoding input buffers.
-#define SW_ENC_TIMEOUT 			0x00000040	//Interrupt status bit encoder timeout. When high the encoder has been idling for too long. Possible only if timeout interrupt is enabled
-#define SW_ENC_BUFFER_FULL		0x00000020	//IRQ buffer full status bit. bufferFullInterrupt
-#define SW_ENC_SW_RESET			0x00000010	//IRQ SW reset status bit.
-#define SW_ENC_BUS_ERROR_STATUS 0x00000008	//Interrupt status bit bus. Error response from bus.
-#define SW_ENC_FRAME_RDY_STATUS 0x00000004	//Interrupt status bit encoder. When this bit is high encoder has encoded a picture.
-#define SW_ENC_IRQ_DIS			0x00000002	//Encoder IRQ disable. When high there are no interrupts concerning encoder from HW. Polling must be used to see the interrupt statuses.
-#define SW_ENC_IRQ			0x00000001	//Encoder IRQ. When high encoder requests an interrupt. SW will reset this after interrupt is handled.
-/* SWREG4: Control Register 0 */
-#define SW_ENC_MODE				0xE0000000	//Encoding mode. streamType.1=hevc. 2=h264. 4=jpeg
-#define SW_ENC_MIN_CB_SIZE		0x06000000	//RO min cb size:0-8x8:1-16x16:2-32x32:3-64x64:we only support 8x8
-#define SW_ENC_MAX_CB_SIZE		0x01800000	//RO max cb size:0-8x8:1-16x16:2-32x32:3-64x64:we only support 64x64
-#define SW_ENC_MIN_TRB_SIZE		0x00600000	//RO min tr block size:0-4x4:1-8x8:2-16x16:3-32x32:we only support 4x4
-#define SW_ENC_MAX_TRB_SIZE		0x00180000	//RO max tr block size:0-4x4:1-8x8:2-16x16:3-32x32:we only support 16x16
-#define SW_ENC_OUTPUT_STRIM_MODE	0x00040000 //output stream mode:0-byte stream:1-Nal stream
-#define SW_ENC_CHROMA_QP_OFFSET		0x0003E000 //chroma qp offset[-12~12]
-#define SW_ENC_STRONG_INTRA_SMOOTHING_ENABLED_FLAGE	0x00001000 //HEVC IntraTU32x32 strong intra smoothing filter enable flag
 
-#define SW_ENC_SCALING_LIST_ENABLED_FLAG		0x00000100 //sw_enc_scaling_list_enabled_flag
-#define SW_ENC_ACTIVE_OVERRIDE_FLAG				0x00000080	//active override flag
-#define SW_ENC_SAO_ENABLE						0x00000040	//SAO enable
-#define SW_ENC_MAX_TRANS_HIERARCHY_DEPTH_INTRA	0x00000038	//max transform hierarchy depth of intra
-#define SW_ENC_MAX_TRANS_HIERARCHY_DEPTH_INTER	0x00000007	//max transform hierarchy depth of inter
 
-/* SWREG5: Control Register 1 */
-#define SW_ENC_JPEG_PIC_WIDTH	0xFFF00000	//Encoded jpeg width. jpgLumWidth(unit 8 pixels)
-#define SW_ENC_JPEG_PIC_HEIGHT 	0x000FFF00	//Encoded jpeg height. jpgLumHeight(unit 8 pixels):Max width x height is 16384 x 16384
-#define SW_ENC_PIC_WIDTH		0xFFC00000	//Encoded width. lumWidthLsb(unit 8 pixels). bit[9:0]
-#define SW_ENC_PIC_HEIGHT		0x003FF800	//Encoded height. lumHeight(unit 8 pixels):Max width x height is 4096 x 4096
-#define SW_ENC_PPS_DEBLOCKING_FILTER_OVERRIDE_ENABLED_FLAG	0x00000200	//deblocking filter override enable flag.0:disable 1:enable
-#define SW_ENC_SLICE_DEBLOCKING_FILTER_OVERRIDE_FLAG		0x00000100	//slice deblocking filter override flag.0:no 1:yes
-#define SW_ENC_OUTPUT_CU_INFO_ENABLED		0x00000040	//Enable dumping cu information to external memory.0:disable 1:enable
-#define SW_ENC_BUFFER_FULL_CONTINUE			0x00000020	//Reserved for future. Not used now.
-#define SW_ENC_REF_FRAMES					0x00000018	//Reserved for future. Not used now.
-#define SW_ENC_FRAME_CODING_TYPE			0x00000006	//Encoded picture type. frameType.:1-I:0-P:2:B
-#define SW_ENC_E				0x00000001	//encoder enable. Setting this bit high will start the encoding operation. HW will reset this when picture is processed or bus error or timeout interrupt is given.
 
 /*************************************************
-** VC8000E definitions 
+** VC8000D definitions 
 **************************************************/
 typedef struct 
 {
@@ -94,24 +42,33 @@ int vc8000d_init(int id)
 {
 	int i;
 	total_core_number = sizeof(core_array)/sizeof(core_array[0]);
-	printf("VC8000E init: %d cores\n", total_core_number);
+	printf("VC8000D init: %d cores\n", total_core_number);
 
 	for (i=0; i< total_core_number; i++) {
 		uintptr_t base = core_array[i].base_addr;
-		uint32_t hwid;
+		uint32_t reg;
 		uint32_t prod_id;
 		
-		printf("VC8000E core %d:\n", i); 
-		hwid = readl((uintptr_t)(base + SWREG0));
-		prod_id = PRODUCT_ID(hwid);
-		if ( prod_id != ENC_HW_ID1 || prod_id != ENC_HW_ID2) {
-			printf("  0x%X is not a valid ID\n", hwid);
+		printf("VC8000D core %d:\n", i); 
+		reg = readl((uintptr_t)(base + HANTRODEC_ID_REGISTER));
+		prod_id = PRODUCT_ID(reg);
+		if ( prod_id != DEC_HW_ID1) {
+			printf("  0x%X is not a valid ID\n", reg);
 			continue;
 		}
 		
 		printf("Product ID =%x, Ver %d.%d\n", prod_id, 
-				MAJOR_NUMBER(hwid), MINOR_NUMBER(hwid));
+				MAJOR_NUMBER(reg), MINOR_NUMBER(reg));
 		core_array[i].valid = true;
+
+        /*check build ID */
+        reg = readl((uintptr_t)(base + HANTRODEC_HW_BUILD_ID*4));
+        printf("HW build ID: %08X\n", reg);
+        /* check PP */
+        reg = readl((uintptr_t)(base + HANTRODECPP_CFG_STAT*4));
+        if(reg>> DWL_PP_E) {
+            printf("PP supported: %08X\n", reg);
+        }
 	}
 	
 	return 0;
@@ -130,6 +87,50 @@ int vc8000d_dump(int id)
 	return 0;
 }
 
+int vc8000d_features(int id)
+{
+    int c;
+    for(c=0; c<total_core_number; c++) {
+		uintptr_t base = core_array[c].base_addr;
+        uint32_t cfg1, cfg2, cfg3;
+        uint32_t tmp;
+		printf("VC8000D core %d supported standards:\n", c); 
+
+		cfg1 = readl((uintptr_t)(base + HANTRODEC_SYNTH_CFG * 4));
+        cfg2 = readl((uintptr_t)(base + HANTRODEC_SYNTH_CFG2 * 4));
+        cfg3 = readl((uintptr_t)(base + HANTRODEC_SYHTN_CFG3 * 4));
+
+        printf("- HEVC (1:Main, 2:Main10): %d\n", ( cfg3 >> DWL_HEVC_E) & 0x3U);
+        printf("- VP9 (1:Profile 0, 2:Profile1 10bits): %d\n", ( cfg3 >> DWL_VP9_E) & 0x3U);
+
+        tmp = ( cfg1 >> DWL_H264_E) & 0x3U;
+        printf("- H264 (1:baseline, 2:high-, 3:high): %d\n", tmp);
+        tmp = ( cfg1 >> DWL_H264HIGH10_E) & 0x1U;
+        printf("- H264 High10P: %d\n", tmp);
+        tmp = ( cfg1 >> DWL_JPEG_E) & 0x1U;
+        printf("- JPEG: %d\n", tmp);
+        tmp = ( cfg1 >> DWL_MPEG4_E) & 0x3U;
+        printf("- MPEG4 (1:simple, 2:advanced): %d\n", tmp);
+        tmp = ( cfg1 >> DWL_VC1_E) & 0x3U;
+        printf("- VC1 (1:simple, 2:main, 3:advanced): %d\n", tmp);    
+        tmp = ( cfg1 >> DWL_VP6_E) & 0x1U;
+        printf("- VP6: %d\n", tmp);
+        printf("- AVS2: %d\n", ( cfg1 >> DWL_AVS2_E) & 0x1U);
+
+        printf("- DIVX: %d\n", ( cfg2 >> DWL_DIVX_E) & 0x1U);
+        printf("- RV (1:support, 2:NA): %d\n", ( cfg2 >> DWL_RV_E) & 0x3U);
+        printf("- VP7: %d\n", ( cfg2 >> DWL_VP7_E) & 0x1U);
+        printf("- VP8: %d\n", ( cfg2 >> DWL_VP8_E) & 0x1U);
+        printf("- AVS: %d\n", ( cfg2 >> DWL_AVS_E) & 0x1U);
+        printf("- WEBP: %d\n", ( cfg2 >> DWL_WEBP_E) & 0x1U);
+        printf("- H264 Pipeline: %d\n", ( cfg2 >> DWL_H264_PIPELINE_E) & 0x1U);
+        printf("- JPEG Pipeline: %d\n", ( cfg2 >> DWL_JPEG_PIPELINE_E) & 0x1U);
+
+        printf("Maximum supported decoder width: %d pixels\n", cfg1 &0x0000FFFF);
+        printf("Maximum supported decoder height: %d pixels\n", cfg3 &0x0000FFFF);
+    }
+    return 0;
+}
 static int cmd_vc8000d(int argc, char **argv)
 {
 	int core_id = 0;
@@ -144,7 +145,9 @@ static int cmd_vc8000d(int argc, char **argv)
 		vc8000d_dump(core_id);
 	} else if (argv[1][0] == 's') {
 		vc8000d_start(core_id);
-	} 	else {
+	} else if (argv[1][0] == 'f') {
+		vc8000d_features(core_id);	
+    } 	else {
 		return -EUSAGE;
 	}
 
@@ -154,10 +157,11 @@ static int cmd_vc8000d(int argc, char **argv)
 
 MK_CMD(vc8d, cmd_vc8000d, "VSI VC8000D test",
 	"VC8000D test cases\n"
-	"vc8d [init|dump|start|stop] core_id\n" 
+	"vc8d [init|dump|feat|start] core_id\n" 
     "    init    - show IP information\n"
 	"    dump    - dump all registers\n"
 	"    start   - start encode one frame\n"
+	"    feat    - show IP features\n"
 	"    core_id - [0:1] core number. Default 0\n"
 );
 
