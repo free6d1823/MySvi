@@ -1,1 +1,0 @@
-cmd_arch/arm64/mach-qdf2400/tsens/built-in.lib :=  aarch64-linux-gnu-ld -EL  -maarch64linux  -r -o arch/arm64/mach-qdf2400/tsens/built-in.lib arch/arm64/mach-qdf2400/tsens/HALtsens.o arch/arm64/mach-qdf2400/tsens/TsensBsp.o arch/arm64/mach-qdf2400/tsens/TsensLoader.o

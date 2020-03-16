@@ -1,1 +1,0 @@
-cmd_arch/arm64/mach-qdf2400/ddrss/built-in.lib :=  aarch64-linux-gnu-ld -EL  -maarch64linux  -r -o arch/arm64/mach-qdf2400/ddrss/built-in.lib arch/arm64/mach-qdf2400/ddrss/mddr_config.o arch/arm64/mach-qdf2400/ddrss/mddr_specail_init.o

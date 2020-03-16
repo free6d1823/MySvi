@@ -1,1 +1,0 @@
-cmd_lib/built-in.lib :=  aarch64-linux-gnu-ld -EL  -maarch64linux  -r -o lib/built-in.lib lib/rand.o lib/string.o lib/stdio.o lib/strcpy.o lib/strtoul.o lib/strtoull.o lib/vsnprintf.o lib/byte_list.o lib/fabsf.o lib/strlcat.o lib/strlcpy.o
