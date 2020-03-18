@@ -1,146 +1,158 @@
+#include <target/memory.h>
 #include <asm/memory.h>
 
-/* Entry Point */
+#ifdef STACK_SIZE
+#undef STACK_SIZE
+#define STACK_SIZE	0x400
+#endif
+
+#define M_VECTOR_RAM_SIZE 0x0;
+
 ENTRY(Reset_Handler)
 
-HEAP_SIZE  = DEFINED(__heap_size__)  ? __heap_size__  : 0x1000;
-STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x0400;
-M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? 0x0400 : 0x0;
+/* A simple memory map */
+/*		*
+ *		*
+ *		*
+ -------------	interrupts
+ *		*
+ *		*
+ *		*
+ -------------	SVI_TEXT_BASE
+ *		*
+ *		*	text + data + bss
+ *		*
+ -------------	SVI_DATA_BASE
+ *		*
+ *		*	data + bss
+ *		*
+ -------------  HEAP_START if not specified
+ *		*
+ *		*	heap
+ *		*
+  -------------  STACK_START if not specified
+ *		*
+ *		*	STACKs
+ *		*
+ -------------	SVI_RAM_END
+ */
 
-/* Specify the memory areas */
-MEMORY
-{
-  m_interrupts          (RX)  : ORIGIN = SHARED_SRAM_START, LENGTH = 0x00000400
-  m_text                (RX)  : ORIGIN = SHARED_SRAM_START+0x00000400, LENGTH = 0x0000FC00
-  m_data                (RW)  : ORIGIN = PRIVATE_SRAM_START, LENGTH = PRIVATE_SRAM_SIZE
-  m_data_2              (RW)  : ORIGIN = 0x20000000, LENGTH = 0x00010000
-}
-
-/* Define output sections */
 SECTIONS
 {
-  /* The startup code goes first into internal flash */
-  .interrupts :
-  {
-    __VECTOR_TABLE = .;
-    . = ALIGN(4);
-    KEEP(*(.isr_vector))     /* Startup code */
-    . = ALIGN(4);
-  } > m_interrupts
+#ifdef INTERRUPT_BASE
+	. = INTERRUPT_BASE;
+	/* The startup code goes first into internal flash */
+	.interrupts :
+	{
+		__VECTOR_TABLE = .;
+		. = ALIGN(4);
+		KEEP(*(.isr_vector))     /* Startup code */
+		. = ALIGN(4);
+	}
+#endif
 
-  /* The program code and other data goes into internal flash */
-  .text :
-  {
-    . = ALIGN(4);
-    __stext = .;
-    *(.text)                 /* .text sections (code) */
-    *(.text*)                /* .text* sections (code) */
-    *(.rodata)               /* .rodata sections (constants, strings, etc.) */
-    *(.rodata*)              /* .rodata* sections (constants, strings, etc.) */
-    *(.glue_7)               /* glue arm to thumb code */
-    *(.glue_7t)              /* glue thumb to arm code */
-    *(.eh_frame)
-    . = ALIGN(4);
-  } > m_text
+	. = SVI_TEXT_BASE;
+	__stext = .;
+	.text :
+	{
+		. = ALIGN(4);
+		*(.text)				 /* .text sections (code) */
+		*(.text*)				 /* .text* sections (code) */
+		*(.glue_7)				 /* glue arm to thumb code */
+		*(.glue_7t) 			 /* glue thumb to arm code */
+		*(.eh_frame)
+		. = ALIGN(4);
+	}
 
-  .cmd_array : {
-    __cmd_array_start = .;
-    KEEP (*(SORT(.cmd_array.*)))
-    __cmd_array_end = .;
-  } > m_text
+	.rodata :
+	{
+		*(.rodata .rodata.*)
+		. = ALIGN(8);
+		__cmd_array_start = .;
+		KEEP (*(SORT(.cmd_array.*)))
+		__cmd_array_end = .;
 
-  .test_array : {
-    __testfn_start = .;
-    KEEP (*(.testfn))
-    __testfn_end = .;
-  } > m_text
+		. = ALIGN(8);
+		__testfn_start = .;
+		KEEP (*(.testfn))
+		__testfn_end = .;
+	}
 
-  .ARM.extab :
-  {
-    *(.ARM.extab* .gnu.linkonce.armextab.*)
-  } > m_text
+	.ARM.extab :
+	{
+		*(.ARM.extab* .gnu.linkonce.armextab.*)
+	}
+	__etext = .;
 
-  .ARM :
-  {
-    __exidx_start = .;
-    *(.ARM.exidx*)
-    __exidx_end = .;
-  } > m_text
+#ifdef INTERRUPT_RAM_BASE
+	.interrupts_ram :
+	{
+		. = ALIGN(4);
+		__interrupts_ram_start__ = .; /* Create a global symbol at data start */
+		*(.m_interrupts_ram)	 /* This is a user defined section */
+		. += M_VECTOR_RAM_SIZE;
+		. = ALIGN(4);
+		__interrupts_ram_end__ = .; /* Define a global symbol at data end */
+	}
+#endif
 
-  __etext = .;    /* define a global symbol at end of code */
-  __etext = .;
-  __DATA_ROM = .; /* Symbol is used by startup for data initialization */
+#ifdef SVI_DATA_BASE
+	. = SVI_DATA_BASE;
+#endif
+	__sdata = .;
 
-  .interrupts_ram :
-  {
-    . = ALIGN(4);
-    __VECTOR_RAM__ = .;
-    __interrupts_ram_start__ = .; /* Create a global symbol at data start */
-    *(.m_interrupts_ram)     /* This is a user defined section */
-    . += M_VECTOR_RAM_SIZE;
-    . = ALIGN(4);
-    __interrupts_ram_end__ = .; /* Define a global symbol at data end */
-  } > m_data
+	.data :
+	{
+		__data_start = .;
+		*(.data .data.*)
+		KEEP(*(.jcr*))
+		. = ALIGN(4);
+		__data_end = .;
+	}
+	__edata = .;
 
-  __VECTOR_RAM = DEFINED(__ram_vector_table__) ? __VECTOR_RAM__ : ORIGIN(m_interrupts);
-  __RAM_VECTOR_TABLE_SIZE_BYTES = DEFINED(__ram_vector_table__) ? (__interrupts_ram_end__ - __interrupts_ram_start__) : 0x0;
+	/* Uninitialized data section */
+	.bss :
+	{
+		 /* This is used by the startup in order to initialize the .bss section */
+		. = ALIGN(4);
+		__bss_start = .;
+		*(.bss)
+		*(.bss*)
+		*(COMMON)
+		. = ALIGN(4);
+		__bss_end = .;
+	}
 
-  .data :
-  {
-    . = ALIGN(4);
-    __DATA_RAM = .;
-    __data_start__ = .;      /* create a global symbol at data start */
-    __sdata = .;
-    *(.data)                 /* .data sections */
-    *(.data*)                /* .data* sections */
-    KEEP(*(.jcr*))
-    . = ALIGN(4);
-    __data_end__ = .;        /* define a global symbol at data end */
-    __edata = .;
-  } > m_data
+#if CONFIG_HEAP_BASE
+	  ASSERT(. <= CONFIG_HEAP_BASE, "heap overlap with data")
+	  . = CONFIG_HEAP_BASE;
+#endif
 
-  __DATA_END = __DATA_RAM + (__data_end__ - __data_start__);
-  text_end = ORIGIN(m_text) + LENGTH(m_text);
-  /*ASSERT(__DATA_END <= text_end, "region m_text overflowed with text and data")*/
+	.heap :
+	{
+		. = ALIGN(8);
+		__end__ = .;
+		PROVIDE(end = .);
+		. += HEAP_SIZE;
+		__HeapLimit = .;
+	}
 
-   /* Uninitialized data section */
-  .bss :
-  {
-    /* This is used by the startup in order to initialize the .bss section */
-    . = ALIGN(4);
-    __START_BSS = .;
-    __bss_start = .;
-    *(.bss)
-    *(.bss*)
-    *(COMMON)
-    . = ALIGN(4);
-    __bss_end = .;
-    __END_BSS = .;
-  } > m_data
+#if CONFIG_STACKS_BASE
+	. = CONFIG_STACKS_BASE;
+#endif
 
-  .heap :
-  {
-    . = ALIGN(8);
-    __end__ = .;
-    PROVIDE(end = .);
-    __HeapBase = .;
-    . += HEAP_SIZE;
-    __HeapLimit = .;
-    __heap_limit = .; /* Add for _sbrk */
-  } > m_data
+	.stack :
+	{
+		. = ALIGN(8);
+		. += STACK_SIZE;
+	}
 
-  .stack :
-  {
-    . = ALIGN(8);
-    . += STACK_SIZE;
-  } > m_data
+	__StackTop = STACKS_END;
+	__StackLimit = __StackTop - STACK_SIZE;
+	PROVIDE(__stack = __StackTop);
 
-  /* Initializes stack on the end of block */
-  __StackTop   = ORIGIN(m_data) + LENGTH(m_data);
-  __StackLimit = __StackTop - STACK_SIZE;
-  PROVIDE(__stack = __StackTop);
-
-  .ARM.attributes 0 : { *(.ARM.attributes) }
-
-  ASSERT(__StackLimit >= __HeapLimit, "region m_data_2 overflowed with stack and heap")
+	.ARM.attributes 0 : { *(.ARM.attributes) }
 }
+
+

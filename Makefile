@@ -645,6 +645,9 @@ quiet_cmd_hvep = LD      $@
 #ifdef CONFIG_ARMV7M
       cmd_hvep += $(LDFLAGS_m4_extra)
 #endif
+#ifdef CONFIG_ARM
+      cmd_hvep += $(LDFLAGS_r52_extra)
+#endif
 define rule_hvep
 	:
 	+$(call cmd,hvep)

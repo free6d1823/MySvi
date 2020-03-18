@@ -34,5 +34,8 @@
 #define EMEDIUMTYPE     124	/* Wrong medium type */
 #define ENOTSUPP        524	/* Operation is not supported */
 
+//add for usb
+#define	ESHUTDOWN       108	/* Cannot send after transport endpoint shutdown */
+#define	ECONNRESET      104	/* Connection reset by peer */
 
 #define EUSAGE          10086

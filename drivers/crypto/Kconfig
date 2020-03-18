@@ -1,0 +1,3 @@
+
+config SE1000_CRYPTO
+	bool "se1000 crypto acc support"

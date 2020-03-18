@@ -1,7 +1,7 @@
-/*
- */
-#ifndef __LIST_H_INCLUDE__
-#define __LIST_H_INCLUDE__
+/* SPDX-License-Identifier: GPL-2.0 */
+#ifndef LIST_H
+#define LIST_H
+
 
 #ifndef __ASSEMBLY__
 
@@ -9,29 +9,72 @@
  * Macro based list_head, functioning similar as what is provided in
  * many other OSen.
  */
+/*
+ * Copied from include/linux/...
+ */
+
+
+/**
+ * container_of - cast a member of a structure out to the containing structure
+ * @ptr:        the pointer to the member.
+ * @type:       the type of the container struct this is embedded in.
+ * @member:     the name of the member within the struct.
+ *
+ */
+#define container_of(ptr, type, member) ({                      \
+	const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
+	(type *)( (char *)__mptr - offsetof(type,member) );})
+
 
 struct list_head {
 	struct list_head *next, *prev;
 };
 
-/*
- * These are non-NULL pointers that will result in page faults
- * under normal circumstances, used to verify that nobody uses
- * non-initialized list entries.
- */
-#define LIST_POISON1  ((void *)0x00100100)
-#define LIST_POISON2  ((void *)0x00200200)
 
 #define LIST_HEAD_INIT(name) { &(name), &(name) }
 
 #define LIST_HEAD(name)	\
 	struct list_head name = LIST_HEAD_INIT(name)
 
-#define INIT_LIST_HEAD(node)					\
-	do {							\
-		(node)->next = node;				\
-		(node)->prev = node;				\
-	} while (0)
+
+static inline void INIT_LIST_HEAD(struct list_head *list)
+{
+	list->next = list;
+	list->prev = list;
+}
+
+
+#define list_first_entry(head, type, member) \
+		((head)->next == (head)) ? NULL : list_entry((head)->next, type, member)
+
+#define list_last_entry(head, type, member) \
+		((head)->prev == (head)) ? NULL : list_entry((head)->prev, type, member)
+
+
+/**
+ * list_empty - tests whether a list is empty
+ * @head: the list to test.
+ */
+static inline int list_empty(const struct list_head *head)
+{
+	return head->next == head;
+}
+
+/*
+ * Insert a new entry between two known consecutive entries.
+ *
+ * This is only for internal list manipulation where we know
+ * the prev/next entries already!
+ */
+static inline void __list_add(struct list_head *_new,
+			      struct list_head *prev,
+			      struct list_head *next)
+{
+	next->prev = _new;
+	_new->next = next;
+	_new->prev = prev;
+	prev->next = _new;
+}
 
 /**
  * list_add - add a new entry
@@ -75,6 +118,8 @@ struct list_head {
 		(entry)->prev = node; (node)->next = entry;	\
 	} while (0)
 
+#define LIST_POISON1  ((void *) 0x00100100)
+#define LIST_POISON2  ((void *) 0x00200200)
 /**
  * list_del - deletes entry from list.
  * @entry: the element to delete from the list.
@@ -108,7 +153,7 @@ struct list_head {
 #define list_move(list, head)					\
 	do {							\
 		struct list_head * tmp = list;			\
-		__list_delete((list)->prev, (list)->next);	\
+		__list_del((list)->prev, (list)->next);	\
 		list_insert_head(tmp, head);			\
 	} while (0)
 
@@ -120,16 +165,10 @@ struct list_head {
 #define list_move_tail(list, head)				\
 	do {							\
 		struct list_head * tmp = list;			\
-		__list_delete((list)->prev, (list)->next);	\
+		__list_del((list)->prev, (list)->next);	\
 		list_insert_tail(tmp, head);			\
 	} while (0)
 
-/**
- * list_empty - tests whether a list is empty
- * @head: the list to test.
- */
-#define list_empty(head)					\
-	((head)->next == (head))
 
 /**
  * list_is_last - tests whether @list is the last entry in list @head
@@ -235,6 +274,7 @@ struct list_head {
 	for (pos = (head)->prev, n = pos->prev;			\
 		pos != (head); pos = n, n = pos->prev)
 
+
 #ifdef NDEBUG
 /**
  * list_for_each_entry	-	iterate over list of given type
@@ -247,18 +287,6 @@ struct list_head {
 	     &pos->member != (head); 				\
 	     pos = list_entry(pos->member.next, type, member))
 
-/**
- * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry
- * @pos:	the type * to use as a loop cursor.
- * @n:		another type * to use as temporary storage
- * @head:	the head for your list.
- * @member:	the name of the list_struct within the struct.
- */
-#define list_for_each_entry_safe(type, pos, n, head, member)		\
-	for (pos = list_entry((head)->next, type, member),		\
-	     n = list_entry(pos->member.next, type, member);		\
-	     &pos->member != (head); 					\
-	     pos = n, n = list_entry(n->member.next, type, member))
 #else
 /**
  * list_for_each_entry	-	iterate over list of given type
@@ -273,23 +301,32 @@ struct list_head {
 	     pos = ((head) == pos->member.next ? NULL :		\
 	     list_entry(pos->member.next, type, member)))
 
+#endif
+
+/**
+ * list_for_each_entry	-	iterate over list of given type
+ * @pos:	the type * to use as a loop cursor.
+ * @head:	the head for your list.
+ * @member:	the name of the list_head within the struct.
+ */
+#define list_for_each_entry_2(pos, head, member)				\
+	for (pos = list_entry((head)->next, typeof(*pos), member);	\
+	     &pos->member != (head); 	\
+	     pos = list_entry(pos->member.next, typeof(*pos), member))
+
+
 /**
  * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry
  * @pos:	the type * to use as a loop cursor.
  * @n:		another type * to use as temporary storage
  * @head:	the head for your list.
- * @member:	the name of the list_struct within the struct.
+ * @member:	the name of the list_head within the struct.
  */
-#define list_for_each_entry_safe(type, pos, n, head, member)		\
-	for (pos = ((head) == (head)->next ? NULL :			\
-	     list_entry((head)->next, type, member)),			\
-	     n = ((!pos || (head) == pos->member.next) ? NULL :		\
-	     list_entry(pos->member.next, type, member));		\
-	     pos && &pos->member != (head); 				\
-	     pos = n,							\
-	     n = ((!n || (head) == n->member.next) ? NULL :		\
-	     list_entry(n->member.next, type, member)))
-#endif
+#define list_for_each_entry_safe(pos, n, head, member)			\
+	for (pos = list_entry((head)->next, typeof(*pos), member),	\
+		n = list_entry(pos->member.next, typeof(*pos), member);	\
+	     &pos->member != (head);					\
+	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
 
 #define list_insert_before(entry, the_head)			\
 	list_add_tail(entry, the_head)

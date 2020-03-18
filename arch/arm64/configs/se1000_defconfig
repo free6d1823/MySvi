@@ -57,6 +57,12 @@ CONFIG_PMIC_PMBUS=y
 #
 # Feature setup
 #
+#default USB xHCI
+#
+CONFIG_USB=y
+CONFIG_USB_STORAGE=y
+CONFIG_USB_DWC2=y
+CONFIG_USB_DWC2_DEVICE=y
 
 #
 # Generic kernel features
@@ -118,7 +124,11 @@ CONFIG_FDT=y
 # CONFIG_PCI is not set
 CONFIG_D71=y
 CONFIG_DW_WDT=y
-
+CONFIG_DW_AHB_DMAC=y
+CONFIG_GC355=y
+CONFIG_GC520=y
+CONFIG_VC8000D=y
+CONFIG_VC8000E=y
 #
 # Advanced kernel features
 #

@@ -43,6 +43,8 @@ int vscanf(const char *format, va_list arg);
 int fprintf(void *fp, const char *fmt, ...);
 #define stderr	NULL
 #define stdout	NULL
+#define stderr	NULL
+
 
 #else /* __ASSEMBLY__ */
 

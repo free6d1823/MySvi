@@ -19,12 +19,14 @@ static void mem_info(void)
 
 int main(void)
 {
+	console_early_init();
+	printf("\nHello SVI\n");
+	mem_info();
+
 	dsr_init();
 	tick_init();
 	irq_init();
-	console_early_init();
-	printf("\nHello M4\n");
-	mem_info();
+
 	console_late_init();
 	timer_init();
 	cmd_init();

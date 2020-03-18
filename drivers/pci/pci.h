@@ -62,6 +62,8 @@ struct pci_bus {
 
 	unsigned char	number;		/* Bus number */
 	unsigned char	primary;	/* Number of primary bridge */
+	void		*sysdata;	/* Hook for sys-specific extension */
+
 
 	char		name[48];
 };

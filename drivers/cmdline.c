@@ -80,8 +80,9 @@ int cmd_help(char *cmd)
 			return -EINVAL;
 		}
 		printf("%s: %s\n", cmdp->name, cmdp->help);
-		printf("Usage of %s:\n%s\n",
-		       cmdp->name, cmdp->usage);
+		printf("Usage of %s:\n", cmdp->name);
+		puts(cmdp->usage);
+		puts("\n");
 	}
 	return 0;
 }

@@ -35,6 +35,7 @@ SECTIONS
   }
 
   .text : {
+    *(.pagetable)
     *(.init.text .init.text.*)
     *(.text .text.*)
   }
@@ -91,9 +92,6 @@ SECTIONS
   . = CONFIG_HEAP_BASE;
 #endif
 
-  .pagetable : {
-  KEEP (*(.pagetable))
-  }
   __heap_start = .;
 
   ASSERT(. <= STACKS_START, "stacks overflowed with text + data + bss")

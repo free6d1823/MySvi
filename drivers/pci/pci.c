@@ -10,7 +10,6 @@
 #define MAX_PCI_DEV 16
 #define MAX_PCI_BUS 8
 
-typedef unsigned int ulong;
 
 struct pci_dev_pool {
 	int flag;
@@ -271,8 +270,8 @@ int pci_auto_config_devices(struct pci_bus *bus)
 
 int pci_scan_bus_devices(struct pci_bus *bus)
 {
-	ulong vendor, device;
-	ulong header_type;
+	unsigned int vendor, device;
+	unsigned int header_type;
 	pci_dev_t bdf, end;
 	struct pci_dev *dev;
 	bool found_multi;
@@ -284,7 +283,7 @@ int pci_scan_bus_devices(struct pci_bus *bus)
 
 	for (bdf = PCI_BDF(bus->number, 0, 0); bdf <= end;
 		bdf += PCI_BDF(0, 0, 1)) {
-		ulong class;
+		unsigned int class;
 
 		if (!PCI_FUNC(bdf))
 			found_multi = false;
@@ -324,7 +323,7 @@ int pci_scan_bus_devices(struct pci_bus *bus)
 		dev->class = class;
 
 		if ((header_type & 0x7f) == PCI_HEADER_TYPE_NORMAL) {
-			ulong val;
+			unsigned int val;
 			pci_bus_read_config(bus, bdf,
 						PCI_SUBSYSTEM_VENDOR_ID,
 						&val, PCI_SIZE_32);
@@ -547,7 +546,7 @@ struct pci_dev* pci_get_dev(int hose, int bus, int dev, int func)
 static pci_dev_t _match;
 static int pci_match_class(struct pci_dev *dev, void *arg)
 {
-	ulong classcode = *(ulong *)arg;
+	unsigned int classcode = *(unsigned int *)arg;
 	_match = -1;
 
 	if (dev->class == classcode) {

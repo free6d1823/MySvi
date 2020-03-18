@@ -778,7 +778,7 @@ static int do_usb(int argc, char * argv[])
 
 
 MK_CMD(usb, do_usb,	"USB sub-system",
-	"start - start (scan) USB controller\n"
+	"usb start - start (scan) USB controller\n"
 	"usb reset - reset (rescan) USB controller\n"
 	"usb stop [f] - stop USB [f]=force stop\n"
 	"usb tree - show USB device tree\n"
@@ -786,10 +786,7 @@ MK_CMD(usb, do_usb,	"USB sub-system",
 	"usb test [dev] [port] [mode] - set USB 2.0 test mode\n"
 	"    (specify port 0 to indicate the device's upstream port)\n"
 	"    Available modes: J, K, S[E0_NAK], P[acket], F[orce_Enable]\n"
-);
-
 #ifdef CONFIG_USB_STORAGE
-MK_CMD(udisk, do_usb, "USB disk sub-system",
 	"usb storage - show details of USB storage devices\n"
 	"usb dev [dev] - show or set current USB storage device\n"
 	"usb part [dev] - print partition table of one or all USB storage"
@@ -798,6 +795,6 @@ MK_CMD(udisk, do_usb, "USB disk sub-system",
 	"    to memory address `addr'\n"
 	"usb write addr blk# cnt - write `cnt' blocks starting at block `blk#'\n"
 	"    from memory address `addr'"
-);
 #endif /* CONFIG_USB_STORAGE */
+);
 

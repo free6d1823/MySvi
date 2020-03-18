@@ -1,0 +1,16 @@
+There are two DAP in the Juno r2 Development Platform.
+junor2.cmm is for AP.
+junom3.cmm is for Cortex M3
+
+How to detect DAP:
+system.DETECT DAP
+system.DETECT CoreSightTrace
+system.JtagClock 50Mhz
+
+To debug with the Juno r2 Development Platform.
+1. Open "TRACE32 Start"
+2. Add "Configuration -> Podbus Device Chain -> Power Debug PRO"
+3. Conection Type is USB or Ethernet
+4. Add "Core", Target is ARM/XScale/Janus
+5. Add "Core", Target is ARM64
+6. Click "Start" on "Power Debug PRO" and have fun

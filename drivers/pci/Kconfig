@@ -3,3 +3,13 @@
 #
 config PCI
 	bool "pci enum"
+
+if PCI
+
+config PCIE_DW
+	bool "Synopsys PCIe controller support"
+	---help---
+		Support Synopsys PCIe controller.
+
+endif
+

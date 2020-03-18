@@ -1,0 +1,3 @@
+
+config MBEDTLS_CRYPTO
+	bool "mbedtls crypto support"

@@ -50,6 +50,8 @@ config ARCH_SE1000
 	select GIC600
 	select ARCH_HAS_UART
 	select FDT
+	select PCI
+	select PCIE_DW
 	select PSCI
 	select MINI_EXCLUSIVE_ACCESS
 	help

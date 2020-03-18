@@ -1,0 +1,6 @@
+
+#menuconfig DW_EMAC
+#	bool "DW 1G mac support"
+config DW_EMAC
+	bool "synopsis 1G mac driver support"
+	default n

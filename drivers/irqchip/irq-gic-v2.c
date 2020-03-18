@@ -1,7 +1,7 @@
 /*
  */
 #include <target/irq.h>
-#include <asm/gic.h>
+#include <target/gic.h>
 #include <asm/mach/qgic2.h>
 #include <asm/io.h>
 

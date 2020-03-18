@@ -3,7 +3,7 @@
 #ifndef __QGIC2_QDF2400_H_INCLUDE__
 #define __QGIC2_QDF2400_H_INCLUDE__
 
-#include <asm/gicv2.h>
+#include <target/gicv2.h>
 
 /* 2.16.1.7.3.4. GICD_ANSACR (0x0FF 6FA4 0020) */
 #define GICD_ANSACR(inst)		GICD_REG(inst, 0x020)

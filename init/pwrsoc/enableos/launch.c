@@ -119,7 +119,7 @@ int boot_jump_linux(int argc, char *argv[])
     return 0;
 }
 
-MK_CMD(kernel, boot_jump_linux, "Launch kernel with the address of kernel/dtb",
+MK_CMD(kernel, boot_jump_linux, "Launch kernel with the addr of kernel/dtb",
     "kernel <kernel address> <dtb address>\n"
     "    - jump into linux kernel.\n"
 );

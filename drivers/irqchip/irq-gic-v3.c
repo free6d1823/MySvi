@@ -1,10 +1,12 @@
 #include <target/irq.h>
-#include <asm/gic.h>
-#include <asm/gicv3.h>
-#include <asm/gic3.h>
+#include <asm/io.h>
+#include <target/gic3.h>
 #include <target/smp.h>
 #include <target/spinlock.h>
 #include <stdio.h>
+
+#include "target/gic.h"
+#include "target/gicv3.h"
 
 struct gic_chip_data {
 	void *dist_base;
@@ -316,14 +318,22 @@ static inline void gicv3_configure_irq(irq_t irq, uint8_t priority, uint8_t trig
 		gicr_configure_group(cpu, irq, GIC_GROUP0);
 		gicr_configure_irq(cpu, irq, priority, trigger);
 	} else {
+		#ifdef CONFIG_CPU_CORTEX_R52
+		gicd_configure_group(irq, GIC_GROUP1NS);
+		#else
 		gicd_configure_group(irq, GIC_GROUP0);
+		#endif
 		gicd_configure_irq(irq, priority, trigger);
 
 		/*
 		 * Set affinity to the calling CPU. ARE must be enabled.
 		 */
+		#ifdef CONFIG_CPU_CORTEX_R52
+		affinity = cpu & ~(affinity << 24);
+		#else
 		affinity = read_sysreg(MPIDR_EL1) & ~(affinity << 24);
 		__raw_writeq(affinity, GICD_IROUTER(gic_data.dist_base, irq));
+		#endif
 	}
 }
 
@@ -340,6 +350,9 @@ void gic3_handle_irq(void)
 {
 	gicv3_handle_irq();
 }
+#ifdef CONFIG_CPU_CORTEX_R52
+	uint32_t cpus_boot_cpu = 0;
+#endif
 
 void gic3_early_init(void)
 {

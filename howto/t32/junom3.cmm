@@ -1,0 +1,11 @@
+SYStem.JtagClock 50Mhz
+
+SYStem.CPU CortexM3
+
+; Pre/Post settings
+SYStem.CONFIG DAPIRPRE 0.
+SYStem.CONFIG DAPDRPRE 0.
+SYStem.CONFIG DAPIRPOST 4.
+SYStem.CONFIG DAPDRPOST 1.
+
+SYStem.Mode Attach

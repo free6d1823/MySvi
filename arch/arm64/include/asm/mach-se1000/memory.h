@@ -24,6 +24,8 @@
 
 #define UART_BASE(n)			(0xC1200000 + (n*0x10000))
 
+#define EMAC_BASE			    0xa24a0000
+
 #define GIC600_GICR_COUNT       2
 #define GIC600_GITS_COUNT       1
 #define GIC600_BASE             0xb6000000
@@ -48,6 +50,7 @@
 
 #define UFS0_REG_BASE			0xA4030000
 
+#define DW_AHB_DMAC				0xC1000000
 #define DW_WDT_REG_BASE(n)		(0xC1020000 + (n*0x10000))
 #define DW_I2C_REG_BASE(n)		(0xC10C0000 + (n*0x10000))
 #define DW_SPI_REG_BASE(n)		(0xC1180000 + (n*0x10000))
@@ -59,5 +62,7 @@
 
 #define D71_REG_BASE 			0xc3100000
 
+#define VC8000D_REG_BASE			0xbc000000
+#define VC8000E_REG_BASE			0xbc020000
 #endif /* __SE1000_MEMORY_H_INCLUDE__ */
 

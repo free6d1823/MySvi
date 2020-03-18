@@ -1,0 +1,5 @@
+config GC520
+	bool "GC520 support"
+	---help---
+	  GC520 2.5D GPU driver.
+

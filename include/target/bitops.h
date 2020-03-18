@@ -14,6 +14,11 @@
 	(sizeof (__array) / sizeof ((__array)[0]))
 #endif
 
+#define ilog2(x) __ilog2(x)
+#define set_bit(nr, addr) __set_bit(nr, addr)
+#define find_first_zero_bit(addr, size) \
+	find_next_zero_bit((addr), (size), 0)
+
 uint32_t gcd32u(uint32_t n, uint32_t m);
 uint32_t __roundup32(uint32_t n);
 uint8_t hweight64(uint64_t w);
@@ -139,4 +144,65 @@ static inline int ffs (int x)
 	return r;
 }
 
+/*
+ * ffz = Find First Zero in word. Undefined if no zero exists,
+ * so code should check against ~0UL first..
+ */
+static inline unsigned long ffz(unsigned long word)
+{
+	unsigned long result = 0;
+
+	while(word & 1) {
+		result++;
+		word >>= 1;
+	}
+	return result;
+}
+
+static inline void clear_bit(int nr, volatile void *addr)
+{
+	int	* a = (int *) addr;
+	int	mask;
+	unsigned long flags;
+
+	a += nr >> 5;
+	mask = 1 << (nr & 0x1f);
+	*a &= ~mask;
+}
+
+static inline int find_next_zero_bit(void *addr, int size, int offset)
+{
+	unsigned long *p = ((unsigned long *) addr) + (offset >> 5);
+	unsigned long result = offset & ~31UL;
+	unsigned long tmp;
+
+	if (offset >= size)
+		return size;
+	size -= result;
+	offset &= 31UL;
+	if (offset) {
+		tmp = *(p++);
+		tmp |= ~0UL >> (32-offset);
+		if (size < 32)
+			goto found_first;
+		if (~tmp)
+			goto found_middle;
+		size -= 32;
+		result += 32;
+	}
+	while (size & ~31UL) {
+		if (~(tmp = *(p++)))
+			goto found_middle;
+		result += 32;
+		size -= 32;
+	}
+	if (!size)
+		return result;
+	tmp = *p;
+
+found_first:
+	tmp |= ~0UL >> size;
+found_middle:
+	return result + ffz(tmp);
+}
 #endif /* __TESTOS_BITOPS_H_INCLUDE__ */

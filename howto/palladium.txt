@@ -1,0 +1,27 @@
+1.	because only one core can be enabled, need to modify cpus.h
+	add "#define BOOT_CORE		0" into /path/to/svi/arch/arm64/include/asm/mach-se1000/cpus.h and then re-compile svi
+2. 	prepare hvep hex file
+	howto/bin4zebu.sh arch/arm64/boot/hvep.bin 0x10000
+3. 	upload hvep.bin.hex to IC security zone(/ic/transfer/autosync/username)
+
+
+1.	use NoMachine to login sesw06
+2.	ssh -X username@sezone01
+3.	mkdir xxx
+	cd xxx
+	cp /data/emu/se1000/runtime_guoyou/emu_0106_tarmac_ixcom_64/create_database.csh ./
+	source create_database.csh
+	source env.sh
+	setenv XE_SUPPRESS_CFIGMGR_CHECK
+4.	modify subproc.qel
+	vim ./script_run/subproc.qel
+	line20 :
+	change 'memory -load %readmemh hw_top.test_dut_u_sc_ss.u_sh_ram,u_ram.ram	-file ./memory_file/hvep.lp4.hex'
+	to 'memory -load %readmemh hw_top.test_dut_u_sc_ss.u_sh_ram,u_ram.ram	-file /the/path/to/hvep.bin.hex'
+5.	make
+6.	if the following content appeared in the Palladium debug console
+		simulator exited
+			while executing "host ."
+		(file "hwrun.tcl" line 2)
+	(1)input current host name(sezone01 / sezone02) into GUI->Configuration->Emulator, and then click the green tick.
+	(2)input "source hwrun.tcl" into console

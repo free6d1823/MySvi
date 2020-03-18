@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <target/irq.h>
 #include <target/smp.h>
-#include <asm/gicv3.h>
+#include <target/gicv3.h>
 
 static inline bool gic_sanitize_acked_irq(irq_t irq)
 {
@@ -80,7 +80,7 @@ void gicv3_init_gicc(irq_t max_irq, uint8_t max_prio)
 	 * access for EL3 and allow lower exception levels.
 	 */
 	icc_sre = ICC_DIB | ICC_DFB;
-	icc_sre |= (ICC_SRE_ENABLE | ICC_SRE);
+	icc_sre |= (ICC_SRE_ENABLE | ICC_SRE_SRE);
 	write_sysreg(read_sysreg(ICC_SRE_EL3) | icc_sre, ICC_SRE_EL3);
 
 	/* 1. Switch to non-secure state;
@@ -91,7 +91,7 @@ void gicv3_init_gicc(irq_t max_irq, uint8_t max_prio)
 	write_sysreg(scr | SCR_NS, SCR_EL3);
 	isb();
 	write_sysreg(read_sysreg(ICC_SRE_EL2) | icc_sre, ICC_SRE_EL2);
-	write_sysreg(ICC_SRE, ICC_SRE_EL1);
+	write_sysreg(ICC_SRE_SRE, ICC_SRE_EL1);
 	isb();
 	write_sysreg(scr & (~SCR_NS), SCR_EL3);
 	isb();
@@ -103,6 +103,6 @@ void gicv3_init_gicc(irq_t max_irq, uint8_t max_prio)
 		     ICC_ENABLE_GRP1_S, ICC_IGRPEN1_EL3);
 
 	/* Write the secure ICC_SRE_EL1 register */
-	write_sysreg(ICC_SRE, ICC_SRE_EL1);
+	write_sysreg(ICC_SRE_SRE, ICC_SRE_EL1);
 	isb();
 }

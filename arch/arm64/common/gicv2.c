@@ -2,7 +2,7 @@
  */
 #include <stdio.h>
 #include <target/irq.h>
-#include <asm/gicv2.h>
+#include <target/gicv2.h>
 #include <target/smp.h>
 #include <asm/hal/HALhwio.h>
 

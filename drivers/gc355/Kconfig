@@ -1,0 +1,5 @@
+config GC355
+	bool "GC355 support"
+	---help---
+	  GC355 2D GPU driver.
+

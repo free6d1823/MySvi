@@ -23,7 +23,7 @@
 #include "usbport.h"
 #include <errno.h>
 #include "memalign.h"
-#include "list.h"
+#include <target/list.h>
 #ifdef CONFIG_SANDBOX
 #include <asm/state.h>
 #endif

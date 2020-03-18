@@ -1,0 +1,2 @@
+config DW_AHB_DMAC
+	bool "Synopsys AHB DMAC support"

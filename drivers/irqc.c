@@ -3,7 +3,7 @@
 #include <target/irq.h>
 #include <target/console.h>
 #ifdef CONFIG_GICv3
-#include <asm/gic3.h>
+#include <target/gic3.h>
 #endif
 #ifdef CONFIG_GICv2
 #include <asm/mach/qgic2.h>

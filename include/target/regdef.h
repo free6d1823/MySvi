@@ -3,7 +3,10 @@
 #ifndef __TESTOS_REGDEF_H_INCLUDE__
 #define __TESTOS_REGDEF_H_INCLUDE__
 
+#include <stdint.h>
+
 #define _BV(x)			(U(1) << (x))
+#define _BV_UL(x)		(UL(1) << (x))
 #define _BV_ULL(x)		(ULL(1) << (x))
 #define _FV(name, value)	_SET_FV(name, value)
 #define _SET_FV(name, value)	\
@@ -12,6 +15,7 @@
 	(((value) >> (name##_OFFSET)) & (name##_MASK))
 
 #define BIT _BV
+#define BIT_UL _BV_UL
 
 #define __stringify_1(x...)	#x
 #define __stringify(x...)	__stringify_1(x)

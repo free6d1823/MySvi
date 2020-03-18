@@ -53,6 +53,13 @@ const mmu_map_attr_t static_mmu_entry_list[] =
 	  MMU_MAP_NAME_STATIC(con)
 	},
 
+	/* PCIe internal mapped memry
+	 */
+	{ 0x400000000LL, 0x400000000LL, 0x800000000LL,
+	  PERM_RW, 0x0, CACHE_DEVICE_nGnRnE, false, false,
+	  MMU_MAP_NAME_STATIC(con)
+	},
+
 	/* VPU_SS
 	   vpud0 ~ 1, vpue
 	 */

@@ -123,6 +123,7 @@ source drivers/sata/Kconfig
 source drivers/GICv2/Kconfig
 source drivers/sae_smmu/Kconfig
 source drivers/arm_smmu/Kconfig
+source drivers/ethernet/synopsis/Kconfig
 source drivers/hidma/Kconfig
 source drivers/usb2/Kconfig
 source drivers/ufs/Kconfig
@@ -132,8 +133,14 @@ source drivers/libfdt/Kconfig
 source drivers/pci/Kconfig
 source drivers/d71/Kconfig
 source drivers/watchdog/Kconfig
+source drivers/dma/ahb/Kconfig
+source drivers/crypto/Kconfig
+source drivers/mbedtls/library/Kconfig
+source drivers/gc355/Kconfig
+source drivers/gc520/Kconfig
 source drivers/vc8000e/Kconfig
 source drivers/vc8000d/Kconfig
+
 endmenu
 
 menu "Advanced kernel features"

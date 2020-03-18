@@ -1,0 +1,19 @@
+mainmenu "ARM 32bit Configuration"
+
+source "init/Kconfig-m4.main"
+
+config ARM
+	bool
+	default y
+	select COMMON_C_LIB
+	select ARCH_HAS_IRQC
+	select ARCH_HAS_GICv3
+	help
+
+menu "ARM system options"
+source "arch/arm/common/Kconfig"
+endmenu
+
+source "drivers/Kconfig"
+source "lib/Kconfig"
+source "init/Kconfig"

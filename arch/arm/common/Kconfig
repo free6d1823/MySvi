@@ -1,0 +1,43 @@
+# Cortex-R52
+config CPU_CORTEX_R52
+	bool
+	default y
+	select CPU_V8R
+	help
+
+# Figure out what processor architecture version we should be using.
+# This defines the compiler instruction set which depends on the machine type.
+
+config CPU_V8R
+	bool
+
+config CPU_v7
+	bool
+
+config NR_CPUS
+	int "Maximum number of CPUs (1-4)"
+	range 1 4
+	# These have to remain sorted largest to smallest
+	default "4"
+
+config GIC
+	bool "Generic Interrupt Controller (GIC)"
+	depends on CPU_V8R
+	select ARCH_HAS_IRQC
+	help
+	  The GIC architecture describes an interrupt controller for use with
+	  one or more processors that comply with ARM A or R architecture
+	  profiles.
+
+if GIC
+
+config ARCH_HAS_GICv3
+	bool
+
+config GICv3
+	bool "GICv3 support"
+	depends ARCH_HAS_GICv3
+	help
+	  GIC v3 (IHI0069D) architecture specification.
+
+endif
