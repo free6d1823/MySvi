@@ -7,7 +7,7 @@
 /*************************************************
 ** VC8000E IP specific definitions 
 **************************************************/
-#define CORE_0_IO_ADDR		0xBC000000
+#define CORE_0_IO_ADDR		VC8000D_REG_BASE
 #define CORE_0_IO_SIZE		(437*4)
 
 #define VPU_DEC_INTR		195
