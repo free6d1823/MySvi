@@ -65,9 +65,9 @@
 #define SW_ENC_E				0x00000001	//encoder enable. Setting this bit high will start the encoding operation. HW will reset this when picture is processed or bus error or timeout interrupt is given.
 
 /*************************************************
-** VC8000E definitions 
+** VC8000E definitions
 **************************************************/
-typedef struct 
+typedef struct
 {
 	uintptr_t base_addr;
 	unsigned int iosize;
@@ -96,27 +96,27 @@ int vc8000e_init(int id)
 		uintptr_t base = core_array[i].base_addr;
 		uint32_t hwid;
 		uint32_t prod_id;
-		
-		printf("VC8000E core %d:\n", i); 
+
+		printf("VC8000E core %d:\n", i);
 		hwid = readl((uintptr_t)(base + SWREG0));
 		prod_id = PRODUCT_ID(hwid);
 		if ( prod_id != ENC_HW_ID1 || prod_id != ENC_HW_ID2) {
 			printf("  0x%X is not a valid ID\n", hwid);
 			continue;
 		}
-		
-		printf("Product ID =%x, Ver %d.%d\n", prod_id, 
+
+		printf("Product ID =%x, Ver %d.%d\n", prod_id,
 				MAJOR_NUMBER(hwid), MINOR_NUMBER(hwid));
 		core_array[i].valid = true;
 	}
-	
+
 	return 0;
 }
 
 int vc8000e_dump(int id)
 {
 	int i;
-	
+
 	printf("Reg dump start\n");
 	for (i=0; i< core_array[id].iosize; i+= 4) {
 		uintptr_t base = core_array[id].base_addr;
@@ -150,7 +150,7 @@ static int cmd_vc8000e(int argc, char **argv)
 
 MK_CMD(vc8e, cmd_vc8000e, "VSI VC8000E test",
 	"VC8000E test cases\n"
-	"vc8e [init|dump|start|stop] core_id\n" 
+	"vc8e [init|dump|start|stop] core_id\n"
     "    init    - show IP information\n"
 	"    dump    - dump all registers\n"
 	"    start   - start encode one frame\n"

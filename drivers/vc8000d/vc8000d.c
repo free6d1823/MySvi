@@ -5,7 +5,7 @@
 #include <target/memory.h>
 
 /*************************************************
-** VC8000E IP specific definitions 
+** VC8000E IP specific definitions
 **************************************************/
 #define CORE_0_IO_ADDR		VC8000D_REG_BASE
 #define CORE_0_IO_SIZE		(437*4)
@@ -19,7 +19,7 @@
 /*************************************************
 ** VC8000D definitions 
 **************************************************/
-typedef struct 
+typedef struct
 {
 	uintptr_t base_addr;
 	unsigned int iosize;
@@ -48,16 +48,16 @@ int vc8000d_init(int id)
 		uintptr_t base = core_array[i].base_addr;
 		uint32_t reg;
 		uint32_t prod_id;
-		
-		printf("VC8000D core %d:\n", i); 
+
+		printf("VC8000D core %d:\n", i);
 		reg = readl((uintptr_t)(base + HANTRODEC_ID_REGISTER));
 		prod_id = PRODUCT_ID(reg);
 		if ( prod_id != DEC_HW_ID1) {
 			printf("  0x%X is not a valid ID\n", reg);
 			continue;
 		}
-		
-		printf("Product ID =%x, Ver %d.%d\n", prod_id, 
+
+		printf("Product ID =%x, Ver %d.%d\n", prod_id,
 				MAJOR_NUMBER(reg), MINOR_NUMBER(reg));
 		core_array[i].valid = true;
 
@@ -70,14 +70,14 @@ int vc8000d_init(int id)
             printf("PP supported: %08X\n", reg);
         }
 	}
-	
+
 	return 0;
 }
 
 int vc8000d_dump(int id)
 {
 	int i;
-	
+
 	printf("Reg dump start\n");
 	for (i=0; i< core_array[id].iosize; i+= 4) {
 		uintptr_t base = core_array[id].base_addr;
@@ -112,7 +112,7 @@ int vc8000d_features(int id)
         tmp = ( cfg1 >> DWL_MPEG4_E) & 0x3U;
         printf("- MPEG4 (1:simple, 2:advanced): %d\n", tmp);
         tmp = ( cfg1 >> DWL_VC1_E) & 0x3U;
-        printf("- VC1 (1:simple, 2:main, 3:advanced): %d\n", tmp);    
+        printf("- VC1 (1:simple, 2:main, 3:advanced): %d\n", tmp);
         tmp = ( cfg1 >> DWL_VP6_E) & 0x1U;
         printf("- VP6: %d\n", tmp);
         printf("- AVS2: %d\n", ( cfg1 >> DWL_AVS2_E) & 0x1U);
@@ -131,6 +131,7 @@ int vc8000d_features(int id)
     }
     return 0;
 }
+
 static int cmd_vc8000d(int argc, char **argv)
 {
 	int core_id = 0;
@@ -146,7 +147,7 @@ static int cmd_vc8000d(int argc, char **argv)
 	} else if (argv[1][0] == 's') {
 		vc8000d_start(core_id);
 	} else if (argv[1][0] == 'f') {
-		vc8000d_features(core_id);	
+		vc8000d_features(core_id);
     } 	else {
 		return -EUSAGE;
 	}
@@ -157,7 +158,7 @@ static int cmd_vc8000d(int argc, char **argv)
 
 MK_CMD(vc8d, cmd_vc8000d, "VSI VC8000D test",
 	"VC8000D test cases\n"
-	"vc8d [init|dump|feat|start] core_id\n" 
+	"vc8d [init|dump|feat|start] core_id\n"
     "    init    - show IP information\n"
 	"    dump    - dump all registers\n"
 	"    start   - start encode one frame\n"
