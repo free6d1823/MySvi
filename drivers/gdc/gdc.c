@@ -33,6 +33,7 @@ static CORE_CONFIG core_array[] = {
 	{(uintptr_t)GDC_CORE1_REG_BASE, ACAMERA_GDC_SIZE, GDC_CORE1_IRQ, false},
 };
 
+<<<<<<< HEAD
 int gdc_dump_features(int id)
 {
 	uint32_t reg;
@@ -75,12 +76,19 @@ int gdc_dump_features(int id)
 	printf(" - AXI data width  = 0x%X\n", (1<< (value)));	  
 
 }
+=======
+
+>>>>>>> 0677d966b529dac43aca07b83267fe05e1823147
 int gdc_start(int id)
 {
 
 	return 0;
 }
+<<<<<<< HEAD
 int gdc_init()
+=======
+int gdc_init(int id)
+>>>>>>> 0677d966b529dac43aca07b83267fe05e1823147
 {
 	int i;
 	total_core_number = sizeof(core_array)/sizeof(core_array[0]);
@@ -99,13 +107,21 @@ int gdc_init()
 
 		printf("GDC ID =%x\n", reg);
 		core_array[i].valid = true;
+<<<<<<< HEAD
 		gdc_dump_features(i);
+=======
+
+>>>>>>> 0677d966b529dac43aca07b83267fe05e1823147
 	}
 
 	return 0;
 }
 
+<<<<<<< HEAD
 int gdc_dump(int id)
+=======
+int gdc_dump()
+>>>>>>> 0677d966b529dac43aca07b83267fe05e1823147
 {
 	int i;
 
@@ -120,6 +136,7 @@ int gdc_dump(int id)
 
 static int cmd_gdc(int argc, char **argv)
 {
+<<<<<<< HEAD
 	int core = 0;
 	if (argc < 1)
 		return -EUSAGE;
@@ -132,6 +149,17 @@ static int cmd_gdc(int argc, char **argv)
 		gdc_dump(core);
 	} else if (argv[1][0] == 's') {
 		gdc_start(core);
+=======
+	if (argc < 1)
+		return -EUSAGE;
+
+	if (argv[1][0] == 'i') {
+		gdc_init();
+	} else if (argv[1][0] == 'd') {
+		gdc_dump();
+	} else if (argv[1][0] == 's') {
+		gdc_start();
+>>>>>>> 0677d966b529dac43aca07b83267fe05e1823147
     } 	else {
 		return -EUSAGE;
 	}
