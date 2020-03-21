@@ -1,0 +1,2 @@
+config GDC
+	bool "Arm GDC driver"
