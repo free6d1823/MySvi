@@ -5,7 +5,7 @@
 #include <target/memory.h>
 
 /*************************************************
-** VC8000E IP specific definitions 
+** VC8000E IP specific definitions
 **************************************************/
 #define CORE_0_IO_ADDR		VC8000E_REG_BASE
 #define CORE_0_IO_SIZE		(272*4)
@@ -146,7 +146,6 @@ static int cmd_vc8000e(int argc, char **argv)
 
 	return 0;
 }
-
 
 MK_CMD(vc8e, cmd_vc8000e, "VSI VC8000E test",
 	"VC8000E test cases\n"

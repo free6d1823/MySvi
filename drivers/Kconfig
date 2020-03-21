@@ -140,6 +140,7 @@ source drivers/gc355/Kconfig
 source drivers/gc520/Kconfig
 source drivers/vc8000e/Kconfig
 source drivers/vc8000d/Kconfig
+source drivers/gdc/Kconfig
 
 endmenu
 
