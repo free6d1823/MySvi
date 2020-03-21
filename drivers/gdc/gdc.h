@@ -43,8 +43,8 @@
 #define GDC_ERROR_UNALIGNED		(0x00001000) /* Unaligned access (address pointer is not aligned) */
 #define GDC_ERROR_INCOMPATIBLE	(0x00002000) /* Incompatible configuration (request of unimplemented mode of operation */
 /* GDC_REG_COMMAND bit definition */
-#defien GDC_START_FLAG		(0x00000001) /* Transition from 0 to 1 starts the processing */
-#defien GDC_STOP_FLAG		(0x00000002)	/* 1 means to abandon the current frame and prepare for processing of the next frame. */
+#define GDC_START_FLAG		(0x00000001) /* Transition from 0 to 1 starts the processing */
+#define GDC_STOP_FLAG		(0x00000002)	/* 1 means to abandon the current frame and prepare for processing of the next frame. */
 /* GDC_REG_SUPPORTS bit definition */
 #define GDC_FEATURE_8BIT_DATA	(0x00000001) /* 8 bit data supported */
 #define GDC_FEATURE_10BIT_DATA	(0x00000002) /* 10 bit data supported */
@@ -61,6 +61,6 @@
 #define GDC_FEATURE_OUTPUT_CACHE_SIZE		(0x00070000) /* log2(size of output cache in lines)-5, (0 - 32lines, 1 - 64 lines etc) */
 #define GDC_FEATURE_TILE_CACHE_SIZE		(0x00f80000) /* log2(size of tile cache in 16x16 clusters) */
 #define GDC_FEATURE_POLYPHASS_FILTER	(0x07000000) /* Number of polyphase filter banks [2:0], log2(number of polyphase filter banks) */
-#define GDC_FEATURE_AXI_DATA_WIDTH		(0x38000000_ /* AXI data width [2:0] log2(AXI_DATA_WIDTH)-5 */
+#define GDC_FEATURE_AXI_DATA_WIDTH		(0x38000000) /* AXI data width [2:0] log2(AXI_DATA_WIDTH)-5 */
 
 #endif /* __GDC_H__ */

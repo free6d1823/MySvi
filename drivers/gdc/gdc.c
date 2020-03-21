@@ -33,7 +33,6 @@ static CORE_CONFIG core_array[] = {
 	{(uintptr_t)GDC_CORE1_REG_BASE, ACAMERA_GDC_SIZE, GDC_CORE1_IRQ, false},
 };
 
-<<<<<<< HEAD
 int gdc_dump_features(int id)
 {
 	uint32_t reg;
@@ -66,29 +65,23 @@ int gdc_dump_features(int id)
 		printf(" - Bilinear interpolation mode 2 supported {for U,V components}\n");
 	if (reg & GDC_FEATURE_OUTPUT_INTERPOLATION)
 		printf(" - Output of interpolation coordinates is supported\n");
-	value = ((reg & GDC_FEATURE_OUTPUT_CACHE_SIZE )>>16)
+	value = ((reg & GDC_FEATURE_OUTPUT_CACHE_SIZE )>>16);
 	printf(" - Size of output cache = %d lines\n", (1<< (value+5)));
-	value = ((reg & GDC_FEATURE_TILE_CACHE_SIZE )>>19))
+	value = ((reg & GDC_FEATURE_TILE_CACHE_SIZE )>>19);
 	printf(" - Size of tile cache = %d of 16x16-clusters\n", (1<< (value)));	
-	value = ((reg & GDC_FEATURE_POLYPHASS_FILTER )>>24))
+	value = ((reg & GDC_FEATURE_POLYPHASS_FILTER )>>24);
 	printf(" - Number of polyphase filter banks = %d\n", (1<< (value)));	 
-	value = ((reg & GDC_FEATURE_AXI_DATA_WIDTH )>>27))
+	value = ((reg & GDC_FEATURE_AXI_DATA_WIDTH )>>27);
 	printf(" - AXI data width  = 0x%X\n", (1<< (value)));	  
 
+	return 0;
 }
-=======
-
->>>>>>> 0677d966b529dac43aca07b83267fe05e1823147
 int gdc_start(int id)
 {
 
 	return 0;
 }
-<<<<<<< HEAD
 int gdc_init()
-=======
-int gdc_init(int id)
->>>>>>> 0677d966b529dac43aca07b83267fe05e1823147
 {
 	int i;
 	total_core_number = sizeof(core_array)/sizeof(core_array[0]);
@@ -107,21 +100,14 @@ int gdc_init(int id)
 
 		printf("GDC ID =%x\n", reg);
 		core_array[i].valid = true;
-<<<<<<< HEAD
 		gdc_dump_features(i);
-=======
 
->>>>>>> 0677d966b529dac43aca07b83267fe05e1823147
 	}
 
 	return 0;
 }
 
-<<<<<<< HEAD
 int gdc_dump(int id)
-=======
-int gdc_dump()
->>>>>>> 0677d966b529dac43aca07b83267fe05e1823147
 {
 	int i;
 
@@ -136,7 +122,6 @@ int gdc_dump()
 
 static int cmd_gdc(int argc, char **argv)
 {
-<<<<<<< HEAD
 	int core = 0;
 	if (argc < 1)
 		return -EUSAGE;
@@ -149,18 +134,8 @@ static int cmd_gdc(int argc, char **argv)
 		gdc_dump(core);
 	} else if (argv[1][0] == 's') {
 		gdc_start(core);
-=======
-	if (argc < 1)
-		return -EUSAGE;
 
-	if (argv[1][0] == 'i') {
-		gdc_init();
-	} else if (argv[1][0] == 'd') {
-		gdc_dump();
-	} else if (argv[1][0] == 's') {
-		gdc_start();
->>>>>>> 0677d966b529dac43aca07b83267fe05e1823147
-    } 	else {
+	} 	else {
 		return -EUSAGE;
 	}
 
