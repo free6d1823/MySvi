@@ -153,10 +153,13 @@ static __inline uint32_t acamera_gdc_gdc_config_size_read(uint32_t base) {
 // args: data (16-bit)
 static __inline void acamera_gdc_gdc_datain_width_write(uint32_t base, uint16_t data) {
     uint32_t curr = system_gdc_read_32(base + ACAMERA_GDC_GDC_DATAIN_WIDTH_OFFSET);
-    system_gdc_write_32(base + ACAMERA_GDC_GDC_DATAIN_WIDTH_OFFSET, (((uint32_t) (data & ACAMERA_GDC_GDC_DATAIN_WIDTH_MASK)) << 0) | (curr & (~ACAMERA_GDC_GDC_DATAIN_WIDTH_MASK));
+    system_gdc_write_32(base + ACAMERA_GDC_GDC_DATAIN_WIDTH_OFFSET, 
+            (((uint32_t) (data & ACAMERA_GDC_GDC_DATAIN_WIDTH_MASK)) << 0) | 
+            (curr & (~ACAMERA_GDC_GDC_DATAIN_WIDTH_MASK)));
 }
 static __inline uint16_t acamera_gdc_gdc_datain_width_read(uint32_t base) {
-    return (uint16_t)((system_gdc_read_32(base + ACAMERA_GDC_GDC_DATAIN_WIDTH_OFFSET) & ACAMERA_GDC_GDC_DATAIN_WIDTH_MASK) >> 0);
+    return (uint16_t)((system_gdc_read_32(base + ACAMERA_GDC_GDC_DATAIN_WIDTH_OFFSET) & 
+            ACAMERA_GDC_GDC_DATAIN_WIDTH_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: datain_height

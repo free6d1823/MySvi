@@ -23,11 +23,11 @@
 
 void bsp_init( void )
 {
-    system_interrupts_init();
+    system_interrupts_init(0);
 }
 
 void bsp_destroy( void )
 {
-	system_interrupts_disable();
-	system_interrupts_deinit();
+	system_interrupts_disable(0);
+	system_interrupts_deinit(0);
 }

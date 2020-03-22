@@ -5,12 +5,14 @@
 #include <target/memory.h>
 #include <gdc/acamera_gdc_config.h>
 #include <api/acamera_gdc_api.h>
+#include <sys/system_log.h>	
+#include <sys/system_interrupts.h>	
 //gdc configuration sequences
 #include "arm/app/gdc_config_seq_semiplanar_yuv420.h"
 #include "arm/app/gdc_config_seq_plane_y.h"
 #include "arm/app/gdc_config_seq_planar_yuv420.h"
 #include "arm/app/gdc_config_seq_planar_rgb444.h"
-	
+
 
 /*************************************************
 ** VC8000E IP specific definitions
@@ -184,7 +186,7 @@ static uint32_t gdc_load_settings_to_memory( uint32_t * config_mem_start, uint32
 static int gdc_test(int id)
 {
     gdc_settings_t gdc_settings = {0};
-    system_interrupts_disable();
+    system_interrupts_disable(id);
     //configure gdc config, buffer address and resolution
     gdc_settings.base_gdc = core_array[id].base_addr;
     gdc_settings.buffer_addr = 0x8000000;
@@ -254,7 +256,7 @@ static int init_gdc_device()
     int i;
     for (i = 0; i< total_core_number; i++) {
         if (core_array[i].valid){
-			system_interrupts_set_irq(i, core_array[id].irq, 0x0014); /* IRQF_TRIGGER_HIGH|IRQF_TRIGGER_PROBE*/
+			system_interrupts_set_irq(i, core_array[i].irq, 0x0014); /* IRQF_TRIGGER_HIGH|IRQF_TRIGGER_PROBE*/
 
         }
     }

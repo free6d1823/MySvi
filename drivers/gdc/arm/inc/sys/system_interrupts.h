@@ -58,6 +58,19 @@ void system_interrupts_deinit( int id );
  */
 void system_interrupt_set_handler( int id, system_interrupt_handler_t handler, void *param );
 
+/**
+ *   Set IRQ number
+ *
+ *   This function is used by application to set an interrupt handler for all GDC related interrupt events.
+ *
+ *   @param
+ *          id - GDC core number
+ *          irq_num - irq number
+ *          flags - irq trigger flags 
+ *
+ *   @return none
+ */
+void system_interrupts_set_irq(int id, int irq_num, int flags);
 
 /**
  *   Enable system interrupts

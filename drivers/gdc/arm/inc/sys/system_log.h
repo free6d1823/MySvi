@@ -38,6 +38,9 @@ enum {
     LOG_MAX
 };
 
+#ifndef FW_LOG_LEVEL
+#define FW_LOG_LEVEL    LOG_WARNING
+#endif
 extern const char *const log_level[LOG_MAX];
 
 #define FILE ( strrchr( __FILE__, '/' ) ? strrchr( __FILE__, '/' ) + 1 : __FILE__ )

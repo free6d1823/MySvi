@@ -23,8 +23,8 @@
 #include "system_interrupts.h"
 
 #ifdef USE_SVI
-#include <target/irqc.h>
 #include <target/irq.h>
+#include <target/irqc.h>
 
 
 /**
@@ -65,7 +65,6 @@ typedef enum {
   GDC_IRQ_STATUS_MAX
 } irq_status;
 
-#define IRQF_TRIGGER_MASK 0xff
 static system_interrupt_handler_t app_handler = NULL ;
 static void* app_param = NULL ;
 static int interrupt_line_ACAMERA_JUNO_IRQ = -1;
@@ -122,7 +121,7 @@ void system_interrupts_set_irq(int id, int irq_num, int flags)
 void system_interrupts_init( int id)
 {
 	int ret = 0;
-	int flags = ;
+
 	if(id >= MAX_GDC_CORES) {
 		LOG(LOG_ERR, "system_interrupts_init error: unsupported core id %d", id);
 		return;
@@ -130,14 +129,15 @@ void system_interrupts_init( int id)
 
 	if(gdc_irq[id].status != GDC_IRQ_STATUS_DEINIT) {
 		LOG(LOG_WARNING, "irq %d is already initied (status = %d)",
-		gdc_irq[id].status;
+		        gdc_irq[id].status);
 		return;
 	}
 	gdc_irq[id].status = GDC_IRQ_STATUS_ENABLED;
  	if(gdc_irq[id].irq >= 0) {
 #ifdef USE_SVI
 		uint8_t trigger= IRQ_LEVEL_TRIGGERED;
-		if (gdc_irq[id].flags & IRQF_TRIGGER_RISING) trigger = IRQ_EDGE_TRIGGERED; 
+		if (gdc_irq[id].flags & IRQF_TRIGGER_RISING)
+            trigger = IRQ_EDGE_TRIGGERED; 
 		irqc_configure_irq(gdc_irq[id].irq, 32, trigger);
 
 		if (id == 1) {
@@ -195,19 +195,19 @@ void system_interrupts_deinit( int id )
 
 void system_interrupts_enable( int id )
 {
-#ifdef SVI
-	irqc_enable((irq_t) irq_num);
+#ifdef USE_SVI
+	irqc_enable_irq((irq_t) gdc_irq[id].irq);
 #else //LINUX
-	enable_irq(irq_num);
+	enable_irq(gdc_irq[id].irq);
 #endif
 }
 
 void system_interrupts_disable( int id )
 {
-#ifdef SVI
-		irqc_disable((irq_t) irq_num);
+#ifdef USE_SVI
+		irqc_disable_irq((irq_t) gdc_irq[id].irq);
 #else //LINUX
-		disable_irq(irq_num);
+		disable_irq(gdc_irq[id].irq);
 #endif
 
 }
