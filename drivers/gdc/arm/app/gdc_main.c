@@ -171,7 +171,7 @@ uint32_t gdc_load_settings_to_memory( uint32_t * config_mem_start, uint32_t *con
 }
 
 // The basic example of usage gdc is given below.
-int gdc_fw_init( void )
+int gdc_fw_init(void )
 {
 
     static gdc_settings_t gdc_settings;

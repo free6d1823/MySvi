@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <target/cmdline.h>
 #include <target/memory.h>
-
+#include <gdc/acamera_gdc_config.h>
+#include <api/acamera_gdc_api.h>
 /*************************************************
 ** VC8000E IP specific definitions
 **************************************************/
@@ -32,6 +33,28 @@ static CORE_CONFIG core_array[] = {
 	{(uintptr_t)GDC_CORE0_REG_BASE, ACAMERA_GDC_SIZE, GDC_CORE0_IRQ, false},
 	{(uintptr_t)GDC_CORE1_REG_BASE, ACAMERA_GDC_SIZE, GDC_CORE1_IRQ, false},
 };
+static int init_gdc_device()
+{    
+    int i;
+    for (i = 0; i< total_core_number; i++) {
+        if (core_array[i].valid){
+            /*TODO: enable irg core_array[id].irq */
+            /* ISR is set when start frame */
+        }
+    }
+	return 0;
+}
+static int gdc_release()
+{
+    int i;
+    for (i = 0; i< total_core_number; i++) {
+        if (core_array[i].valid){
+            /*TODO: deinit irg core_array[id].irq */
+        }
+        core_array[i].valid = false;
+    }
+	return 0;
+}
 
 int gdc_dump_features(int id)
 {
@@ -76,10 +99,10 @@ int gdc_dump_features(int id)
 
 	return 0;
 }
-int gdc_start(int id)
+int gdc_test(int id)
 {
-
-	return 0;
+    gdc_settings_t gdc_settings = {0};
+    return 0;
 }
 int gdc_init()
 {
@@ -104,6 +127,9 @@ int gdc_init()
 
 	}
 
+    /* gdc linux driver init the firmware in device probe stage, we manually call it here
+    */
+    init_gdc_device();
 	return 0;
 }
 
@@ -132,10 +158,11 @@ static int cmd_gdc(int argc, char **argv)
 		gdc_init();
 	} else if (argv[1][0] == 'd') {
 		gdc_dump(core);
-	} else if (argv[1][0] == 's') {
-		gdc_start(core);
-
-	} 	else {
+	} else if (argv[1][0] == 't') {
+		gdc_test(core);
+	} else if (argv[1][0] == 'f') {
+		gdc_release();
+	} else {
 		return -EUSAGE;
 	}
 
@@ -145,10 +172,11 @@ static int cmd_gdc(int argc, char **argv)
 
 MK_CMD(gdc, cmd_gdc, "Arm GDC test",
 	"GDC test cases\n"
-	"gdc [init|dump|start] core\n"
-    "    init    - initilize IP information\n"
+	"gdc [init|dump|test|free] core\n"
+    "    init    - initilize all GDC devices\n"
 	"    dump    - dump all registers\n"
-	"    start   - start GDC one frame\n"
+	"    test    - start one GDC test case\n"
+	"    free    - release all GDC device resources\n"
 	"    core    - id of GDC core(0,1)\n"
 );
 
