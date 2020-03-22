@@ -24,7 +24,7 @@
 #define __ACAMERA_GDC_CONFIG_H__
 
 
-#include "system_gdc_io.h"
+#include "sys/system_gdc_io.h"
 
 // ------------------------------------------------------------------------------ //
 // Instance 'gdc' of module 'acamera_gdc_ip_config'

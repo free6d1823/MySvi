@@ -17,8 +17,8 @@
 *
 */
 
-#include "system_control.h"
-#include "system_interrupts.h"
+#include "sys/system_control.h"
+#include "sys/system_interrupts.h"
 
 
 void bsp_init( void )

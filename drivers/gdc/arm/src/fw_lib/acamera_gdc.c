@@ -18,15 +18,14 @@
 */
 
 //needed for gdc/gdc configuration
-#include "acamera_gdc_config.h"
+#include "gdc/acamera_gdc_config.h"
 
 //data types and prototypes
-#include "acamera_gdc_api.h"
+#include "api/acamera_gdc_api.h"
 
 //system_memcpy
-#include "system_stdlib.h"
-#define FW_LOG_LEVEL LOG_IRQ
-#include "system_log.h"
+#include "sys/system_stdlib.h"
+#include "sys/system_log.h"
 
 
 /**

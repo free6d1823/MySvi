@@ -19,8 +19,8 @@
 /*History:
 20200323 Enable multicores support. cj.chang@siengine.com
 */
-#define USE_SVI
-#include "system_interrupts.h"
+#include "sys/system_interrupts.h"
+#include "sys/system_log.h"
 
 #ifdef USE_SVI
 #include <target/irq.h>
@@ -54,22 +54,12 @@ typedef enum irqreturn irqreturn_t;
 #include <linux/interrupt.h>
 #endif
 
-
-#define FW_LOG_LEVEL LOG_IRQ
-#include "system_log.h"
-
 typedef enum {
   GDC_IRQ_STATUS_DEINIT = 0,
   GDC_IRQ_STATUS_ENABLED,
   GDC_IRQ_STATUS_DISABLED,
   GDC_IRQ_STATUS_MAX
 } irq_status;
-
-static system_interrupt_handler_t app_handler = NULL ;
-static void* app_param = NULL ;
-static int interrupt_line_ACAMERA_JUNO_IRQ = -1;
-static int interrupt_line_ACAMERA_JUNO_IRQ_FLAGS = -1;
-static irq_status interrupt_request_status = GDC_IRQ_STATUS_DEINIT;
 
 #define MAX_GDC_CORES	2
 typedef struct dev_info{
@@ -96,14 +86,10 @@ static void svi_interrupt_handler1()
 #else //LINUX
 static irqreturn_t system_interrupt_handler(int irq, void *dev_id)
 {
-
-  LOG(LOG_DEBUG, "interrupt comes in (irq = %d) dev_id: %p %p", irq, dev_id, app_param);
-  if(app_handler){
-	if(interrupt_line_ACAMERA_JUNO_IRQ >= 0){
-		if(irq==interrupt_line_ACAMERA_JUNO_IRQ)
-			app_handler( app_param, 1  ) ;
-	}
-  }
+    int core_id = (int) dev_id;
+    LOG(LOG_DEBUG, "GDC core %d: interrupt comes in (irq = %d)", core_id, irq);
+    if(core_id < MAX_GDC_CORES && gdc_irq[core_id].app_handler)
+	    gdc_irq[core_id].app_handler(gdc_irq[core_id].app_param, 1);
 
   return IRQ_HANDLED;
 }
@@ -113,8 +99,9 @@ static irqreturn_t system_interrupt_handler(int irq, void *dev_id)
 void system_interrupts_set_irq(int id, int irq_num, int flags)
 {
 	if(id < MAX_GDC_CORES) {
-		gdc_irq[id].irq = irq_num;
-		gdc_irq[id].flags = flags;
+        gdc_irq[id].irq = irq_num;
+        gdc_irq[id].flags = flags;
+        LOG(LOG_INFO, "Set core %d IRQ to %d\n", id, gdc_irq[id].irq);
 	}
 }
 
@@ -146,7 +133,7 @@ void system_interrupts_init( int id)
 			irq_register_vector((sirq_t)gdc_irq[id].irq, svi_interrupt_handler0);		
 		}
 #else //LINUX
-		ret=request_irq(gdc_irq[id].irq, &system_interrupt_handler, flags, "gdc", NULL);
+		ret=request_irq(gdc_irq[id].irq, &system_interrupt_handler, gdc_irq[id].flags, "gdc", id);
 #endif	  
 	    if(ret != 0)
 		{
@@ -156,7 +143,7 @@ void system_interrupts_init( int id)
 	  			gdc_irq[id].irq, gdc_irq[id].flags, ret);
 	  }
 	}else{
-	  LOG(LOG_ERR, "invalid irq id ! (id = %d), please call system_interrupts_set_irq() first\n", interrupt_line_ACAMERA_JUNO_IRQ);
+	  LOG(LOG_ERR, "invalid irq id ! (id = %d), please call system_interrupts_set_irq() first\n", gdc_irq[id].irq);
 	}
 }
 void system_interrupt_set_handler(int id, system_interrupt_handler_t handler, void *param )
@@ -190,24 +177,30 @@ void system_interrupts_deinit( int id )
 
 }
 
-
-
-
 void system_interrupts_enable( int id )
 {
+    if(gdc_irq[id].status == GDC_IRQ_STATUS_DISABLED) {
+        if(gdc_irq[id].irq > 0) {
 #ifdef USE_SVI
-	irqc_enable_irq((irq_t) gdc_irq[id].irq);
+	        irqc_enable_irq((irq_t) gdc_irq[id].irq);
 #else //LINUX
-	enable_irq(gdc_irq[id].irq);
+	        enable_irq(gdc_irq[id].irq);
 #endif
+            gdc_irq[id].status = GDC_IRQ_STATUS_ENABLED;
+        }
+    }
 }
 
 void system_interrupts_disable( int id )
 {
+    if(gdc_irq[id].status == GDC_IRQ_STATUS_ENABLED) {
+        if(gdc_irq[id].irq > 0) {
 #ifdef USE_SVI
-		irqc_disable_irq((irq_t) gdc_irq[id].irq);
+		    irqc_disable_irq((irq_t) gdc_irq[id].irq);
 #else //LINUX
-		disable_irq(gdc_irq[id].irq);
+		    disable_irq(gdc_irq[id].irq);
 #endif
-
+            gdc_irq[id].status = GDC_IRQ_STATUS_DISABLED;
+        }
+    }
 }

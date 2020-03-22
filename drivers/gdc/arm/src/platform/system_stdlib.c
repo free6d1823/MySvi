@@ -17,12 +17,13 @@
 *
 */
 
-#include "system_stdlib.h"
-//#include "linux/string.h"
+#include "sys/system_stdlib.h"
 #include <string.h>
-
-//#include <asm/io.h>
-
+#ifdef USE_SVI
+#else
+#include "linux/string.h"
+#include <asm/io.h>
+#endif
 
 void * system_ddr_mem_init() {
 	void *p_base=0;

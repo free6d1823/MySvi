@@ -16,10 +16,13 @@
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
 */
-#define FW_LOG_LEVEL LOG_IRQ
 
-#include "system_log.h"
+#include "sys/system_log.h"
+#ifdef USE_SVI
 #include <target/utils.h>
+#else
+#include <asm/io.h>
+#endif
 
 static void *p_hw_base = NULL;
 
@@ -42,11 +45,30 @@ void close_gdc_io( void )
 
 uint32_t system_gdc_read_32( uint32_t addr )
 {
+#ifdef USE_SVI
     return readl((uintptr_t)addr);
+#else
+  	uint32_t result = 0;
+    if ( p_hw_base != NULL ) {
+        result = ioread32( p_hw_base + addr );
+    } else {
+        LOG( LOG_ERR, "Failed to read memory from address %d. Base pointer is null ", addr );
+    }
+    return result;
+#endif
 }
 
 void system_gdc_write_32( uint32_t addr, uint32_t data )
 {
+#ifdef USE_SVI
 	writel(data, (uintptr_t)addr);
+#else
+    if ( p_hw_base != NULL ) {
+        void *ptr = (void *)( p_hw_base + addr );
+        iowrite32( data, ptr );
+    } else {
+        LOG( LOG_ERR, "Failed to write value %d to memory with offset %d. Base pointer is null ", data, addr );
+    }
+#endif
 }
 

@@ -20,7 +20,7 @@
 #ifndef __ACAMERA_GDC_API_H__
 #define __ACAMERA_GDC_API_H__
 
-#include "system_stdlib.h"
+#include "sys/system_stdlib.h"
 
 #define ACAMERA_GDC_MAX_INPUT 3
 
