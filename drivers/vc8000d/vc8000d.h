@@ -86,4 +86,14 @@
 #define DWL_PP_E            31
 
 
+/* AFBC encoder */
+#define REG_BLOCK_ID	    0x000	/* BLOCK_ID 0x03002001 */
+#define REG_IRQ_RAW_STATUS	0x004
+#define REG_IRQ_CLEAR		0x008
+#define REG_IRQ_MASK        0x00C
+#define REG_IRQ_STATUS      0x010
+#define REG_COMMAND         0x014
+#define REG_STATUS          0x018
+
+
 #endif /* __VC8000D_H__ */

@@ -13,8 +13,9 @@
 #define VPU_DEC_INTR		195
 #define VPU_DEC_L2_INTR		196
 
-
-
+#define SAENC_AFBC_BASE 0xbc020000
+#define SAENC_AFBC_SIZE 0x204
+#define AFBC_ENCODER_ID 0x0300
 
 /*************************************************
 ** VC8000D definitions
@@ -131,6 +132,38 @@ int vc8000d_features(int id)
     }
     return 0;
 }
+int vc8000d_afbc(int id)
+{
+    (void) id; /* current test one AFBC enc only */
+	uintptr_t base = SAENC_AFBC_BASE;
+	uint32_t hwid;
+	uint32_t value;
+
+	value = readl((uintptr_t)(base + REG_BLOCK_ID));
+    hwid = ((value>>16) &0x0000ffff);
+    if (AFBC_ENCODER_ID != hwid) {
+        printf("0x%x is not a valid AFBC encoder ID\n", value);
+        return -1;
+    }
+    printf("AFBC encoder ID 0x%x, version %d.%d r%d\n", hwid, 
+            (value & 0x0000f000) >>12,
+            (value & 0x00000ff0) >>4,
+            value&0x0000000f);
+ 	value = readl((uintptr_t)(base + REG_IRQ_RAW_STATUS));
+    printf(" - REG_IRQ_RAW_STATUS = 0x%X\n", value);
+ 	value = readl((uintptr_t)(base + REG_IRQ_CLEAR));
+    printf(" - REG_IRQ_CLEAR = 0x%X\n", value);
+ 	value = readl((uintptr_t)(base + REG_IRQ_MASK));
+    printf(" - REG_IRQ_MASK = 0x%X\n", value);
+ 	value = readl((uintptr_t)(base + REG_IRQ_STATUS));
+    printf(" - REG_IRQ_STATUS = 0x%X\n", value);
+ 	value = readl((uintptr_t)(base + REG_COMMAND));
+    printf(" - REG_COMMAND = 0x%X\n", value);   
+ 	value = readl((uintptr_t)(base + REG_STATUS));
+    printf(" - REG_STATUS = 0x%X\n", value);   
+    printf("~ AFBC encoder test done ~\n");
+    return 0;
+}
 
 static int cmd_vc8000d(int argc, char **argv)
 {
@@ -148,7 +181,9 @@ static int cmd_vc8000d(int argc, char **argv)
 		vc8000d_start(core_id);
 	} else if (argv[1][0] == 'f') {
 		vc8000d_features(core_id);
-    } 	else {
+	} else if (argv[1][0] == 'a') {
+		vc8000d_afbc(core_id);
+	} else {
 		return -EUSAGE;
 	}
 
@@ -158,11 +193,12 @@ static int cmd_vc8000d(int argc, char **argv)
 
 MK_CMD(vc8d, cmd_vc8000d, "VSI VC8000D test",
 	"VC8000D test cases\n"
-	"vc8d [init|dump|feat|start] core_id\n"
+	"vc8d [init|dump|feat|start|afbc] core_id\n"
     "    init    - show IP information\n"
 	"    dump    - dump all registers\n"
 	"    start   - start encode one frame\n"
 	"    feat    - show IP features\n"
+	"    afbc    - afbc encoder test\n"
 	"    core_id - [0:1] core number. Default 0\n"
 );
 
