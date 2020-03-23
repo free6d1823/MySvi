@@ -16,6 +16,9 @@
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
 */
+/* History:
+2020/03/23 Modified for multiple cores support. cj.chang@siengine.com
+*/
 
 #ifndef __ACAMERA_GDC_CONFIG_H__
 #define __ACAMERA_GDC_CONFIG_H__
@@ -27,8 +30,8 @@
 // Instance 'gdc' of module 'acamera_gdc_ip_config'
 // ------------------------------------------------------------------------------ //
 
-#define ACAMERA_GDC_BASE_ADDR (0x208000L)
-#define ACAMERA_GDC_SIZE (0x100)
+//#define ACAMERA_GDC_BASE_ADDR (0x208000L)
+//#define ACAMERA_GDC_SIZE (0x100)
 
 // ------------------------------------------------------------------------------ //
 // Group: ID
@@ -45,7 +48,7 @@
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_id_api_read(uint32_t base) {
-    return system_gdc_read_32(0x208000L);
+    return system_gdc_read_32(base);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Product
@@ -58,7 +61,7 @@ static __inline uint32_t acamera_gdc_id_api_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_id_product_read(uint32_t base) {
-    return system_gdc_read_32(0x208004L);
+    return system_gdc_read_32(base+ACAMERA_GDC_ID_PRODUCT_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Version
@@ -71,7 +74,7 @@ static __inline uint32_t acamera_gdc_id_product_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_id_version_read(uint32_t base) {
-    return system_gdc_read_32(0x208008L);
+    return system_gdc_read_32(base + ACAMERA_GDC_ID_VERSION_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Revision
@@ -84,7 +87,7 @@ static __inline uint32_t acamera_gdc_id_version_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_id_revision_read(uint32_t base) {
-    return system_gdc_read_32(0x20800cL);
+    return system_gdc_read_32(base+ACAMERA_GDC_ID_REVISION_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Group: GDC
@@ -109,10 +112,10 @@ static __inline uint32_t acamera_gdc_id_revision_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_config_addr_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x208010L, data);
+    system_gdc_write_32(base + ACAMERA_GDC_GDC_CONFIG_ADDR_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_config_addr_read(uint32_t base) {
-    return system_gdc_read_32(0x208010L);
+    return system_gdc_read_32(base + ACAMERA_GDC_GDC_CONFIG_ADDR_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: config size
@@ -129,10 +132,10 @@ static __inline uint32_t acamera_gdc_gdc_config_addr_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_config_size_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x208014L, data);
+    system_gdc_write_32(base + ACAMERA_GDC_GDC_CONFIG_SIZE_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_config_size_read(uint32_t base) {
-    return system_gdc_read_32(0x208014L);
+    return system_gdc_read_32(base + ACAMERA_GDC_GDC_CONFIG_SIZE_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: datain width
@@ -149,11 +152,11 @@ static __inline uint32_t acamera_gdc_gdc_config_size_read(uint32_t base) {
 
 // args: data (16-bit)
 static __inline void acamera_gdc_gdc_datain_width_write(uint32_t base, uint16_t data) {
-    uint32_t curr = system_gdc_read_32(0x208020L);
-    system_gdc_write_32(0x208020L, (((uint32_t) (data & 0xffff)) << 0) | (curr & 0xffff0000));
+    uint32_t curr = system_gdc_read_32(base + ACAMERA_GDC_GDC_DATAIN_WIDTH_OFFSET);
+    system_gdc_write_32(base + ACAMERA_GDC_GDC_DATAIN_WIDTH_OFFSET, (((uint32_t) (data & ACAMERA_GDC_GDC_DATAIN_WIDTH_MASK)) << 0) | (curr & (~ACAMERA_GDC_GDC_DATAIN_WIDTH_MASK));
 }
 static __inline uint16_t acamera_gdc_gdc_datain_width_read(uint32_t base) {
-    return (uint16_t)((system_gdc_read_32(0x208020L) & 0xffff) >> 0);
+    return (uint16_t)((system_gdc_read_32(base + ACAMERA_GDC_GDC_DATAIN_WIDTH_OFFSET) & ACAMERA_GDC_GDC_DATAIN_WIDTH_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: datain_height
@@ -170,11 +173,11 @@ static __inline uint16_t acamera_gdc_gdc_datain_width_read(uint32_t base) {
 
 // args: data (16-bit)
 static __inline void acamera_gdc_gdc_datain_height_write(uint32_t base, uint16_t data) {
-    uint32_t curr = system_gdc_read_32(0x208024L);
-    system_gdc_write_32(0x208024L, (((uint32_t) (data & 0xffff)) << 0) | (curr & 0xffff0000));
+    uint32_t curr = system_gdc_read_32(base + ACAMERA_GDC_GDC_DATAIN_HEIGHT_OFFSET);
+    system_gdc_write_32(base + ACAMERA_GDC_GDC_DATAIN_HEIGHT_OFFSET, (((uint32_t) (data & ACAMERA_GDC_GDC_DATAIN_HEIGHT_MASK)) << 0) | (curr & (!ACAMERA_GDC_GDC_DATAIN_HEIGHT_MASK)));
 }
 static __inline uint16_t acamera_gdc_gdc_datain_height_read(uint32_t base) {
-    return (uint16_t)((system_gdc_read_32(0x208024L) & 0xffff) >> 0);
+    return (uint16_t)((system_gdc_read_32(base + ACAMERA_GDC_GDC_DATAIN_HEIGHT_OFFSET) & ACAMERA_GDC_GDC_DATAIN_HEIGHT_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data1in addr
@@ -191,10 +194,10 @@ static __inline uint16_t acamera_gdc_gdc_datain_height_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data1in_addr_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x208028L, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA1IN_ADDR_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data1in_addr_read(uint32_t base) {
-    return system_gdc_read_32(0x208028L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DATA1IN_ADDR_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data1in line offset
@@ -211,10 +214,10 @@ static __inline uint32_t acamera_gdc_gdc_data1in_addr_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data1in_line_offset_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x20802cL, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA1IN_LINE_OFFSET_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data1in_line_offset_read(uint32_t base) {
-    return system_gdc_read_32(0x20802cL);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DATA1IN_LINE_OFFSET_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data2in addr
@@ -231,10 +234,10 @@ static __inline uint32_t acamera_gdc_gdc_data1in_line_offset_read(uint32_t base)
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data2in_addr_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x208030L, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA2IN_ADDR_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data2in_addr_read(uint32_t base) {
-    return system_gdc_read_32(0x208030L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DATA2IN_ADDR_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data2in line offset
@@ -251,10 +254,10 @@ static __inline uint32_t acamera_gdc_gdc_data2in_addr_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data2in_line_offset_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x208034L, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA2IN_LINE_OFFSET_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data2in_line_offset_read(uint32_t base) {
-    return system_gdc_read_32(0x208034L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DATA2IN_LINE_OFFSET_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data3in addr
@@ -271,10 +274,10 @@ static __inline uint32_t acamera_gdc_gdc_data2in_line_offset_read(uint32_t base)
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data3in_addr_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x208038L, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA3IN_ADDR_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data3in_addr_read(uint32_t base) {
-    return system_gdc_read_32(0x208038L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DATA3IN_ADDR_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data3in line offset
@@ -291,10 +294,10 @@ static __inline uint32_t acamera_gdc_gdc_data3in_addr_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data3in_line_offset_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x20803cL, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA3IN_LINE_OFFSET_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data3in_line_offset_read(uint32_t base) {
-    return system_gdc_read_32(0x20803cL);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DATA3IN_LINE_OFFSET_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: dataout width
@@ -311,11 +314,11 @@ static __inline uint32_t acamera_gdc_gdc_data3in_line_offset_read(uint32_t base)
 
 // args: data (16-bit)
 static __inline void acamera_gdc_gdc_dataout_width_write(uint32_t base, uint16_t data) {
-    uint32_t curr = system_gdc_read_32(0x208040L);
-    system_gdc_write_32(0x208040L, (((uint32_t) (data & 0xffff)) << 0) | (curr & 0xffff0000));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_DATAOUT_WIDTH_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATAOUT_WIDTH_OFFSET, (((uint32_t) (data & ACAMERA_GDC_GDC_DATAOUT_WIDTH_MASK)) << 0) | (curr & (~ACAMERA_GDC_GDC_DATAOUT_WIDTH_MASK)));
 }
 static __inline uint16_t acamera_gdc_gdc_dataout_width_read(uint32_t base) {
-    return (uint16_t)((system_gdc_read_32(0x208040L) & 0xffff) >> 0);
+    return (uint16_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_DATAOUT_WIDTH_OFFSET) & ACAMERA_GDC_GDC_DATAOUT_WIDTH_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: dataout height
@@ -332,11 +335,11 @@ static __inline uint16_t acamera_gdc_gdc_dataout_width_read(uint32_t base) {
 
 // args: data (16-bit)
 static __inline void acamera_gdc_gdc_dataout_height_write(uint32_t base, uint16_t data) {
-    uint32_t curr = system_gdc_read_32(0x208044L);
-    system_gdc_write_32(0x208044L, (((uint32_t) (data & 0xffff)) << 0) | (curr & 0xffff0000));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_DATAOUT_HEIGHT_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATAOUT_HEIGHT_OFFSET, (((uint32_t) (data & ACAMERA_GDC_GDC_DATAOUT_HEIGHT_MASK)) << 0) | (curr & (~ACAMERA_GDC_GDC_DATAOUT_HEIGHT_MASK)));
 }
 static __inline uint16_t acamera_gdc_gdc_dataout_height_read(uint32_t base) {
-    return (uint16_t)((system_gdc_read_32(0x208044L) & 0xffff) >> 0);
+    return (uint16_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_DATAOUT_HEIGHT_OFFSET) & ACAMERA_GDC_GDC_DATAOUT_HEIGHT_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data1out addr
@@ -353,10 +356,10 @@ static __inline uint16_t acamera_gdc_gdc_dataout_height_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data1out_addr_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x208048L, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA1OUT_ADDR_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data1out_addr_read(uint32_t base) {
-    return system_gdc_read_32(0x208048L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DATA1OUT_ADDR_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data1out line offset
@@ -373,10 +376,10 @@ static __inline uint32_t acamera_gdc_gdc_data1out_addr_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data1out_line_offset_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x20804cL, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA1OUT_LINE_OFFSET_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data1out_line_offset_read(uint32_t base) {
-    return system_gdc_read_32(0x20804cL);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DATA1OUT_LINE_OFFSET_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data2out addr
@@ -393,10 +396,10 @@ static __inline uint32_t acamera_gdc_gdc_data1out_line_offset_read(uint32_t base
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data2out_addr_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x208050L, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA2OUT_ADDR_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data2out_addr_read(uint32_t base) {
-    return system_gdc_read_32(0x208050L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DATA2OUT_ADDR_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data2out line offset
@@ -413,10 +416,10 @@ static __inline uint32_t acamera_gdc_gdc_data2out_addr_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data2out_line_offset_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x208054L, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA2OUT_LINE_OFFSET_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data2out_line_offset_read(uint32_t base) {
-    return system_gdc_read_32(0x208054L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DATA2OUT_LINE_OFFSET_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data3out addr
@@ -433,10 +436,10 @@ static __inline uint32_t acamera_gdc_gdc_data2out_line_offset_read(uint32_t base
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data3out_addr_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x208058L, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA3OUT_ADDR_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data3out_addr_read(uint32_t base) {
-    return system_gdc_read_32(0x208058L);
+    return system_gdc_read_32(base);
 }
 // ------------------------------------------------------------------------------ //
 // Register: data3out line offset
@@ -453,10 +456,10 @@ static __inline uint32_t acamera_gdc_gdc_data3out_addr_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_data3out_line_offset_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x20805cL, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DATA3OUT_LINE_OFFSET_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_data3out_line_offset_read(uint32_t base) {
-    return system_gdc_read_32(0x20805cL);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DATA3OUT_LINE_OFFSET_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: status
@@ -473,7 +476,7 @@ static __inline uint32_t acamera_gdc_gdc_data3out_line_offset_read(uint32_t base
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_status_read(uint32_t base) {
-    return system_gdc_read_32(0x208060L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_STATUS_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: busy
@@ -490,11 +493,11 @@ static __inline uint32_t acamera_gdc_gdc_status_read(uint32_t base) {
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_busy_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208060L);
-    system_gdc_write_32(0x208060L, (((uint32_t) (data & 0x1)) << 0) | (curr & 0xfffffffe));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_BUSY_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_BUSY_OFFSET, (((uint32_t) (data & ACAMERA_GDC_GDC_BUSY_MASK)) << 0) | (curr & (~ACAMERA_GDC_GDC_BUSY_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_busy_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208060L) & 0x1) >> 0);
+    return (uint8_t)((system_gdc_read_32(0x208060L) & ACAMERA_GDC_GDC_BUSY_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: error
@@ -511,11 +514,11 @@ static __inline uint8_t acamera_gdc_gdc_busy_read(uint32_t base) {
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_error_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208060L);
-    system_gdc_write_32(0x208060L, (((uint32_t) (data & 0x1)) << 1) | (curr & 0xfffffffd));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_ERROR_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_ERROR_OFFSET, (((uint32_t) (data & 0x1)) << 1) | (curr & ACAMERA_GDC_GDC_ERROR_MASK));
 }
 static __inline uint8_t acamera_gdc_gdc_error_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208060L) & 0x2) >> 1);
+    return (uint8_t)((system_gdc_read_32(0x208060L) & ACAMERA_GDC_GDC_ERROR_MASK) >> 1);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Reserved for future use 1
@@ -528,11 +531,11 @@ static __inline uint8_t acamera_gdc_gdc_error_read(uint32_t base) {
 
 // args: data (6-bit)
 static __inline void acamera_gdc_gdc_reserved_for_future_use_1_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208060L);
-    system_gdc_write_32(0x208060L, (((uint32_t) (data & 0x3f)) << 2) | (curr & 0xffffff03));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_1_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_1_OFFSET, (((uint32_t) (data & 0x3f)) << 2) | (curr & (~ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_1_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_reserved_for_future_use_1_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208060L) & 0xfc) >> 2);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_1_OFFSET) & ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_1_MASK) >> 2);
 }
 // ------------------------------------------------------------------------------ //
 // Register: configuration error
@@ -549,11 +552,11 @@ static __inline uint8_t acamera_gdc_gdc_reserved_for_future_use_1_read(uint32_t 
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_configuration_error_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208060L);
-    system_gdc_write_32(0x208060L, (((uint32_t) (data & 0x1)) << 8) | (curr & 0xfffffeff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_CONFIGURATION_ERROR_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_CONFIGURATION_ERROR_OFFSET, (((uint32_t) (data & 0x1)) << 8) | (curr & (~ACAMERA_GDC_GDC_CONFIGURATION_ERROR_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_configuration_error_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208060L) & 0x100) >> 8);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_CONFIGURATION_ERROR_OFFSET) & ACAMERA_GDC_GDC_CONFIGURATION_ERROR_MASK) >> 8);
 }
 // ------------------------------------------------------------------------------ //
 // Register: user abort
@@ -570,11 +573,11 @@ static __inline uint8_t acamera_gdc_gdc_configuration_error_read(uint32_t base) 
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_user_abort_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208060L);
-    system_gdc_write_32(0x208060L, (((uint32_t) (data & 0x1)) << 9) | (curr & 0xfffffdff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_USER_ABORT_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_USER_ABORT_OFFSET, (((uint32_t) (data & 0x1)) << 9) | (curr & (~ACAMERA_GDC_GDC_USER_ABORT_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_user_abort_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208060L) & 0x200) >> 9);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_USER_ABORT_OFFSET) & ACAMERA_GDC_GDC_USER_ABORT_MASK) >> 9);
 }
 // ------------------------------------------------------------------------------ //
 // Register: AXI reader error
@@ -591,11 +594,11 @@ static __inline uint8_t acamera_gdc_gdc_user_abort_read(uint32_t base) {
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_axi_reader_error_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208060L);
-    system_gdc_write_32(0x208060L, (((uint32_t) (data & 0x1)) << 10) | (curr & 0xfffffbff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_AXI_READER_ERROR_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_AXI_READER_ERROR_OFFSET, (((uint32_t) (data & 0x1)) << 10) | (curr & (~ACAMERA_GDC_GDC_AXI_READER_ERROR_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_axi_reader_error_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208060L) & 0x400) >> 10);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_AXI_READER_ERROR_OFFSET) & ACAMERA_GDC_GDC_AXI_READER_ERROR_MASK) >> 10);
 }
 // ------------------------------------------------------------------------------ //
 // Register: AXI writer error
@@ -612,11 +615,11 @@ static __inline uint8_t acamera_gdc_gdc_axi_reader_error_read(uint32_t base) {
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_axi_writer_error_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208060L);
-    system_gdc_write_32(0x208060L, (((uint32_t) (data & 0x1)) << 11) | (curr & 0xfffff7ff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_AXI_WRITER_ERROR_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_AXI_WRITER_ERROR_OFFSET, (((uint32_t) (data & 0x1)) << 11) | (curr & (~ACAMERA_GDC_GDC_AXI_WRITER_ERROR_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_axi_writer_error_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208060L) & 0x800) >> 11);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_AXI_WRITER_ERROR_OFFSET) & ACAMERA_GDC_GDC_AXI_WRITER_ERROR_MASK) >> 11);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Unaligned access
@@ -633,11 +636,11 @@ static __inline uint8_t acamera_gdc_gdc_axi_writer_error_read(uint32_t base) {
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_unaligned_access_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208060L);
-    system_gdc_write_32(0x208060L, (((uint32_t) (data & 0x1)) << 12) | (curr & 0xffffefff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_UNALIGNED_ACCESS_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_UNALIGNED_ACCESS_OFFSET, (((uint32_t) (data & 0x1)) << 12) | (curr & (~ACAMERA_GDC_GDC_UNALIGNED_ACCESS_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_unaligned_access_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208060L) & 0x1000) >> 12);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_UNALIGNED_ACCESS_OFFSET) & ACAMERA_GDC_GDC_UNALIGNED_ACCESS_MASK) >> 12);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Incompatible configuration
@@ -654,11 +657,11 @@ static __inline uint8_t acamera_gdc_gdc_unaligned_access_read(uint32_t base) {
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_incompatible_configuration_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208060L);
-    system_gdc_write_32(0x208060L, (((uint32_t) (data & 0x1)) << 13) | (curr & 0xffffdfff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_INCOMPATIBLE_CONFIGURATION_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_INCOMPATIBLE_CONFIGURATION_OFFSET, (((uint32_t) (data & 0x1)) << 13) | (curr & (~ACAMERA_GDC_GDC_INCOMPATIBLE_CONFIGURATION_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_incompatible_configuration_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208060L) & 0x2000) >> 13);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_INCOMPATIBLE_CONFIGURATION_OFFSET) & ACAMERA_GDC_GDC_INCOMPATIBLE_CONFIGURATION_MASK) >> 13);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Reserved for future use 2
@@ -668,14 +671,17 @@ static __inline uint8_t acamera_gdc_gdc_incompatible_configuration_read(uint32_t
 #define ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_DATASIZE (18)
 #define ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_OFFSET (0x60)
 #define ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_MASK (0xffffc000)
+#define ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_DATA_MASK (0x3ffff)
+#define ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_DATA_SHIFT (14)
 
 // args: data (18-bit)
 static __inline void acamera_gdc_gdc_reserved_for_future_use_2_write(uint32_t base, uint32_t data) {
-    uint32_t curr = system_gdc_read_32(0x208060L);
-    system_gdc_write_32(0x208060L, (((uint32_t) (data & 0x3ffff)) << 14) | (curr & 0x3fff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_OFFSET, 
+			(((uint32_t) (data & ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_DATA_MASK)) << ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_DATA_SHIFT) | (curr & (~ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_MASK)));
 }
 static __inline uint32_t acamera_gdc_gdc_reserved_for_future_use_2_read(uint32_t base) {
-    return (uint32_t)((system_gdc_read_32(0x208060L) & 0xffffc000) >> 14);
+    return (uint32_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_OFFSET) & ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_MASK) >> ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_2_DATA_SHIFT);
 }
 // ------------------------------------------------------------------------------ //
 // Register: config
@@ -688,10 +694,10 @@ static __inline uint32_t acamera_gdc_gdc_reserved_for_future_use_2_read(uint32_t
 
 // args: data (32-bit)
 static __inline void acamera_gdc_gdc_config_write(uint32_t base, uint32_t data) {
-    system_gdc_write_32(0x208064L, data);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_CONFIG_OFFSET, data);
 }
 static __inline uint32_t acamera_gdc_gdc_config_read(uint32_t base) {
-    return system_gdc_read_32(0x208064L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_CONFIG_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: start flag
@@ -708,11 +714,11 @@ static __inline uint32_t acamera_gdc_gdc_config_read(uint32_t base) {
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_start_flag_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208064L);
-    system_gdc_write_32(0x208064L, (((uint32_t) (data & 0x1)) << 0) | (curr & 0xfffffffe));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_START_FLAG_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_START_FLAG_OFFSET, (((uint32_t) (data & ACAMERA_GDC_GDC_START_FLAG_MASK)) << 0) | (curr & (~ACAMERA_GDC_GDC_START_FLAG_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_start_flag_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208064L) & 0x1) >> 0);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_START_FLAG_OFFSET) & ACAMERA_GDC_GDC_START_FLAG_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: stop flag
@@ -729,11 +735,11 @@ static __inline uint8_t acamera_gdc_gdc_start_flag_read(uint32_t base) {
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_stop_flag_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208064L);
-    system_gdc_write_32(0x208064L, (((uint32_t) (data & 0x1)) << 1) | (curr & 0xfffffffd));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_STOP_FLAG_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_STOP_FLAG_OFFSET, (((uint32_t) (data & 0x1)) << 1) | (curr & (~ACAMERA_GDC_GDC_STOP_FLAG_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_stop_flag_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208064L) & 0x2) >> 1);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_STOP_FLAG_OFFSET) & ACAMERA_GDC_GDC_STOP_FLAG_MASK) >> 1);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Reserved for future use 3
@@ -743,14 +749,19 @@ static __inline uint8_t acamera_gdc_gdc_stop_flag_read(uint32_t base) {
 #define ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_DATASIZE (30)
 #define ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_OFFSET (0x64)
 #define ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_MASK (0xfffffffc)
+#define ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_DATA_MASK (0x3fffffff)
+#define ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_DATA_SHIFT (2)
 
 // args: data (30-bit)
 static __inline void acamera_gdc_gdc_reserved_for_future_use_3_write(uint32_t base, uint32_t data) {
-    uint32_t curr = system_gdc_read_32(0x208064L);
-    system_gdc_write_32(0x208064L, (((uint32_t) (data & 0x3fffffff)) << 2) | (curr & 0x3));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_OFFSET, 
+			(((uint32_t) (data & ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_DATA_MASK)) << 
+			ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_DATA_SHIFT) | 
+			(curr & (~ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_MASK)));
 }
 static __inline uint32_t acamera_gdc_gdc_reserved_for_future_use_3_read(uint32_t base) {
-    return (uint32_t)((system_gdc_read_32(0x208064L) & 0xfffffffc) >> 2);
+    return (uint32_t)((system_gdc_read_32(0x208064L) & ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_MASK) >> ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_3_DATA_SHIFT);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Capability mask
@@ -763,7 +774,7 @@ static __inline uint32_t acamera_gdc_gdc_reserved_for_future_use_3_read(uint32_t
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_capability_mask_read(uint32_t base) {
-    return system_gdc_read_32(0x208068L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_CAPABILITY_MASK_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Eight bit data suppoirted
@@ -780,11 +791,11 @@ static __inline uint32_t acamera_gdc_gdc_capability_mask_read(uint32_t base) {
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_eight_bit_data_suppoirted_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 0) | (curr & 0xfffffffe));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_EIGHT_BIT_DATA_SUPPOIRTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_EIGHT_BIT_DATA_SUPPOIRTED_OFFSET, (((uint32_t) (data & 0x1)) << 0) | (curr & (~ACAMERA_GDC_GDC_EIGHT_BIT_DATA_SUPPOIRTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_eight_bit_data_suppoirted_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x1) >> 0);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_EIGHT_BIT_DATA_SUPPOIRTED_OFFSET) & ACAMERA_GDC_GDC_EIGHT_BIT_DATA_SUPPOIRTED_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Ten bit data supported
@@ -801,11 +812,11 @@ static __inline uint8_t acamera_gdc_gdc_eight_bit_data_suppoirted_read(uint32_t 
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_ten_bit_data_supported_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 1) | (curr & 0xfffffffd));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_TEN_BIT_DATA_SUPPORTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_TEN_BIT_DATA_SUPPORTED_OFFSET, (((uint32_t) (data & 0x1)) << 1) | (curr & (~ACAMERA_GDC_GDC_TEN_BIT_DATA_SUPPORTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_ten_bit_data_supported_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x2) >> 1);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_TEN_BIT_DATA_SUPPORTED_OFFSET) & ACAMERA_GDC_GDC_TEN_BIT_DATA_SUPPORTED_MASK) >> 1);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Grayscale supported
@@ -822,11 +833,11 @@ static __inline uint8_t acamera_gdc_gdc_ten_bit_data_supported_read(uint32_t bas
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_grayscale_supported_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 2) | (curr & 0xfffffffb));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_GRAYSCALE_SUPPORTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_GRAYSCALE_SUPPORTED_OFFSET, (((uint32_t) (data & 0x1)) << 2) | (curr & (~ACAMERA_GDC_GDC_GRAYSCALE_SUPPORTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_grayscale_supported_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x4) >> 2);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_GRAYSCALE_SUPPORTED_OFFSET) & ACAMERA_GDC_GDC_GRAYSCALE_SUPPORTED_MASK) >> 2);
 }
 // ------------------------------------------------------------------------------ //
 // Register: RGBA888 supported
@@ -843,11 +854,11 @@ static __inline uint8_t acamera_gdc_gdc_grayscale_supported_read(uint32_t base) 
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_rgba888_supported_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 3) | (curr & 0xfffffff7));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_RGBA888_SUPPORTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_RGBA888_SUPPORTED_OFFSET, (((uint32_t) (data & 0x1)) << 3) | (curr & (~ACAMERA_GDC_GDC_RGBA888_SUPPORTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_rgba888_supported_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x8) >> 3);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_RGBA888_SUPPORTED_OFFSET) & ACAMERA_GDC_GDC_RGBA888_SUPPORTED_MASK) >> 3);
 }
 // ------------------------------------------------------------------------------ //
 // Register: RGB YUV444 planar supported
@@ -864,11 +875,11 @@ static __inline uint8_t acamera_gdc_gdc_rgba888_supported_read(uint32_t base) {
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_rgb_yuv444_planar_supported_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 4) | (curr & 0xffffffef));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_RGB_YUV444_PLANAR_SUPPORTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_RGB_YUV444_PLANAR_SUPPORTED_OFFSET, (((uint32_t) (data & 0x1)) << 4) | (curr & (~ACAMERA_GDC_GDC_RGB_YUV444_PLANAR_SUPPORTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_rgb_yuv444_planar_supported_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x10) >> 4);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_RGB_YUV444_PLANAR_SUPPORTED_OFFSET) & ACAMERA_GDC_GDC_RGB_YUV444_PLANAR_SUPPORTED_MASK) >> 4);
 }
 // ------------------------------------------------------------------------------ //
 // Register: YUV semiplanar supported
@@ -885,11 +896,11 @@ static __inline uint8_t acamera_gdc_gdc_rgb_yuv444_planar_supported_read(uint32_
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_yuv_semiplanar_supported_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 5) | (curr & 0xffffffdf));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_YUV_SEMIPLANAR_SUPPORTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_YUV_SEMIPLANAR_SUPPORTED_OFFSET, (((uint32_t) (data & 0x1)) << 5) | (curr & (~ACAMERA_GDC_GDC_YUV_SEMIPLANAR_SUPPORTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_yuv_semiplanar_supported_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x20) >> 5);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_YUV_SEMIPLANAR_SUPPORTED_OFFSET) & ACAMERA_GDC_GDC_YUV_SEMIPLANAR_SUPPORTED_MASK) >> 5);
 }
 // ------------------------------------------------------------------------------ //
 // Register: YUV422 linear mode supported
@@ -906,11 +917,11 @@ static __inline uint8_t acamera_gdc_gdc_yuv_semiplanar_supported_read(uint32_t b
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_yuv422_linear_mode_supported_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 6) | (curr & 0xffffffbf));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_YUV422_LINEAR_MODE_SUPPORTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_YUV422_LINEAR_MODE_SUPPORTED_OFFSET, (((uint32_t) (data & 0x1)) << 6) | (curr & (~ACAMERA_GDC_GDC_YUV422_LINEAR_MODE_SUPPORTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_yuv422_linear_mode_supported_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x40) >> 6);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_YUV422_LINEAR_MODE_SUPPORTED_OFFSET) & ACAMERA_GDC_GDC_YUV422_LINEAR_MODE_SUPPORTED_MASK) >> 6);
 }
 // ------------------------------------------------------------------------------ //
 // Register: RGB10_10_10 supported
@@ -927,11 +938,11 @@ static __inline uint8_t acamera_gdc_gdc_yuv422_linear_mode_supported_read(uint32
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_rgb10_10_10_supported_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 7) | (curr & 0xffffff7f));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_RGB10_10_10_SUPPORTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_RGB10_10_10_SUPPORTED_OFFSET, (((uint32_t) (data & 0x1)) << 7) | (curr & (~ACAMERA_GDC_GDC_RGB10_10_10_SUPPORTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_rgb10_10_10_supported_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x80) >> 7);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_RGB10_10_10_SUPPORTED_OFFSET) & ACAMERA_GDC_GDC_RGB10_10_10_SUPPORTED_MASK) >> 7);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Bicubic interpolation supported
@@ -948,11 +959,11 @@ static __inline uint8_t acamera_gdc_gdc_rgb10_10_10_supported_read(uint32_t base
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_bicubic_interpolation_supported_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 8) | (curr & 0xfffffeff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_BICUBIC_INTERPOLATION_SUPPORTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_BICUBIC_INTERPOLATION_SUPPORTED_OFFSET, (((uint32_t) (data & 0x1)) << 8) | (curr & (~ACAMERA_GDC_GDC_BICUBIC_INTERPOLATION_SUPPORTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_bicubic_interpolation_supported_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x100) >> 8);
+    return (uint8_t)((system_gdc_read_32(0x208068L) & ACAMERA_GDC_GDC_BICUBIC_INTERPOLATION_SUPPORTED_MASK) >> 8);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Bilinear interpolation mode 1 supported
@@ -969,11 +980,11 @@ static __inline uint8_t acamera_gdc_gdc_bicubic_interpolation_supported_read(uin
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_bilinear_interpolation_mode_1_supported_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 9) | (curr & 0xfffffdff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_BILINEAR_INTERPOLATION_MODE_1_SUPPORTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_BILINEAR_INTERPOLATION_MODE_1_SUPPORTED_OFFSET, (((uint32_t) (data & 0x1)) << 9) | (curr & (~ACAMERA_GDC_GDC_BILINEAR_INTERPOLATION_MODE_1_SUPPORTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_bilinear_interpolation_mode_1_supported_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x200) >> 9);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_BILINEAR_INTERPOLATION_MODE_1_SUPPORTED_OFFSET) & ACAMERA_GDC_GDC_BILINEAR_INTERPOLATION_MODE_1_SUPPORTED_MASK) >> 9);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Bilinear interpolation mode 2 supported
@@ -990,11 +1001,11 @@ static __inline uint8_t acamera_gdc_gdc_bilinear_interpolation_mode_1_supported_
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_bilinear_interpolation_mode_2_supported_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 10) | (curr & 0xfffffbff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_BILINEAR_INTERPOLATION_MODE_2_SUPPORTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_BILINEAR_INTERPOLATION_MODE_2_SUPPORTED_OFFSET, (((uint32_t) (data & 0x1)) << 10) | (curr & (~ACAMERA_GDC_GDC_BILINEAR_INTERPOLATION_MODE_2_SUPPORTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_bilinear_interpolation_mode_2_supported_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x400) >> 10);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_BILINEAR_INTERPOLATION_MODE_2_SUPPORTED_OFFSET) & ACAMERA_GDC_GDC_BILINEAR_INTERPOLATION_MODE_2_SUPPORTED_MASK) >> 10);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Output of interpolation coordinates supported
@@ -1011,11 +1022,11 @@ static __inline uint8_t acamera_gdc_gdc_bilinear_interpolation_mode_2_supported_
 
 // args: data (1-bit)
 static __inline void acamera_gdc_gdc_output_of_interpolation_coordinates_supported_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1)) << 11) | (curr & 0xfffff7ff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_OUTPUT_OF_INTERPOLATION_COORDINATES_SUPPORTED_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_OUTPUT_OF_INTERPOLATION_COORDINATES_SUPPORTED_OFFSET, (((uint32_t) (data & 0x1)) << 11) | (curr & (~ACAMERA_GDC_GDC_OUTPUT_OF_INTERPOLATION_COORDINATES_SUPPORTED_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_output_of_interpolation_coordinates_supported_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x800) >> 11);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_OUTPUT_OF_INTERPOLATION_COORDINATES_SUPPORTED_OFFSET) & ACAMERA_GDC_GDC_OUTPUT_OF_INTERPOLATION_COORDINATES_SUPPORTED_MASK) >> 11);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Reserved for future use 4
@@ -1028,11 +1039,11 @@ static __inline uint8_t acamera_gdc_gdc_output_of_interpolation_coordinates_supp
 
 // args: data (4-bit)
 static __inline void acamera_gdc_gdc_reserved_for_future_use_4_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0xf)) << 12) | (curr & 0xffff0fff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_4_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_4_OFFSET, (((uint32_t) (data & 0xf)) << 12) | (curr & (~ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_4_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_reserved_for_future_use_4_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0xf000) >> 12);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_4_OFFSET) & ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_4_MASK) >> 12);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Size of output cache
@@ -1049,11 +1060,11 @@ static __inline uint8_t acamera_gdc_gdc_reserved_for_future_use_4_read(uint32_t 
 
 // args: data (3-bit)
 static __inline void acamera_gdc_gdc_size_of_output_cache_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x7)) << 16) | (curr & 0xfff8ffff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_SIZE_OF_OUTPUT_CACHE_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_SIZE_OF_OUTPUT_CACHE_OFFSET, (((uint32_t) (data & 0x7)) << 16) | (curr & (~ACAMERA_GDC_GDC_SIZE_OF_OUTPUT_CACHE_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_size_of_output_cache_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x70000) >> 16);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_SIZE_OF_OUTPUT_CACHE_OFFSET) & ACAMERA_GDC_GDC_SIZE_OF_OUTPUT_CACHE_MASK) >> 16);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Size of tile cache
@@ -1070,11 +1081,11 @@ static __inline uint8_t acamera_gdc_gdc_size_of_output_cache_read(uint32_t base)
 
 // args: data (5-bit)
 static __inline void acamera_gdc_gdc_size_of_tile_cache_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x1f)) << 19) | (curr & 0xff07ffff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_SIZE_OF_TILE_CACHE_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_SIZE_OF_TILE_CACHE_OFFSET, (((uint32_t) (data & 0x1f)) << 19) | (curr & (~ACAMERA_GDC_GDC_SIZE_OF_TILE_CACHE_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_size_of_tile_cache_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0xf80000) >> 19);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_SIZE_OF_TILE_CACHE_OFFSET) & ACAMERA_GDC_GDC_SIZE_OF_TILE_CACHE_MASK) >> 19);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Nuimber of polyphase filter banks
@@ -1091,11 +1102,11 @@ static __inline uint8_t acamera_gdc_gdc_size_of_tile_cache_read(uint32_t base) {
 
 // args: data (3-bit)
 static __inline void acamera_gdc_gdc_nuimber_of_polyphase_filter_banks_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x7)) << 24) | (curr & 0xf8ffffff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_NUIMBER_OF_POLYPHASE_FILTER_BANKS_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_NUIMBER_OF_POLYPHASE_FILTER_BANKS_OFFSET, (((uint32_t) (data & 0x7)) << 24) | (curr & (ACAMERA_GDC_GDC_NUIMBER_OF_POLYPHASE_FILTER_BANKS_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_nuimber_of_polyphase_filter_banks_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x7000000) >> 24);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_NUIMBER_OF_POLYPHASE_FILTER_BANKS_OFFSET) & ACAMERA_GDC_GDC_NUIMBER_OF_POLYPHASE_FILTER_BANKS_MASK) >> 24);
 }
 // ------------------------------------------------------------------------------ //
 // Register: AXI data width
@@ -1112,11 +1123,11 @@ static __inline uint8_t acamera_gdc_gdc_nuimber_of_polyphase_filter_banks_read(u
 
 // args: data (3-bit)
 static __inline void acamera_gdc_gdc_axi_data_width_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x7)) << 27) | (curr & 0xc7ffffff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_AXI_DATA_WIDTH_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_AXI_DATA_WIDTH_OFFSET, (((uint32_t) (data & 0x7)) << 27) | (curr & (~ACAMERA_GDC_GDC_AXI_DATA_WIDTH_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_axi_data_width_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0x38000000) >> 27);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_AXI_DATA_WIDTH_OFFSET) & ACAMERA_GDC_GDC_AXI_DATA_WIDTH_MASK) >> 27);
 }
 // ------------------------------------------------------------------------------ //
 // Register: Reserved for future use 5
@@ -1129,11 +1140,11 @@ static __inline uint8_t acamera_gdc_gdc_axi_data_width_read(uint32_t base) {
 
 // args: data (2-bit)
 static __inline void acamera_gdc_gdc_reserved_for_future_use_5_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x208068L);
-    system_gdc_write_32(0x208068L, (((uint32_t) (data & 0x3)) << 30) | (curr & 0x3fffffff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_5_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_5_OFFSET, (((uint32_t) (data & 0x3)) << 30) | (curr & (~ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_5_MASK)));
 }
 static __inline uint8_t acamera_gdc_gdc_reserved_for_future_use_5_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x208068L) & 0xc0000000) >> 30);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_5_OFFSET) & ACAMERA_GDC_GDC_RESERVED_FOR_FUTURE_USE_5_MASK) >> 30);
 }
 // ------------------------------------------------------------------------------ //
 // Register: default ch1
@@ -1150,11 +1161,11 @@ static __inline uint8_t acamera_gdc_gdc_reserved_for_future_use_5_read(uint32_t 
 
 // args: data (12-bit)
 static __inline void acamera_gdc_gdc_default_ch1_write(uint32_t base, uint16_t data) {
-    uint32_t curr = system_gdc_read_32(0x208070L);
-    system_gdc_write_32(0x208070L, (((uint32_t) (data & 0xfff)) << 0) | (curr & 0xfffff000));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_DEFAULT_CH1_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DEFAULT_CH1_OFFSET, (((uint32_t) (data & ACAMERA_GDC_GDC_DEFAULT_CH1_MASK)) << 0) | (curr & (~ACAMERA_GDC_GDC_DEFAULT_CH1_MASK)));
 }
 static __inline uint16_t acamera_gdc_gdc_default_ch1_read(uint32_t base) {
-    return (uint16_t)((system_gdc_read_32(0x208070L) & 0xfff) >> 0);
+    return (uint16_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_DEFAULT_CH1_OFFSET) & ACAMERA_GDC_GDC_DEFAULT_CH1_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: default ch2
@@ -1171,11 +1182,11 @@ static __inline uint16_t acamera_gdc_gdc_default_ch1_read(uint32_t base) {
 
 // args: data (12-bit)
 static __inline void acamera_gdc_gdc_default_ch2_write(uint32_t base, uint16_t data) {
-    uint32_t curr = system_gdc_read_32(0x208074L);
-    system_gdc_write_32(0x208074L, (((uint32_t) (data & 0xfff)) << 0) | (curr & 0xfffff000));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_DEFAULT_CH2_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DEFAULT_CH2_OFFSET, (((uint32_t) (data & ACAMERA_GDC_GDC_DEFAULT_CH2_MASK)) << 0) | (curr & (~ACAMERA_GDC_GDC_DEFAULT_CH2_MASK)));
 }
 static __inline uint16_t acamera_gdc_gdc_default_ch2_read(uint32_t base) {
-    return (uint16_t)((system_gdc_read_32(0x208074L) & 0xfff) >> 0);
+    return (uint16_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_DEFAULT_CH2_OFFSET) & ACAMERA_GDC_GDC_DEFAULT_CH2_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: default ch3
@@ -1192,11 +1203,11 @@ static __inline uint16_t acamera_gdc_gdc_default_ch2_read(uint32_t base) {
 
 // args: data (12-bit)
 static __inline void acamera_gdc_gdc_default_ch3_write(uint32_t base, uint16_t data) {
-    uint32_t curr = system_gdc_read_32(0x208078L);
-    system_gdc_write_32(0x208078L, (((uint32_t) (data & 0xfff)) << 0) | (curr & 0xfffff000));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_GDC_DEFAULT_CH3_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_GDC_DEFAULT_CH3_OFFSET, (((uint32_t) (data & ACAMERA_GDC_GDC_DEFAULT_CH3_MASK)) << 0) | (curr & (~ACAMERA_GDC_GDC_DEFAULT_CH3_MASK)));
 }
 static __inline uint16_t acamera_gdc_gdc_default_ch3_read(uint32_t base) {
-    return (uint16_t)((system_gdc_read_32(0x208078L) & 0xfff) >> 0);
+    return (uint16_t)((system_gdc_read_32(base+ACAMERA_GDC_GDC_DEFAULT_CH3_OFFSET) & ACAMERA_GDC_GDC_DEFAULT_CH3_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Group: GDC diagnostics
@@ -1217,7 +1228,7 @@ static __inline uint16_t acamera_gdc_gdc_default_ch3_read(uint32_t base) {
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_diagnostics_cfg_stall_count0_read(uint32_t base) {
-    return system_gdc_read_32(0x208080L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DIAGNOSTICS_CFG_STALL_COUNT0_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: cfg_stall_count1
@@ -1234,7 +1245,7 @@ static __inline uint32_t acamera_gdc_gdc_diagnostics_cfg_stall_count0_read(uint3
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_diagnostics_cfg_stall_count1_read(uint32_t base) {
-    return system_gdc_read_32(0x208084L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DIAGNOSTICS_CFG_STALL_COUNT1_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: cfg_stall_count2
@@ -1251,7 +1262,7 @@ static __inline uint32_t acamera_gdc_gdc_diagnostics_cfg_stall_count1_read(uint3
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_diagnostics_cfg_stall_count2_read(uint32_t base) {
-    return system_gdc_read_32(0x208088L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DIAGNOSTICS_CFG_STALL_COUNT2_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: cfg_stall_count3
@@ -1268,7 +1279,7 @@ static __inline uint32_t acamera_gdc_gdc_diagnostics_cfg_stall_count2_read(uint3
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_diagnostics_cfg_stall_count3_read(uint32_t base) {
-    return system_gdc_read_32(0x20808cL);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DIAGNOSTICS_CFG_STALL_COUNT3_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: cfg_stall_count4
@@ -1285,7 +1296,7 @@ static __inline uint32_t acamera_gdc_gdc_diagnostics_cfg_stall_count3_read(uint3
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_diagnostics_cfg_stall_count4_read(uint32_t base) {
-    return system_gdc_read_32(0x208090L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DIAGNOSTICS_CFG_STALL_COUNT4_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: int_read_stall_count
@@ -1302,7 +1313,7 @@ static __inline uint32_t acamera_gdc_gdc_diagnostics_cfg_stall_count4_read(uint3
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_diagnostics_int_read_stall_count_read(uint32_t base) {
-    return system_gdc_read_32(0x208094L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DIAGNOSTICS_INT_READ_STALL_COUNT_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: int_coord_stall_count
@@ -1319,7 +1330,7 @@ static __inline uint32_t acamera_gdc_gdc_diagnostics_int_read_stall_count_read(u
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_diagnostics_int_coord_stall_count_read(uint32_t base) {
-    return system_gdc_read_32(0x208098L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DIAGNOSTICS_INT_COORD_STALL_COUNT_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: int_write_wait_count
@@ -1336,7 +1347,7 @@ static __inline uint32_t acamera_gdc_gdc_diagnostics_int_coord_stall_count_read(
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_diagnostics_int_write_wait_count_read(uint32_t base) {
-    return system_gdc_read_32(0x20809cL);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DIAGNOSTICS_INT_WRITE_WAIT_COUNT_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: wrt_write_wait_count
@@ -1353,7 +1364,7 @@ static __inline uint32_t acamera_gdc_gdc_diagnostics_int_write_wait_count_read(u
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_diagnostics_wrt_write_wait_count_read(uint32_t base) {
-    return system_gdc_read_32(0x2080a0L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DIAGNOSTICS_WRT_WRITE_WAIT_COUNT_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Register: int_dual_count
@@ -1370,7 +1381,7 @@ static __inline uint32_t acamera_gdc_gdc_diagnostics_wrt_write_wait_count_read(u
 
 // args: data (32-bit)
 static __inline uint32_t acamera_gdc_gdc_diagnostics_int_dual_count_read(uint32_t base) {
-    return system_gdc_read_32(0x2080a4L);
+    return system_gdc_read_32(base+ACAMERA_GDC_GDC_DIAGNOSTICS_INT_DUAL_COUNT_OFFSET);
 }
 // ------------------------------------------------------------------------------ //
 // Group: AXI Settings
@@ -1391,11 +1402,11 @@ static __inline uint32_t acamera_gdc_gdc_diagnostics_int_dual_count_read(uint32_
 
 // args: data (4-bit)
 static __inline void acamera_gdc_axi_settings_config_reader_max_arlen_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x2080a8L);
-    system_gdc_write_32(0x2080a8L, (((uint32_t) (data & 0xf)) << 0) | (curr & 0xfffffff0));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_MAX_ARLEN_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_MAX_ARLEN_OFFSET, (((uint32_t) (data & 0xf)) << 0) | (curr & (~ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_MAX_ARLEN_OFFSET)));
 }
 static __inline uint8_t acamera_gdc_axi_settings_config_reader_max_arlen_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x2080a8L) & 0xf) >> 0);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_MAX_ARLEN_OFFSET) & 0xf) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: config reader fifo watermark
@@ -1412,11 +1423,11 @@ static __inline uint8_t acamera_gdc_axi_settings_config_reader_max_arlen_read(ui
 
 // args: data (8-bit)
 static __inline void acamera_gdc_axi_settings_config_reader_fifo_watermark_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x2080a8L);
-    system_gdc_write_32(0x2080a8L, (((uint32_t) (data & 0xff)) << 8) | (curr & 0xffff00ff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_FIFO_WATERMARK_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_FIFO_WATERMARK_OFFSET, (((uint32_t) (data & 0xff)) << 8) | (curr & (~ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_FIFO_WATERMARK_MASK)));
 }
 static __inline uint8_t acamera_gdc_axi_settings_config_reader_fifo_watermark_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x2080a8L) & 0xff00) >> 8);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_FIFO_WATERMARK_OFFSET) & ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_FIFO_WATERMARK_MASK) >> 8);
 }
 // ------------------------------------------------------------------------------ //
 // Register: config reader rxact maxostand
@@ -1433,11 +1444,11 @@ static __inline uint8_t acamera_gdc_axi_settings_config_reader_fifo_watermark_re
 
 // args: data (8-bit)
 static __inline void acamera_gdc_axi_settings_config_reader_rxact_maxostand_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x2080a8L);
-    system_gdc_write_32(0x2080a8L, (((uint32_t) (data & 0xff)) << 16) | (curr & 0xff00ffff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_RXACT_MAXOSTAND_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_RXACT_MAXOSTAND_OFFSET, (((uint32_t) (data & 0xff)) << 16) | (curr & (~ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_RXACT_MAXOSTAND_MASK)));
 }
 static __inline uint8_t acamera_gdc_axi_settings_config_reader_rxact_maxostand_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x2080a8L) & 0xff0000) >> 16);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_RXACT_MAXOSTAND_OFFSET) & ACAMERA_GDC_AXI_SETTINGS_CONFIG_READER_RXACT_MAXOSTAND_MASK) >> 16);
 }
 // ------------------------------------------------------------------------------ //
 // Register: tile reader max arlen
@@ -1454,11 +1465,11 @@ static __inline uint8_t acamera_gdc_axi_settings_config_reader_rxact_maxostand_r
 
 // args: data (4-bit)
 static __inline void acamera_gdc_axi_settings_tile_reader_max_arlen_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x2080acL);
-    system_gdc_write_32(0x2080acL, (((uint32_t) (data & 0xf)) << 0) | (curr & 0xfffffff0));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_READER_MAX_ARLEN_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_READER_MAX_ARLEN_OFFSET, (((uint32_t) (data & 0xf)) << 0) | (curr & (~ACAMERA_GDC_AXI_SETTINGS_TILE_READER_MAX_ARLEN_MASK)));
 }
 static __inline uint8_t acamera_gdc_axi_settings_tile_reader_max_arlen_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x2080acL) & 0xf) >> 0);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_READER_MAX_ARLEN_OFFSET) & ACAMERA_GDC_AXI_SETTINGS_TILE_READER_MAX_ARLEN_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: tile reader fifo watermark
@@ -1475,11 +1486,11 @@ static __inline uint8_t acamera_gdc_axi_settings_tile_reader_max_arlen_read(uint
 
 // args: data (8-bit)
 static __inline void acamera_gdc_axi_settings_tile_reader_fifo_watermark_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x2080acL);
-    system_gdc_write_32(0x2080acL, (((uint32_t) (data & 0xff)) << 8) | (curr & 0xffff00ff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_READER_FIFO_WATERMARK_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_READER_FIFO_WATERMARK_OFFSET, (((uint32_t) (data & 0xff)) << 8) | (curr & (~ACAMERA_GDC_AXI_SETTINGS_TILE_READER_FIFO_WATERMARK_MASK)));
 }
 static __inline uint8_t acamera_gdc_axi_settings_tile_reader_fifo_watermark_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x2080acL) & 0xff00) >> 8);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_READER_FIFO_WATERMARK_OFFSET) & ACAMERA_GDC_AXI_SETTINGS_TILE_READER_FIFO_WATERMARK_MASK) >> 8);
 }
 // ------------------------------------------------------------------------------ //
 // Register: tile reader rxact maxostand
@@ -1496,11 +1507,11 @@ static __inline uint8_t acamera_gdc_axi_settings_tile_reader_fifo_watermark_read
 
 // args: data (8-bit)
 static __inline void acamera_gdc_axi_settings_tile_reader_rxact_maxostand_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x2080acL);
-    system_gdc_write_32(0x2080acL, (((uint32_t) (data & 0xff)) << 16) | (curr & 0xff00ffff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_READER_RXACT_MAXOSTAND_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_READER_RXACT_MAXOSTAND_OFFSET, (((uint32_t) (data & 0xff)) << 16) | (curr & (~ACAMERA_GDC_AXI_SETTINGS_TILE_READER_RXACT_MAXOSTAND_MASK)));
 }
 static __inline uint8_t acamera_gdc_axi_settings_tile_reader_rxact_maxostand_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x2080acL) & 0xff0000) >> 16);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_READER_RXACT_MAXOSTAND_OFFSET) & ACAMERA_GDC_AXI_SETTINGS_TILE_READER_RXACT_MAXOSTAND_MASK) >> 16);
 }
 // ------------------------------------------------------------------------------ //
 // Register: tile writer max awlen
@@ -1517,11 +1528,11 @@ static __inline uint8_t acamera_gdc_axi_settings_tile_reader_rxact_maxostand_rea
 
 // args: data (4-bit)
 static __inline void acamera_gdc_axi_settings_tile_writer_max_awlen_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x2080b0L);
-    system_gdc_write_32(0x2080b0L, (((uint32_t) (data & 0xf)) << 0) | (curr & 0xfffffff0));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_MAX_AWLEN_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_MAX_AWLEN_OFFSET, (((uint32_t) (data & 0xf)) << 0) | (curr & (~ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_MAX_AWLEN_MASK)));
 }
 static __inline uint8_t acamera_gdc_axi_settings_tile_writer_max_awlen_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x2080b0L) & 0xf) >> 0);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_MAX_AWLEN_OFFSET) & ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_MAX_AWLEN_MASK) >> 0);
 }
 // ------------------------------------------------------------------------------ //
 // Register: tile writer fifo watermark
@@ -1538,11 +1549,11 @@ static __inline uint8_t acamera_gdc_axi_settings_tile_writer_max_awlen_read(uint
 
 // args: data (8-bit)
 static __inline void acamera_gdc_axi_settings_tile_writer_fifo_watermark_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x2080b0L);
-    system_gdc_write_32(0x2080b0L, (((uint32_t) (data & 0xff)) << 8) | (curr & 0xffff00ff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_FIFO_WATERMARK_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_FIFO_WATERMARK_OFFSET, (((uint32_t) (data & 0xff)) << 8) | (curr & (~ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_FIFO_WATERMARK_MASK)));
 }
 static __inline uint8_t acamera_gdc_axi_settings_tile_writer_fifo_watermark_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x2080b0L) & 0xff00) >> 8);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_FIFO_WATERMARK_OFFSET) & ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_FIFO_WATERMARK_MASK) >> 8);
 }
 // ------------------------------------------------------------------------------ //
 // Register: tile writer wxact maxostand
@@ -1559,11 +1570,11 @@ static __inline uint8_t acamera_gdc_axi_settings_tile_writer_fifo_watermark_read
 
 // args: data (8-bit)
 static __inline void acamera_gdc_axi_settings_tile_writer_wxact_maxostand_write(uint32_t base, uint8_t data) {
-    uint32_t curr = system_gdc_read_32(0x2080b0L);
-    system_gdc_write_32(0x2080b0L, (((uint32_t) (data & 0xff)) << 16) | (curr & 0xff00ffff));
+    uint32_t curr = system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_WXACT_MAXOSTAND_OFFSET);
+    system_gdc_write_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_WXACT_MAXOSTAND_OFFSET, (((uint32_t) (data & 0xff)) << 16) | (curr & (~ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_WXACT_MAXOSTAND_MASK)));
 }
 static __inline uint8_t acamera_gdc_axi_settings_tile_writer_wxact_maxostand_read(uint32_t base) {
-    return (uint8_t)((system_gdc_read_32(0x2080b0L) & 0xff0000) >> 16);
+    return (uint8_t)((system_gdc_read_32(base+ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_WXACT_MAXOSTAND_OFFSET) & ACAMERA_GDC_AXI_SETTINGS_TILE_WRITER_WXACT_MAXOSTAND_MASK) >> 16);
 }
 // ------------------------------------------------------------------------------ //
 #endif //__ACAMERA_GDC_CONFIG_H__

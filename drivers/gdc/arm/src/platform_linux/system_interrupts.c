@@ -52,6 +52,7 @@ static irqreturn_t system_interrupt_handler(int irq, void *dev_id)
 
 void system_interrupts_set_irq(int irq_num, int flags)
 {
+/* in Linux, this is called in probe, from device tree */
   interrupt_line_ACAMERA_JUNO_IRQ = irq_num;
   interrupt_line_ACAMERA_JUNO_IRQ_FLAGS = flags & IRQF_TRIGGER_MASK;
   LOG(LOG_INFO, "interrupt id is set to %d\n", interrupt_line_ACAMERA_JUNO_IRQ);

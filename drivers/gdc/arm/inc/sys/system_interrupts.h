@@ -33,7 +33,7 @@ typedef void ( *system_interrupt_handler_t )( void *ptr, uint32_t mask );
  *
  *   @return none
  */
-void system_interrupts_init( void );
+void system_interrupts_init( int id);
 
 
 /**
@@ -43,7 +43,7 @@ void system_interrupts_init( void );
  *
  *   @return none
  */
-void system_interrupts_deinit( void );
+void system_interrupts_deinit( int id );
 
 /**
  *   Set an interrupt handler
@@ -56,7 +56,7 @@ void system_interrupts_deinit( void );
  *
  *   @return none
  */
-void system_interrupt_set_handler( system_interrupt_handler_t handler, void *param );
+void system_interrupt_set_handler( int id, system_interrupt_handler_t handler, void *param );
 
 
 /**
@@ -66,7 +66,7 @@ void system_interrupt_set_handler( system_interrupt_handler_t handler, void *par
  *
  *   @return none
  */
-void system_interrupts_enable( void );
+void system_interrupts_enable( int id );
 
 
 /**
@@ -77,6 +77,6 @@ void system_interrupts_enable( void );
  *
  *   @return none
  */
-void system_interrupts_disable( void );
+void system_interrupts_disable( int id );
 
 #endif /* __SYSTEM_INTERRUPTS_H__ */
