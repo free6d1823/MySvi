@@ -23,6 +23,7 @@
 #include <target/list.h>
 
 #include "emac_drv.h"
+#include "emac_ptp.h"
 
 void emac_init_hw_mtl(struct net_local* emac_dev,
 					struct dwceqos_MTL_cfg* emac_MTL_cfg);
@@ -383,6 +384,43 @@ static void dwceqos_enable_mmc_interrupt(struct net_local *lp)
 	dwceqos_write(lp, REG_DWCEQOS_MMC_TXIRQMASK, 0);
 }
 
+static void dwceqos_get_timestamp(struct dwceqos_dma_desc *desc,
+								u64 *ts)
+{
+	struct dwceqos_dma_desc *p = (struct dwceqos_dma_desc *)desc;
+	u64 ns;
+
+	ns = le32_to_cpu(p->des0);
+	/* convert high/sec time stamp value to nanosecond */
+	ns += le32_to_cpu(p->des1) * 1000000000ULL;
+
+	*ts = ns;
+}
+
+void emac_get_tx_ts(struct net_local *lp,
+					u32 tx_q, u64 *ts)
+{
+	struct dwceqos_dma_desc *dd;
+	struct emac_tx_queue* txq;
+
+	txq = &lp->tx_queues[tx_q];
+
+	dd = &txq->tx_descs[txq->tx_cur];
+	inval_dcache_area(dd, sizeof(struct dwceqos_dma_desc));
+	dwceqos_get_timestamp(dd, ts);
+}
+void emac_get_rx_ts(struct net_local *lp,
+					u32 rx_q, u64 *ts)
+{
+	struct dwceqos_dma_desc *dd;
+	struct emac_rx_queue* rxq;
+
+	rxq = &lp->rx_queues[rx_q];
+
+	dd = &rxq->rx_descs[rxq->rx_cur];
+	inval_dcache_area(dd, sizeof(struct dwceqos_dma_desc));
+	dwceqos_get_timestamp(dd, ts);
+}
 static void dwceqos_tx_prepare(char *buf, struct net_local *lp,
 			       u32 txq, struct dwceqos_tx *tx)
 {
@@ -448,7 +486,7 @@ static void dwceqos_tx_poll_demand(struct net_local *lp,
 }
 
 static void dwceqos_tx_finalize(char *skb, struct net_local *lp,
-				u32 tx_q, struct dwceqos_tx *tx)
+				u32 tx_q, struct dwceqos_tx *tx, bool ptp)
 {
 	u32 regval;
 	struct emac_tx_queue* txq;
@@ -456,6 +494,10 @@ static void dwceqos_tx_finalize(char *skb, struct net_local *lp,
 	txq = &lp->tx_queues[tx_q];
 	txq->tx_descs[tx->last_descriptor].des3 |= DWCEQOS_DMA_TDES3_LD;
 	txq->tx_descs[tx->last_descriptor].des2 |= DWCEQOS_DMA_TDES2_IOC;
+	if (ptp) {
+		#define TDES2_TIMESTAMP_ENABLE		BIT(30)
+		txq->tx_descs[tx->last_descriptor].des2 |= TDES2_TIMESTAMP_ENABLE;
+	}
 	flush_dcache_area(&txq->tx_descs[tx->last_descriptor],
                     sizeof(struct dwceqos_dma_desc));
 
@@ -567,7 +609,7 @@ void dwceqos_show_status(struct net_local *lp,
 	print_status(lp, &lp->tx_queues[tx_q], &lp->rx_queues[rx_q]);
 }
 int dwceqos_xmit(struct net_local *lp, u32 tx_q,
-				char *skb, size_t len)
+				char *skb, size_t len, bool ptp)
 {
 	struct dwceqos_tx trans;
 	int err;
@@ -582,7 +624,7 @@ int dwceqos_xmit(struct net_local *lp, u32 tx_q,
 	if (err)
 		goto tx_error;
 
-	dwceqos_tx_finalize(skb, lp, tx_q, &trans);
+	dwceqos_tx_finalize(skb, lp, tx_q, &trans, ptp);
 
 	spin_lock(&lp->tx_queues[tx_q].tx_lock);
 	lp->tx_queues[tx_q].tx_free -= trans.nr_descriptors;
@@ -618,9 +660,14 @@ int dwceqos_rx(struct net_local *lp, int budget, u32 rx_q,
 	emac_dma_addr_t new_skb_baddr = 0;
 
 	rxq = &lp->rx_queues[rx_q];
+	*length = 0;
 	while (n_descs < budget) {
 		if (!dwceqos_packet_avail(lp, rx_q))
 			break;
+		else
+		{
+			printf("data received at rx_q=%d\n", rx_q);
+		}
 
 		new_skb = (char *)emac_heap_alloc(DWCEQOS_RX_BUF_SIZE);
 		if (!new_skb) {
@@ -1037,6 +1084,46 @@ static void emac_start_mtl_dma(struct net_local *lp,
 		      regval | DWCEQOS_MAC_CFG_TE | DWCEQOS_MAC_CFG_RE);
 }
 
+static void emac_stop_dma_mtl_mac(struct net_local *lp)
+{
+	u32 regval;
+	u32 queue;
+	struct emac_rx_queue* rxq;
+	struct emac_tx_queue* txq;
+
+	for (queue = 0; queue < MTL_MAX_TX_QUEUES; queue++) {
+		/* stop dma*/
+		regval = dwceqos_read(lp, DMA_CHAN_TX_CONTROL(queue));
+		regval &= (~DWCEQOS_DMA_CH_CTRL_START);
+		dwceqos_write(lp, DMA_CHAN_TX_CONTROL(queue), regval);
+
+		/* disable MTL queues */
+		regval = dwceqos_read(lp, MTL_CHAN_TX_OP_MODE(queue));
+		regval &= (~DWCEQOS_MTL_TXQ_TXQEN);
+		dwceqos_write(lp, MTL_CHAN_TX_OP_MODE(queue), regval);
+
+		txq = &lp->tx_queues[queue];
+
+		txq->tx_cur = 0;
+		txq->tx_next = 0;
+		txq->tx_free = DWCEQOS_TX_DCNT;
+	}
+	/* stop mac */
+	regval = dwceqos_read(lp, REG_DWCEQOS_MAC_CFG);
+	regval &= (~(DWCEQOS_MAC_CFG_TE | DWCEQOS_MAC_CFG_RE));
+	dwceqos_write(lp, REG_DWCEQOS_MAC_CFG, regval);
+
+	for (queue = 0; queue < MTL_MAX_RX_QUEUES; queue++) {
+		/* disable MTL, strange no rxq enable */
+		/* stop rx dma */
+		regval = dwceqos_read(lp, DMA_CHAN_RX_CONTROL(queue));
+		regval &= (~DWCEQOS_DMA_CH_CTRL_START);
+		dwceqos_write(lp, DMA_CHAN_RX_CONTROL(queue), regval);
+
+		rxq = &lp->rx_queues[queue];
+		rxq->rx_cur = 0;;
+	}
+}
 static void emac_init_hw_dma(struct net_local *lp,
 					struct dwceqos_MTL_cfg* emac_MTL_cfg)
 {
@@ -1148,6 +1235,152 @@ static void emac_dma_operation_mode(struct net_local *lp,
 	}
 }
 
+static void config_sub_second_increment(void __iomem *ioaddr,
+		u32 ptp_clock, int gmac4, u32 *ssinc)
+{
+	u32 value = readl_relaxed(ioaddr + PTP_TCR);
+	unsigned long data;
+	u32 reg_value;
+
+	/* For GMAC3.x, 4.x versions, convert the ptp_clock to nano second
+	 *	formula = (1/ptp_clock) * 1000000000
+	 * where ptp_clock is 50MHz if fine method is used to update system
+	 */
+	if (value & PTP_TCR_TSCFUPDT)
+		data = (1000000000ULL / 50000000);
+	else
+		data = (1000000000ULL / ptp_clock);
+
+	/* 0.465ns accuracy */
+	if (!(value & PTP_TCR_TSCTRLSSR))
+		data = (data * 1000) / 465;
+
+	data &= PTP_SSIR_SSINC_MASK;
+
+	reg_value = data;
+	if (gmac4)
+		reg_value <<= GMAC4_PTP_SSIR_SSINC_SHIFT;
+
+	writel_relaxed(reg_value, ioaddr + PTP_SSIR);
+
+	if (ssinc)
+		*ssinc = data;
+}
+static int config_addend(void __iomem *ioaddr, u32 addend)
+{
+	u32 value;
+	int limit;
+
+	writel(addend, ioaddr + PTP_TAR);
+	/* issue command to update the addend value */
+	value = readl(ioaddr + PTP_TCR);
+	value |= PTP_TCR_TSADDREG;
+	writel(value, ioaddr + PTP_TCR);
+
+	/* wait for present addend update to complete */
+	limit = 10;
+	while (limit--) {
+		if (!(readl(ioaddr + PTP_TCR) & PTP_TCR_TSADDREG))
+			break;
+		udelay(100);
+	}
+	if (limit < 0)
+		return -EBUSY;
+
+	return 0;
+}
+
+static int init_systime(void __iomem *ioaddr, u32 sec, u32 nsec)
+{
+	int limit;
+	u32 value;
+
+	writel(sec, ioaddr + PTP_STSUR);
+	writel(nsec, ioaddr + PTP_STNSUR);
+	/* issue command to initialize the system time value */
+	value = readl(ioaddr + PTP_TCR);
+	value |= PTP_TCR_TSINIT;
+	writel(value, ioaddr + PTP_TCR);
+
+	/* wait for present system time initialize to complete */
+	limit = 10;
+	while (limit--) {
+		if (!(readl(ioaddr + PTP_TCR) & PTP_TCR_TSINIT))
+			break;
+		udelay(100);
+	}
+	if (limit < 0)
+		return -EBUSY;
+
+	return 0;
+}
+
+static void get_systime(void __iomem *ioaddr, u64 *systime)
+{
+	u64 ns;
+
+	/* Get the TSSS value */
+	ns = readl(ioaddr + PTP_STNSR);
+	/* Get the TSS and convert sec time value to nanosecond */
+	ns += readl(ioaddr + PTP_STSR) * 1000000000ULL;
+
+	if (systime)
+		*systime = ns;
+}
+
+void clk_for_ptp_ref(void)
+{
+	return;
+}
+static bool emac_init_ptp(struct net_local *lp)
+{
+	u32 reg, value;
+	u32 sec_inc;
+	u32 ptp_clk_rate;
+
+	reg = (lp->feature0 & GENMASK(12, 12)) >> 12;
+	printf("1588 timestamp feture is %s\n\n",
+				reg ? "enabled" : "disabled");
+	if (!reg) {
+		printf("error: PTP is not supported by HW\n");
+		return false;
+	}
+
+	ptp_clk_rate = 50000000; /* 50Mhz suppose */
+	/* MAC_Timestamp_control register 0xb00*/
+	value = (PTP_TCR_TSENA | PTP_TCR_TSCFUPDT | PTP_TCR_TSCTRLSSR |
+			 PTP_TCR_TSENALL | PTP_TCR_TSVER2ENA | PTP_TCR_TSIPENA |
+			 PTP_TCR_TSIPV6ENA | PTP_TCR_TSIPV4ENA | PTP_TCR_TSEVNTENA |
+			 PTP_TCR_TSMSTRENA | PTP_TCR_SNAPTYPSEL_1);
+	dwceqos_write(lp, PTP_GMAC4_OFFSET + PTP_TCR, value);
+
+	/* need to check ptp reference clock with IC, suppose 50Mhz */
+	config_sub_second_increment(lp->baseaddr + PTP_GMAC4_OFFSET,
+			50000000, 1, &sec_inc);
+	config_addend(lp->baseaddr + PTP_GMAC4_OFFSET, 10);
+	init_systime(lp->baseaddr + PTP_GMAC4_OFFSET, 0, 1000);
+
+	{
+		/* sanity check for systime */
+		u64 systime1, systime2;
+		systime1 = systime2 = 0;
+		get_systime(lp->baseaddr + PTP_GMAC4_OFFSET, &systime1);
+		udelay(1000);
+		get_systime(lp->baseaddr + PTP_GMAC4_OFFSET, &systime2);
+
+		if ((systime1 == 0) ||
+			(systime2 == 0) || (systime1 > systime2)) {
+			printf("PTP systime not correct t1=0x%llx, t2=0x%llx\n",
+						systime1, systime2);
+		} else {
+			printf("PTP systime passed sanity check t1=0x%llx, t2=0x%llx\n",
+					systime1, systime2);
+		}
+	}
+
+	return true;
+}
+
 static void dwceqos_init_hw(struct net_local *lp,
 					struct dwceqos_MTL_cfg* emac_MTL_cfg)
 {
@@ -1166,8 +1399,11 @@ static void dwceqos_init_hw(struct net_local *lp,
 
 	/* Set the HW DMA mode and the COE */
 	emac_dma_operation_mode(lp, emac_MTL_cfg);
-
-
+	if (emac_MTL_cfg->init_ptp) {
+		//stub func to enable reference clock if have
+		clk_for_ptp_ref();
+		emac_init_ptp(lp);
+	}
 	/* no flow control currently*/
 	//dwceqos_configure_flow_control(lp);
 	regval = dwceqos_read(lp, REG_DWCEQOS_MAC_PKT_FILT);
@@ -1324,6 +1560,33 @@ void emac_get_feature(u64 base_addr)
 	printf("Rx Queues number=%d\n",
 				((emac_dev.feature2 & GENMASK(3, 0)) >> 0) + 1);
 
+	/* show PTP ability*/
+	printf("\nshow PTP ability\n");
+	reg = (emac_dev.feature0 & GENMASK(26, 25)) >> 25;
+	printf("Timestamp system time source is ");
+	switch (reg) {
+		case 0:
+			printf("internal\n");
+			break;
+		case 1:
+			printf("External\n");
+			break;
+		case 2:
+			printf("both\n");
+			break;
+		default:
+			printf("??\n");
+			break;
+	}
+	reg = (emac_dev.feature0 & GENMASK(12, 12)) >> 12;
+	printf("1588 timestamp feture is %s\n",
+				reg ? "enabled" : "disabled");
+	reg = (emac_dev.feature1 & GENMASK(23, 23)) >> 23;
+	printf("One step for PTP is %s\n",
+				reg ? "enabled" : "disabled");
+	reg = (emac_dev.feature1 & GENMASK(11, 11)) >> 11;
+	printf("One step timestamp is %s\n\n",
+				reg ? "enabled" : "disabled");
 	reg = 0;
 	reg = dwceqos_read(&emac_dev, REG_DWCEQOS_MTL_OPER);
 	printf("MTL OPERATION MODE = 0x%x\n", reg);
@@ -1341,6 +1604,7 @@ void emac_get_feature(u64 base_addr)
 	reg = 0;
 	reg = dwceqos_read(&emac_dev, REG_DWCEQOS_DMA_CH0_TX_CTRL);
 	printf("DMA Tx CH0 = 0x%x\n", reg);
+
 }
 
 
@@ -1614,8 +1878,7 @@ void emac_init_hw_mtl(struct net_local* emac_dev,
  * 1. DMA engine init
  * 2. MTL config
  * */
-struct net_local* emac_init(u64 base_addr,
-					struct dwceqos_MTL_cfg* emac_MTL_cfg)
+struct net_local* emac_init(u64 base_addr)
 {
 	struct net_local* emac_dev;
 	int res;
@@ -1644,7 +1907,7 @@ struct net_local* emac_init(u64 base_addr,
 	emac_dev->mac_addr[5] = 3;
 
 	res = dwceqos_descriptor_init(emac_dev,
-		emac_MTL_cfg->tx_queues_count, emac_MTL_cfg->rx_queues_count);
+			MTL_MAX_TX_QUEUES, MTL_MAX_RX_QUEUES);
 
 	if (res) {
 		printf("Unable to allocate DMA memory, rc %d\n", res);
@@ -1653,7 +1916,22 @@ struct net_local* emac_init(u64 base_addr,
 	}
 	dwceqos_get_hwfeatures(emac_dev);
 	/* phy_start(lp->phy_dev); */
-	dwceqos_init_hw(emac_dev, emac_MTL_cfg);
+	//dwceqos_init_hw(emac_dev, emac_MTL_cfg);
 
     return emac_dev;
+}
+
+void emac_test_mode(struct net_local* lp,
+					struct dwceqos_MTL_cfg* emac_MTL_cfg)
+{
+	if (NULL == lp) {
+		printf("wrong parameters\n");
+		return;
+	}
+
+	/* Stop DMA, MTL, MAC first.
+	 * should check no transaction before stopping
+	 * */
+	emac_stop_dma_mtl_mac(lp);
+	dwceqos_init_hw(lp, emac_MTL_cfg);
 }

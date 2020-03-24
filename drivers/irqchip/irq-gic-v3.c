@@ -146,6 +146,10 @@ static inline void gicv3_init_gicd(irq_t max_irq, uint8_t max_prio)
 		/* Set all global interrupts to be level triggered */
 		/* Set priority on all global interrupts. */
 		/* Deactivate all SPIs */
+		/*
+		__raw_writel(~0, GICD_ICACTIVER(gic_data.dist_base, irq));
+		__raw_writel(~0, GICD_ICPENDR(gic_data.dist_base, irq));
+		*/
 	}
 #endif
 
@@ -290,6 +294,10 @@ static inline void gicv3_init_gicr(uint8_t cpu, irq_t max_irq, uint8_t max_prio)
 	/* No need to initialize the following registers */
 	/* Set priority on SGIs/PPIs. */
 	/* Deactivate all SGIs/PPIs */
+	/*
+	__raw_writel(~0, GICR_ICACTIVER0(gic_data.rdist_base, cpu));
+	__raw_writel(~0, GICR_ICPENDR0(gic_data.rdist_base, cpu));
+	*/
 #endif
 	gicr_mark_awake(cpu);
 }

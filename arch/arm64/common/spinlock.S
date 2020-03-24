@@ -2,8 +2,8 @@
 #include <target/assembler.h>
 #include <target/spinlock.h>
 
-#define COND_SEVL()	sevl
-#define COND_WFE()	wfe
+#define COND_SEVL()
+#define COND_WFE()
 
 #ifdef CONFIG_ARCH_SUPPORTS_CAS
 	.arch	armv8.1-a

@@ -58,8 +58,28 @@ struct udphdr {
 	uint16_t	check;
 };
 
+struct ptphdr {
+	uint8_t		MsgType:4;
+	uint8_t		TranSpec:4;
+	uint8_t		VerPTP:4;
+	uint8_t		Reserved0:4;
+	uint16_t	MsgLength;
+	uint8_t		DomainNumber;
+	uint8_t		Reserved1;
+	uint16_t	FlagField;
+	uint64_t	CorrectionField;
+	uint32_t	Reserved2;
+	uint8_t		srcportID[10];
+	uint16_t	SequenceID;
+	uint8_t		ControlField;
+	uint8_t		LogMsgInterval;
+	uint8_t		timestamp[10];
+	/*option if have*/
+} __attribute__((packed));
+
 void emac_InitPacket(uint8_t *PacketBuf, uint32_t length,
 			uint8_t ip, uint8_t tcp, uint8_t badCS);
+void emac_InitPTPPacket(uint8_t *pktBuf, uint32_t* length);
 
 int emac_GetMacHdr( void );
 int emac_GetIPHdr( void );

@@ -97,6 +97,8 @@ void entry(void)
 	//pwrsoc_bench_imc_init();
 
 	cmd_init();
+	smp_register_cpu();
+
 	dsr_loop();
 }
 
@@ -104,15 +106,17 @@ void secondary_entry(void)
 {
 	printf("CPU[%d] UP\n", smp_processor_id());
 
+	mmu_init();
 	dsr_init();
 	tick_init();
 	irq_init();
 	timer_init();
 	perf_init();
-	mmu_init();
 	percpu_init();
 	/* Mark end of primary boot */
 	check_secondary_entry();
 	//pwrsoc_bench_apc_init();
+	smp_register_cpu();
+
 	dsr_loop();
 }

@@ -275,5 +275,6 @@ void gicv3_init_gits(irq_t max_irq);
 void gicv3_init_gicc(irq_t max_irq, uint8_t max_prio);
 
 void gicv3_handle_irq();
+void gicv3_trigger_sgi(uint8_t irqnr, uint16_t cpu);
 
 #endif /* __GICV3_ARM64_H_INCLUDE__ */

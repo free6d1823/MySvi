@@ -46,11 +46,18 @@ void gicv3_handle_irq()
 	uint8_t cpu;
 
 	gicv3_begin_irq(&irq, &cpu);
+
 	if (!gic_sanitize_acked_irq(irq))
 		return;
 
-	if (!do_IRQ(irq))
-		irqc_disable_irq(irq);
+	if (irq > IRQ_SPI_BASE) {
+		if (!do_IRQ(irq)) {
+			irqc_disable_irq(irq);
+		}
+	} else {
+		handle_IPI(irq);
+	}
+
 	gicv3_end_irq(irq, cpu);
 }
 
@@ -105,4 +112,32 @@ void gicv3_init_gicc(irq_t max_irq, uint8_t max_prio)
 	/* Write the secure ICC_SRE_EL1 register */
 	write_sysreg(ICC_SRE_SRE, ICC_SRE_EL1);
 	isb();
+}
+
+#define MPIDR_TO_SGI_RS(mpidr)	(MPIDR_RS(mpidr) << ICC_RS_OFFSET)
+#define MPIDR_TO_SGI_CLUSTER_ID(mpidr)	((mpidr) & ~0xFUL)
+
+#define MPIDR_TO_SGI_AFFINITY(cluster_id, level) \
+	(MPIDR_AFFINITY_LEVEL(cluster_id, level) \
+		<< ICC_AFF## level ##_OFFSET)
+
+void gicv3_trigger_sgi(uint8_t irqnr, uint16_t cpu)
+{
+	uint64_t cluster_id, val;
+	uint16_t target;
+
+	cluster_id = get_mpidr(cpu);
+	target = 1 << (cluster_id & 0xf);
+
+	cluster_id = MPIDR_TO_SGI_CLUSTER_ID(cluster_id);
+
+	val = (MPIDR_TO_SGI_AFFINITY(cluster_id, 3)	|
+	       MPIDR_TO_SGI_AFFINITY(cluster_id, 2)	|
+	       irqnr << ICC_INTID_OFFSET		    |
+	       MPIDR_TO_SGI_AFFINITY(cluster_id, 1)	|
+	       MPIDR_TO_SGI_RS(cluster_id)		    |
+	       (target << ICC_TARGET_LIST_OFFSET));
+
+	write_sysreg(val, ICC_SGI0R_EL1);
+	asm volatile("isb" : : : "memory");
 }

@@ -56,7 +56,7 @@ bool do_IRQ(sirq_t sirq)
 	uint8_t curr;
 	irq_handler handler;
 
-	BUG_ON(sirq >= NR_IRQS || sirq <= 0);
+	BUG_ON(sirq >= NR_IRQS || sirq < 0);
 	irq_lock_irq();
 	for (curr = 0; curr < irq_nr_regs; curr++) {
 		if (sirq == irq_nr_table[curr]) {

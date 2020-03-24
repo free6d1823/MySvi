@@ -152,6 +152,7 @@ struct dwceqos_MTL_cfg {
 	u32 tx_weight;
 	u8 rx_sched_algorithm;
 	u8 tx_sched_algorithm;
+	bool init_ptp;
 	struct mac_rxq_cfg rx_queues_cfg[MTL_MAX_RX_QUEUES];
 	struct mac_txq_cfg tx_queues_cfg[MTL_MAX_TX_QUEUES];
 };
@@ -724,16 +725,22 @@ enum packets_types {
 #define MTL_CHAN_RX_OP_MODE(x)		(MTL_CHANX_BASE_ADDR(x) + 0x30)
 #define MTL_CHAN_RX_DEBUG(x)		(MTL_CHANX_BASE_ADDR(x) + 0x38)
 
-struct net_local* emac_init(u64 base_addr,
+struct net_local* emac_init(u64 base_addr);
+void emac_test_mode(struct net_local* lp,
 					struct dwceqos_MTL_cfg* emac_MTL_cfg);
 int dwceqos_rx(struct net_local *lp, int budget, u32 rx_q,
 				char** recv, u32 *length);
-int dwceqos_xmit(struct net_local *lp, u32 tx_q, char *buf, size_t len);
+int dwceqos_xmit(struct net_local *lp, u32 tx_q,
+				char *buf, size_t len, bool ptp);
 void emac_lpmode_config(struct net_local *lp);
 void dwceqos_tx_reclaim(struct net_local *lp, u32 tx_q);
 void dwceqos_get_stats64(struct net_local *lp, int mode);
 void dwceqos_show_status(struct net_local *lp, u32 tx_q, u32 rx_q);
 void emac_get_feature(u64 base_addr);
+void emac_get_tx_ts(struct net_local *lp,
+					u32 tx_q, u64 *ts);
+void emac_get_rx_ts(struct net_local *lp,
+					u32 rx_q, u64 *ts);
 
 /* heap buffer realted */
 void emac_init_memory(uintptr_t addr, size_t size);

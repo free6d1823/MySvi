@@ -182,10 +182,8 @@ endif
 
 config DATA_BASE
 	hex "configure data base"
-	default "0x30000" if ARCH_SE1000 && MMU_FAST
 	default "0x0"
 
 config HEAP_BASE
 	hex "configure heap base"
-	default "0x38000" if ARCH_SE1000 && MMU_FAST
 	default "0x0"

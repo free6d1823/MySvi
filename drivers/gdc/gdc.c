@@ -5,8 +5,8 @@
 #include <target/memory.h>
 #include <gdc/acamera_gdc_config.h>
 #include <api/acamera_gdc_api.h>
-#include <sys/system_log.h>	
-#include <sys/system_interrupts.h>	
+#include <sys/system_log.h>
+#include <sys/system_interrupts.h>
 //gdc configuration sequences
 #include "arm/app/gdc_config_seq_semiplanar_yuv420.h"
 #include "arm/app/gdc_config_seq_plane_y.h"
@@ -121,7 +121,7 @@ struct _gdc_test_param gdc_test_param[max_gdc_test_cases]={
 
 	}
 };
-	
+
 //This is a function callback provided to GDC to update frame buffer addresses and offsets
 static void get_frame_buffer_callback(  uint32_t total_input, uint32_t * out_addr, uint32_t * out_lineoffset )
 {
@@ -165,7 +165,7 @@ static void interrupt_handler( void *param, uint32_t mask )
 		}
 #endif
 
-    }
+    	}
 }
 
 //we need to copy the gdc configuration sequence to the gdc config address
@@ -252,7 +252,7 @@ static int gdc_test(int id)
 }
 
 static int init_gdc_device()
-{    
+{
     int i;
     for (i = 0; i< total_core_number; i++) {
         if (core_array[i].valid){
@@ -289,7 +289,7 @@ int gdc_dump_features(int id)
 		printf(" - Ggrayscale supported \n");
 	if (reg & GDC_FEATURE_RGBA888)
 		printf(" - RGBA8:8:8/YUV4:4:4 mode supported \n");
-	
+
 	if (reg & GDC_FEATURE_RGB_PLANAR)
 		printf(" - RGB/YUV444 planar modes supported \n");
 	if (reg & GDC_FEATURE_YUV_SEMIPLANAR)
@@ -309,11 +309,11 @@ int gdc_dump_features(int id)
 	value = ((reg & GDC_FEATURE_OUTPUT_CACHE_SIZE )>>16);
 	printf(" - Size of output cache = %d lines\n", (1<< (value+5)));
 	value = ((reg & GDC_FEATURE_TILE_CACHE_SIZE )>>19);
-	printf(" - Size of tile cache = %d of 16x16-clusters\n", (1<< (value)));	
+	printf(" - Size of tile cache = %d of 16x16-clusters\n", (1<< (value)));
 	value = ((reg & GDC_FEATURE_POLYPHASS_FILTER )>>24);
-	printf(" - Number of polyphase filter banks = %d\n", (1<< (value)));	 
+	printf(" - Number of polyphase filter banks = %d\n", (1<< (value))); 
 	value = ((reg & GDC_FEATURE_AXI_DATA_WIDTH )>>27);
-	printf(" - AXI data width  = 0x%X\n", (1<< (value)));	  
+	printf(" - AXI data width  = 0x%X\n", (1<< (value)));
 
 	return 0;
 }
@@ -366,7 +366,7 @@ static int cmd_gdc(int argc, char **argv)
 	int core = 0;
 	if (argc < 1)
 		return -EUSAGE;
-	
+
 	if (argc > 2)
 		core = argv[2][0] - '0';
 	if (argv[1][0] == 'i') {

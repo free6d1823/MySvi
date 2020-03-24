@@ -23,7 +23,7 @@ obj-y += cacheinfo.o
 # SMP support
 obj-y += cache.o
 obj-y += spinlock.o
-
+obj-y += smp.o
 obj-y += exception.o
 obj-y += timer.o
 obj-y += entry.o

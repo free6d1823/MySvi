@@ -32,14 +32,13 @@ LIST_HEAD(emac_devs);
  * Limitation: Only one buffer is supported
  */
 bool emac_simSendRecv(struct net_local* lp, uint8_t queue,
-                        char* sendBuf, uint32_t* length)
+                        char* sendBuf, uint32_t sendLen, bool ptp)
 {
 	bool tx_ret, success;
 	char* recvBuf;
 	int i, tx_q, rx_q;
-	size_t sendLength;
+	uint32_t length;
 
-	sendLength = (size_t)*length;
 	tx_ret = true;
 	success = false;
 #ifdef EMAC_DEBUG
@@ -48,14 +47,11 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue,
 	printf("\n\n");
 #endif
 
-	tx_q = rx_q = 0;
-	/*
-	* Param: 1.buf,2.total length, 3. isIP
-	* 4. isTCP, or UDP 5. bad checksum
-	*/
-	emac_InitPacket((u8*)sendBuf, *length, 1, 1, 0);
+	tx_q = queue;
+	rx_q = 0;
 
-	tx_ret = dwceqos_xmit(lp, tx_q, (char*)sendBuf, *length);
+
+	tx_ret = dwceqos_xmit(lp, tx_q, (char*)sendBuf, sendLen, ptp);
 	if (!tx_ret) {
 		printf("%s: tx failed\n", __func__);
 		return false;
@@ -63,7 +59,7 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue,
 
 	/* Sleep for while let Tx complete*/
 	udelay(1000);
-	*length = 0;
+	length = 0;
 	/* check the tx/rx status to make sure tx/rx is done */
 	//checkcode_miss()
 #ifdef EMAC_DEBUG
@@ -74,16 +70,19 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue,
 #endif
 	for (i = 0; i < 4; i++) {
 		udelay(1000);
-		*length = 0;
-		tx_ret = dwceqos_rx(lp, 1, i, (char **)&recvBuf, length);
-		/* 4 bytes crc received, so plus 4 */
-		if (tx_ret && (*length == (sendLength + 4))) {
+		length = 0;
+		tx_ret = dwceqos_rx(lp, 1, i, (char **)&recvBuf, &length);
+		/* 4 bytes crc received, so maybe plus 4 will be great
+		 * length == (sendLen + 4)
+		 */
+		if (tx_ret && (0 != length)) {
 			success = true;
-			printf("%s: rx data received at queue %d\n", __func__, i);
+			printf("%s: %d bytes received at queue %d\n",
+						__func__, length, i);
 			printf("Pkg Data:");
-			if (*length > 64)
-				*length = 64;
-			for (i = 0; i < *length; i++) {
+			if (length > 64)
+				length = 64;
+			for (i = 0; i < length; i++) {
 				if (i % 8 == 0) {
 					printf(" ");
 				}
@@ -107,42 +106,14 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue,
 	printf("*****status end*****\n");
 #endif
 
-	dwceqos_tx_reclaim(lp, tx_q);
 	return tx_ret;
 }
 
-void emac_basic_test(struct net_local* emac_dev)
+/* case 1: multi-channel-queues test */
+void emac_mqc_test(struct net_local* emac_dev,
+					char* sendBuf, 	u32 sendlen)
 {
-	char *sendBuf;
-	u32 sendlen;
-
-	//sendBuf = (char *)heap_alloc(PKTTOTAL);
-	sendBuf = (char*)emac_heap_aligned_alloc(1024, PKTTOTAL);
-	sendlen =  SENDLEN;
-
-	if (NULL == sendBuf) {
-		printf("err: no room for sending\n");
-		return;
-	}
-
-	emac_lpmode_config(emac_dev);
-	emac_simSendRecv(emac_dev, 0, sendBuf, &sendlen);
-
-	heap_free(sendBuf);
-}
-
-static struct net_local* emac_basic_init(
-		uint64_t emac_base, uint64_t buf_addr, uint32_t buf_size)
-{
-	struct net_local* emac_dev;
 	struct dwceqos_MTL_cfg emac_MTL_cfg;
-	u8 *sendBuf, *recvBuf;
-
-	if (!emac_base || !buf_addr || !buf_size) {
-		printf("err: wrong emac base address\n");
-		return NULL;
-	}
-	emac_init_memory(buf_addr, buf_size);
 
 	/* stub configuration, need to configure new value based on test cases*/
 	memset(&emac_MTL_cfg, 0 , sizeof(struct dwceqos_MTL_cfg));
@@ -154,7 +125,101 @@ static struct net_local* emac_basic_init(
 	/* broad cast data should route to queue 1 */
 	emac_MTL_cfg.rx_queues_cfg[1].pkt_route = PACKET_MCBCQ;
 	emac_MTL_cfg.rx_queues_cfg[2].pkt_route = PACKET_UPQ;
-	emac_dev = emac_init(emac_base, &emac_MTL_cfg);
+	/* enable specific test mode*/
+	emac_test_mode(emac_dev, &emac_MTL_cfg);
+
+	emac_lpmode_config(emac_dev);
+
+	/**
+	 * Param: 1.buf,2.total length, 3. isIP
+	 * 4. isTCP, or UDP 5. bad checksum
+	 */
+	emac_InitPacket((u8*)sendBuf, sendlen, 1, 1, 0);
+	if (emac_simSendRecv(emac_dev, 0, sendBuf, sendlen, false))
+		printf("MQC test passed\n");
+	else
+	{
+		printf("MQC test failed\n");
+	}
+
+	dwceqos_tx_reclaim(emac_dev, 0);
+}
+
+/* case 1: multi-channel-queues test */
+void emac_PTP_test(struct net_local* emac_dev,
+					char* sendBuf, 	u32 sendlen)
+{
+	struct dwceqos_MTL_cfg emac_MTL_cfg;
+	u64 tx_ts, rx_ts;
+	u32 length = sendlen;
+
+	/* stub configuration, need to configure new value based on test cases*/
+	memset(&emac_MTL_cfg, 0 , sizeof(struct dwceqos_MTL_cfg));
+	emac_MTL_cfg.rx_queues_count = 4;
+	emac_MTL_cfg.tx_queues_count = 4;
+	/* strict priority for tx rx */
+	emac_MTL_cfg.init_ptp = true;
+	/* enable specific test mode*/
+	emac_test_mode(emac_dev, &emac_MTL_cfg);
+
+	emac_lpmode_config(emac_dev);
+
+	emac_InitPTPPacket((u8*)sendBuf, &length);
+	printf("send out %d bytes PTP over ethernet packet\n", length);
+	if (emac_simSendRecv(emac_dev, 0, sendBuf, length, true))
+		printf("PTP test passed\n");
+	else
+	{
+		printf("PTP test failed\n");
+	}
+
+	/* check tx/rx desc timestamp value */
+	emac_get_tx_ts(emac_dev, 0, &tx_ts);
+	emac_get_rx_ts(emac_dev, 0, &rx_ts);
+	printf("tx ts=0x%llx, rx ts=0x%llx\n", tx_ts, rx_ts);
+	dwceqos_tx_reclaim(emac_dev, 0);
+}
+
+void emac_basic_test(struct net_local* emac_dev)
+{
+
+	char *sendBuf;
+	u32 sendlen;
+
+
+
+	//sendBuf = (char *)heap_alloc(PKTTOTAL);
+	sendBuf = (char*)emac_heap_aligned_alloc(1024, PKTTOTAL);
+	sendlen =  SENDLEN;
+
+	if (NULL == sendBuf) {
+		printf("err: no room for sending\n");
+		return;
+	}
+//case 1:
+	emac_mqc_test(emac_dev, sendBuf, sendlen);
+
+	udelay(5000);
+//case 2: PTP one-step test
+	memset(sendBuf, 0, PKTTOTAL);
+	emac_PTP_test(emac_dev, sendBuf, sendlen);
+
+	heap_free(sendBuf);
+}
+
+static struct net_local* emac_basic_init(
+		uint64_t emac_base, uint64_t buf_addr, uint32_t buf_size)
+{
+	struct net_local* emac_dev;
+
+	u8 *sendBuf, *recvBuf;
+
+	if (!emac_base || !buf_addr || !buf_size) {
+		printf("err: wrong emac base address\n");
+		return NULL;
+	}
+	emac_init_memory(buf_addr, buf_size);
+	emac_dev = emac_init(emac_base);
 
 	if (NULL == emac_dev) {
 		printf("failed to allocate emac dev structure\n");

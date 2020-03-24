@@ -33,6 +33,18 @@ static uint8_t MACFrame[] =
 	// 0x08,0x08,0x08,0x08            /* Target IP address */
 };
 
+/* PTP over Ethernet */
+static uint8_t ethPTPFrame[] =
+{
+	//0x01,0x00,0x5e,0x5e,0x00,0x01, /* multicast address */
+	0x5c,0x52,0x82,0x4a,0x46,0x30, /* unicast address */
+	0x5c,0x52,0x82,0x4a,0x46,0x3f, /* source address */
+	//vlan tag info , /* vlan tag optional 4Bytes */
+	// 0xf7,0x88, /* PTP type: 2bytes */
+	// 1588 payload, /* 44~64 bytes */
+	// FCS      /* Hardware size: 4bytes */
+};
+
 static int testindex;
 
 int emac_GetMacHdr( void )
@@ -53,6 +65,44 @@ int emac_GetUDPHdr( void )
 int emac_GetTCPHdr( void )
 {
 	return sizeof(struct tcphdr); //no options currently
+}
+
+void emac_InitPTPPacket(uint8_t *pktBuf, uint32_t* length)
+{
+	uint8_t* buf;
+	uint16_t* ptptype;
+	uint32_t* srcID;
+	struct ptphdr ptp_hdr;
+
+	/*Update MAC layer*/
+	buf = pktBuf;
+	memset((void*)buf, 0 , *length);
+	memcpy(buf, ethPTPFrame, ETH_ALEN * 2);
+	buf += (ETH_ALEN * 2);
+
+	buf += 4;//suppose vlan tag
+
+	ptptype = (uint16_t*)buf;
+	*ptptype = 0x88f7;
+	buf += 2;
+
+	memset(&ptp_hdr, 0, sizeof(ptp_hdr));
+	ptp_hdr.TranSpec	= 0; /* advanced PTP */
+	ptp_hdr.MsgType		= 0; /* sync event */
+	ptp_hdr.VerPTP		= 2;
+	ptp_hdr.ControlField = 0;
+	ptp_hdr.FlagField	= 0x428;
+	ptp_hdr.MsgLength	= 44;
+	ptp_hdr.CorrectionField = 0x1234;
+	ptp_hdr.SequenceID = 1;
+	srcID = (uint32_t*)ptp_hdr.srcportID;
+	*srcID = 0xefbeadde;
+
+	memcpy(buf, &ptp_hdr, sizeof(ptp_hdr));
+
+	/* extra 2 to meet 64bytes tx packet */
+	*length = ETH_ALEN * 2 + 4+ 2 + ptp_hdr.MsgLength;
+	return;
 }
 
 void emac_InitPacket(uint8_t *pktBuf, uint32_t length, uint8_t ip,
