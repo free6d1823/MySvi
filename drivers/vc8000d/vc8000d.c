@@ -145,7 +145,7 @@ int vc8000d_afbc(int id)
         printf("0x%x is not a valid AFBC encoder ID\n", value);
         return -1;
     }
-    printf("AFBC encoder ID 0x%x, version %d.%d r%d\n", hwid, 
+    printf("AFBC encoder ID 0x%x, version %d.%d r%d\n", hwid,
             (value & 0x0000f000) >>12,
             (value & 0x00000ff0) >>4,
             value&0x0000000f);
@@ -158,9 +158,9 @@ int vc8000d_afbc(int id)
  	value = readl((uintptr_t)(base + REG_IRQ_STATUS));
     printf(" - REG_IRQ_STATUS = 0x%X\n", value);
  	value = readl((uintptr_t)(base + REG_COMMAND));
-    printf(" - REG_COMMAND = 0x%X\n", value);   
+    printf(" - REG_COMMAND = 0x%X\n", value);
  	value = readl((uintptr_t)(base + REG_STATUS));
-    printf(" - REG_STATUS = 0x%X\n", value);   
+    printf(" - REG_STATUS = 0x%X\n", value);
     printf("~ AFBC encoder test done ~\n");
     return 0;
 }
