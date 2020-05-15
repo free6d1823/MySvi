@@ -8,4 +8,6 @@ export LD_LIBRARY_PATH=$GLIBC
 
 
 make menuconfig
+or
+make ARCH=arm64 se1000_defconfig
 make
