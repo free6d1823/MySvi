@@ -22,7 +22,7 @@ static inline void gicd_enable_irq(irq_t irq)
 
 static inline void gicd_disable_irq(irq_t irq)
 {
-	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ICENABLER(gic_data.dist_base, irq));
+	__raw_writel(GIC_INTERRUPT_ID(irq), GICD_ICENABLER(gic_data.dist_base, irq));
 }
 
 static inline void gicd_enable_all_irqs(irq_t max_irq)
@@ -43,16 +43,16 @@ static inline void gicd_disable_all_irqs(irq_t max_irq)
 
 void gicd_trigger_irq(irq_t irq)
 {
-	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ISPENDR(gic_data.dist_base, irq));
+	__raw_writel(GIC_INTERRUPT_ID(irq), GICD_ISPENDR(gic_data.dist_base, irq));
 }
 
 void gicr_trigger_irq(irq_t irq, uint8_t cpu) {
-  __raw_setl(GIC_INTERRUPT_ID(irq), GICR_ISPENDR0(gic_data.rdist_base, cpu));
+	__raw_writel(GIC_INTERRUPT_ID(irq), GICR_ISPENDR0(gic_data.rdist_base, cpu));
 }
 
 void gicd_clear_irq(irq_t irq)
 {
-	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ICPENDR(gic_data.dist_base, irq));
+	__raw_writel(GIC_INTERRUPT_ID(irq), GICD_ICPENDR(gic_data.dist_base, irq));
 }
 
 static inline void gicd_configure_irq(irq_t irq, uint8_t priority, uint8_t trigger)
@@ -218,12 +218,12 @@ static inline bool gicr_is_asleep(uint8_t cpu)
 
 static inline void gicr_enable_irq(uint8_t cpu, irq_t irq)
 {
-	__raw_setl(GIC_INTERRUPT_ID(irq), GICR_ISENABLER0(gic_data.rdist_base, cpu));
+	__raw_writel(GIC_INTERRUPT_ID(irq), GICR_ISENABLER0(gic_data.rdist_base, cpu));
 }
 
 static inline void gicr_disable_irq(uint8_t cpu, irq_t irq)
 {
-	__raw_setl(GIC_INTERRUPT_ID(irq), GICR_ICENABLER0(gic_data.rdist_base, cpu));
+	__raw_writel(GIC_INTERRUPT_ID(irq), GICR_ICENABLER0(gic_data.rdist_base, cpu));
 	/* RWP tracks GICR_ICENABLER0 */
 	gicr_wait_rwp(cpu);
 }
@@ -303,10 +303,10 @@ static inline void gicv3_init_gicr(uint8_t cpu, irq_t max_irq, uint8_t max_prio)
 }
 
 void gicv3_enable_irq(irq_t irq) {
-  if (irq < IRQ_SPI_BASE)
-    gicr_enable_irq(smp_processor_id(), irq);
-  else
-    gicd_enable_irq(irq);
+	if (irq < IRQ_SPI_BASE)
+		gicr_enable_irq(smp_processor_id(), irq);
+	else
+		gicd_enable_irq(irq);
 }
 
 void gicv3_disable_irq(irq_t irq)
@@ -358,9 +358,6 @@ void gic3_handle_irq(void)
 {
 	gicv3_handle_irq();
 }
-#ifdef CONFIG_CPU_CORTEX_R52
-	uint32_t cpus_boot_cpu = 0;
-#endif
 
 void gic3_early_init(void)
 {

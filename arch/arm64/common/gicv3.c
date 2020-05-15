@@ -4,6 +4,7 @@
 #include <target/irq.h>
 #include <target/smp.h>
 #include <target/gicv3.h>
+#include <asm/reg.h>
 
 static inline bool gic_sanitize_acked_irq(irq_t irq)
 {
@@ -50,10 +51,9 @@ void gicv3_handle_irq()
 	if (!gic_sanitize_acked_irq(irq))
 		return;
 
-	if (irq > IRQ_SPI_BASE) {
-		if (!do_IRQ(irq)) {
+	if (irq >= IRQ_PPI_BASE) {
+		if (!do_IRQ(irq))
 			irqc_disable_irq(irq);
-		}
 	} else {
 		handle_IPI(irq);
 	}

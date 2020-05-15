@@ -5,7 +5,7 @@ asflags-$(CONFIG_HPOWER10) += -DTESTOS
 
 obj-y :=
 
-obj-$(CONFIG_DHRYSTONE) += dhrystone.o
+obj-$(CONFIG_DHRYSTONE) += dhry_1.o dhry_1_pcpu.o
 obj-$(CONFIG_LINPACK) += linpack.o
 obj-$(CONFIG_SAXPY) += saxpy.o
 obj-$(CONFIG_QPOWER) += power_virus.o

@@ -42,6 +42,7 @@
 
 enum ipi_msg_type {
 	IPI_SCHEDULE = 0,
+	IPI_ACK,
 	IPI_END
 };
 
@@ -72,6 +73,7 @@ unsigned int plat_my_core_pos(void);
 uint64_t get_mpidr(int cpu);
 void smp_register_cpu();
 void handle_IPI(int ipinr);
+void sgi_send(int cpu, int irq);
 #endif
 
 #endif /* __ARM64_SMP_H_INCLUDE__ */

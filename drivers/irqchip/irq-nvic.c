@@ -3,6 +3,10 @@
 #include <target/spinlock.h>
 #include <stdio.h>
 
+#define INTLINESNUM(ICTR) ((ICTR) & 0xf)
+
+#define VECTACTIVE(ICSR) ((ICSR) & 0x1ff)
+
 static inline void nvic_enable_irq(irq_t irq)
 {
 	NVIC_EnableIRQ(irq);
@@ -50,6 +54,22 @@ struct irq_chip nvic = {
 
 void nvic_init()
 {
+	printf("NVIC irq number %d\n", 32 * (INTLINESNUM(SCnSCB->ICTR) + 1));
 	irqc_register(&nvic);
 }
 
+
+void nvic_handle_irq(void)
+{
+	irq_t irq = VECTACTIVE(SCB->ICSR);
+
+	if (irq < 16) {
+		printf("bug on nvic_handle_irq\n");
+		return;
+	}
+
+	irq -= 16;
+
+	if (!do_IRQ(irq))
+		nvic_disable_irq(irq);
+}

@@ -16,7 +16,7 @@
 
 /* IRQ NUMBER */
 #define IRQ__UART0	     33
-#define UART_CON_IRQ	 33
+#define UART_CON_IRQ	 35
 
 #define NR_QGIC3_IRQS	1024
 #define NR_IRQS			1024

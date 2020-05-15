@@ -4,7 +4,6 @@
 #define __QDF2400_MEMORY_H_INCLUDE__
 
 #include <target/compiler.h>
-#include <target/cpus.h>
 
 #define RAM_START		0x40000000
 #define RAM_SIZE		0x40000000

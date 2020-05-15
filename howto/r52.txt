@@ -1,0 +1,15 @@
+1. add toolchain into path:
+	cd svi
+	. env.sh
+
+2. compile:
+	export ARCH=arm CROSS_COMPILE=arm-none-eabi-
+	make virt32_defconfig
+	make clean;make
+
+3. add r52rom.elf and hevp-arm into initial_image of SAF_SS/SAFE_CORE
+
+4. start simulation
+
+5. check UART_1_PHY
+

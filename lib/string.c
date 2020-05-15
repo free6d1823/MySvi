@@ -1,5 +1,200 @@
 #include <string.h>
 
+/* Nonzero if either X or Y is not aligned on a "long" boundary.  */
+#define UNALIGNED(X, Y) \
+	(((long)X & (sizeof (long) - 1)) | ((long)Y & (sizeof (long) - 1)))
+
+/* How many bytes are copied each iteration of the 4X unrolled loop.  */
+#define BIGBLOCKSIZE	(sizeof (long) << 2)
+
+/* How many bytes are copied each iteration of the word copy loop.  */
+#define LITTLEBLOCKSIZE	(sizeof (long))
+
+/* Threshhold for punting to the byte copier.  */
+#define TOO_SMALL(LEN)	((LEN) < BIGBLOCKSIZE)
+
+
+#ifdef CONFIG_MEM_FUNC_OPTIMIZE
+
+#ifdef CONFIG_COMMON_C_LIB
+
+typedef	long word;
+#define	wsize	sizeof(word)
+#define	wmask	(wsize - 1)
+
+/*
+* By default, CONFIG_COMMON_C_LIB is disabled. memmove.S is used
+* It has better performance, but require 16bytes alignment
+* To enable CONFIG_COMMON_C_LIB, common C lib is used.
+* Common C lib is more generic, but performance punishment.
+*/
+void *memmove(void *dst0, const void *src0, size_t length)
+{
+	char *dst = dst0;
+	const char *src = src0;
+	size_t t;
+
+	if (length == 0 || dst == src)		/* nothing to do */
+		goto done;
+
+	/*
+	 * Macros: loop-t-times; and loop-t-times, t>0
+	 */
+#define	TLOOP(s) if (t) TLOOP1(s)
+#define	TLOOP1(s) do { s; } while (--t)
+
+	if ((unsigned long)dst < (unsigned long)src) {
+		/*
+		 * Copy forward.
+		 */
+		t = (long)src;	/* only need low bits */
+		if ((t | (long)dst) & wmask) {
+			/*
+			 * Try to align operands.  This cannot be done
+			 * unless the low bits match.
+			 */
+			if ((t ^ (long)dst) & wmask || length < wsize)
+				t = length;
+			else
+				t = wsize - (t & wmask);
+			length -= t;
+			TLOOP1(*dst++ = *src++);
+		}
+		/*
+		 * Copy whole words, then mop up any trailing bytes.
+		 */
+		t = length / wsize;
+		TLOOP(*(word *)dst = *(word *)src; src += wsize; dst += wsize);
+		t = length & wmask;
+		TLOOP(*dst++ = *src++);
+	} else {
+		/*
+		 * Copy backwards.	Otherwise essentially the same.
+		 * Alignment works as before, except that it takes
+		 * (t&wmask) bytes to align, not wsize-(t&wmask).
+		 */
+		src += length;
+		dst += length;
+		t = (long)src;
+		if ((t | (long)dst) & wmask) {
+			if ((t ^ (long)dst) & wmask || length <= wsize)
+				t = length;
+			else
+				t &= wmask;
+			length -= t;
+			TLOOP1(*--dst = *--src);
+		}
+		t = length / wsize;
+		TLOOP(src -= wsize; dst -= wsize; *(word *)dst = *(word *)src);
+		t = length & wmask;
+		TLOOP(*--dst = *--src);
+	}
+done:
+	return (dst0);
+}
+#endif
+
+void *__memset(void *m, int c, size_t n)
+{
+	char *s = (char *) m;
+
+#if !defined(PREFER_SIZE_OVER_SPEED) && !defined(__OPTIMIZE_SIZE__)
+	int i;
+	unsigned long buffer;
+	unsigned long *aligned_addr;
+	unsigned int d = c & 0xff;	/* To avoid sign extension, copy C to an
+							unsigned variable.  */
+
+	while (UNALIGNED (s, NULL))
+	{
+		if (n--)
+			*s++ = (char) c;
+		else
+			m;
+	}
+
+	if (!TOO_SMALL (n))
+	{
+		/* If we get this far, we know that n is large and s is word-aligned. */
+		aligned_addr = (unsigned long *) s;
+
+		/* Store D into each char sized location in BUFFER so that
+			 we can set large blocks quickly.  */
+		buffer = (d << 8) | d;
+		buffer |= (buffer << 16);
+		for (i = 32; i < LITTLEBLOCKSIZE * 8; i <<= 1)
+			buffer = (buffer << i) | buffer;
+
+		/* Unroll the loop.  */
+		while (n >= LITTLEBLOCKSIZE*4)
+		{
+			*aligned_addr++ = buffer;
+			*aligned_addr++ = buffer;
+			*aligned_addr++ = buffer;
+			*aligned_addr++ = buffer;
+			n -= 4*LITTLEBLOCKSIZE;
+		}
+
+		while (n >= LITTLEBLOCKSIZE)
+		{
+			*aligned_addr++ = buffer;
+			n -= LITTLEBLOCKSIZE;
+		}
+		/* Pick up the remainder with a bytewise loop.  */
+		s = (char*)aligned_addr;
+	}
+
+#endif /* not PREFER_SIZE_OVER_SPEED */
+
+	while (n--)
+		*s++ = (char) c;
+
+	return m;
+}
+
+void *memcpy(void *dst0, const void *src0, size_t count)
+{
+	char *dst = dst0;
+	const char *src = src0;
+	long *aligned_dst;
+	const long*aligned_src;
+
+	/* If the size is small, or either SRC or DST is unaligned,
+	then punt into the byte copy loop.  This should be rare.*/
+	if (!TOO_SMALL(count) && !UNALIGNED (src, dst))
+	{
+		aligned_dst = (long*)dst;
+		aligned_src = (long*)src;
+
+		/* Copy 4X long words at a time if possible.  */
+		while (count >= BIGBLOCKSIZE)
+		{
+			*aligned_dst++ = *aligned_src++;
+			*aligned_dst++ = *aligned_src++;
+			*aligned_dst++ = *aligned_src++;
+			*aligned_dst++ = *aligned_src++;
+			count -= BIGBLOCKSIZE;
+		}
+
+		/* Copy one long word at a time if possible.  */
+		while (count >= LITTLEBLOCKSIZE)
+		{
+			*aligned_dst++ = *aligned_src++;
+			count -= LITTLEBLOCKSIZE;
+		}
+
+		/* Pick up any residual with a byte copier.  */
+		dst = (char*)aligned_dst;
+		src = (char*)aligned_src;
+	}
+
+	while (count--)
+		*dst++ = *src++;
+
+	return dst0;
+}
+#else
+
 #ifdef CONFIG_COMMON_C_LIB
 /*
 * By default, CONFIG_COMMON_C_LIB is disabled. memmove.S is used
@@ -44,9 +239,10 @@ void *memcpy(void *dest, const void *src, size_t count)
 	const char *s = src;
 
 	while (count--)
-			*tmp++ = *s++;
+		*tmp++ = *s++;
 	return dest;
 }
+#endif
 
 size_t memscpy(void *dst, size_t dst_size, const void *src, size_t src_size)
 {

@@ -211,6 +211,14 @@ typedef u64 phys_size_t;
 		(((__x) - ((__d) / 2)) / (__d));	\
 }							\
 )
+
+# define do_div(n,base) ({					\
+	uint32_t __base = (base);				\
+	uint32_t __rem;						\
+	__rem = ((uint64_t)(n)) % __base;			\
+	(n) = ((uint64_t)(n)) / __base;				\
+	__rem;							\
+ })
 /*
  * Same as above but for u64 dividends. divisor must be a 32-bit
  * number.

@@ -24,9 +24,6 @@ int clear_feature_flag;
 #define GET_MAX_LUN_REQUEST	0xFE
 #define BOT_RESET_REQUEST	0xFF
 
-// temp remove
-#define debug_cond(m1,m2,...)
-
 #define IRQ_NONE 0
 #define IRQ_HANDLED 1
 #define IRQ_WAKE_THREAD 2
@@ -514,6 +511,11 @@ static int dwc2_udc_irq(int irq, void *_dev)
 		}
 	}
 
+	if (intr_status & INT_SOF) {
+		debug_cond(DEBUG_ISR, "\tSof interrupt\n");
+		writel(INT_SOF, &reg->gintsts);
+	}
+
 	if (intr_status & INT_EARLY_SUSPEND) {
 		debug_cond(DEBUG_ISR, "\tEarly suspend interrupt\n");
 		writel(INT_EARLY_SUSPEND, &reg->gintsts);
@@ -566,8 +568,8 @@ static int dwc2_udc_irq(int irq, void *_dev)
 		debug_cond(DEBUG_ISR,
 			"\tReset interrupt - (GOTGCTL):0x%x\n", usb_status);
 		writel(INT_RESET, &reg->gintsts);
-
-		if ((usb_status & 0xc0000) == (0x3 << 18)) {
+		// B-session  A-session: when OTG_MODE=0, B-session =1
+		if ((usb_status & 0xc0000) == (B_SESSION_VALID)) {
 			if (reset_available) {
 				debug_cond(DEBUG_ISR,
 					"\t\tOTG core got reset (%d)!!\n",

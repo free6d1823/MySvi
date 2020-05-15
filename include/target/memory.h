@@ -4,6 +4,9 @@
 #define __TESTOS_MEMORY_H_INCLUDE__
 
 #include <asm/memory.h>
+#include <asm/cpus.h>
+#include <asm/io.h>
+
 
 #define __HEAD		.section	".head.text","ax"
 #define __INIT		.section	".init.text","ax"
@@ -17,7 +20,6 @@ extern char __sdata[];
 extern char __edata[];
 extern char __bss_start[];
 extern char __bss_end[];
-extern char __heap_start[];
 
 #define TEXT_START	((uintptr_t)__stext)
 #define TEXT_END	((uintptr_t)__etext)
@@ -38,7 +40,9 @@ extern char __heap_start[];
 #define STACKS_SIZE		(STACK_SIZE * MAX_CPU_NUM)
 
 #ifndef HEAP_START
-#define HEAP_START	((uintptr_t)__heap_start)
+#define HEAP_START	DATA_END
+#endif
+#ifndef HEAP_END
 #define HEAP_END	STACKS_START
 #endif
 

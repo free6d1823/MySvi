@@ -724,6 +724,53 @@ enum packets_types {
 #define MTL_CHAN_INT_CTRL(x)		(MTL_CHANX_BASE_ADDR(x) + 0x2c)
 #define MTL_CHAN_RX_OP_MODE(x)		(MTL_CHANX_BASE_ADDR(x) + 0x30)
 #define MTL_CHAN_RX_DEBUG(x)		(MTL_CHANX_BASE_ADDR(x) + 0x38)
+#define MTL_OP_MODE_TXQEN_AV		BIT(2)
+#define MTL_OP_MODE_TXQEN		BIT(3)
+/* MTL ETS Control register */
+#define MTL_ETS_CTRL_BASE_ADDR		0x00000d10
+#define MTL_ETS_CTRL_BASE_OFFSET	0x40
+#define MTL_ETSX_CTRL_BASE_ADDR(x)	(MTL_ETS_CTRL_BASE_ADDR + \
+					((x) * MTL_ETS_CTRL_BASE_OFFSET))
+
+#define MTL_ETS_STATUS_BASE_ADDR		0x00000d14
+#define MTL_ETSX_STATUS_BASE_ADDR(x)	(MTL_ETS_STATUS_BASE_ADDR + \
+					((x) * MTL_ETS_CTRL_BASE_OFFSET))
+
+#define MTL_ETS_CTRL_CC			BIT(3)
+#define MTL_ETS_CTRL_AVALG		BIT(2)
+#define MTL_OP_MODE_TXQEN_MASK		GENMASK(3, 2)
+
+/* MTL Queue Quantum Weight */
+#define MTL_TXQ_WEIGHT_BASE_ADDR	0x00000d18
+#define MTL_TXQ_WEIGHT_BASE_OFFSET	0x40
+#define MTL_TXQX_WEIGHT_BASE_ADDR(x)	(MTL_TXQ_WEIGHT_BASE_ADDR + \
+					((x) * MTL_TXQ_WEIGHT_BASE_OFFSET))
+#define MTL_TXQ_WEIGHT_ISCQW_MASK	GENMASK(20, 0)
+
+/* MTL sendSlopeCredit register */
+#define MTL_SEND_SLP_CRED_BASE_ADDR	0x00000d1c
+#define MTL_SEND_SLP_CRED_OFFSET	0x40
+#define MTL_SEND_SLP_CREDX_BASE_ADDR(x)	(MTL_SEND_SLP_CRED_BASE_ADDR + \
+					((x) * MTL_SEND_SLP_CRED_OFFSET))
+
+#define MTL_SEND_SLP_CRED_SSC_MASK	GENMASK(13, 0)
+
+/* MTL hiCredit register */
+#define MTL_HIGH_CRED_BASE_ADDR		0x00000d20
+#define MTL_HIGH_CRED_OFFSET		0x40
+#define MTL_HIGH_CREDX_BASE_ADDR(x)	(MTL_HIGH_CRED_BASE_ADDR + \
+					((x) * MTL_HIGH_CRED_OFFSET))
+
+#define MTL_HIGH_CRED_HC_MASK		GENMASK(28, 0)
+
+/* MTL loCredit register */
+#define MTL_LOW_CRED_BASE_ADDR		0x00000d24
+#define MTL_LOW_CRED_OFFSET		0x40
+#define MTL_LOW_CREDX_BASE_ADDR(x)	(MTL_LOW_CRED_BASE_ADDR + \
+					((x) * MTL_LOW_CRED_OFFSET))
+
+#define MTL_HIGH_CRED_LC_MASK		GENMASK(28, 0)
+
 
 struct net_local* emac_init(u64 base_addr);
 void emac_test_mode(struct net_local* lp,
@@ -737,10 +784,9 @@ void dwceqos_tx_reclaim(struct net_local *lp, u32 tx_q);
 void dwceqos_get_stats64(struct net_local *lp, int mode);
 void dwceqos_show_status(struct net_local *lp, u32 tx_q, u32 rx_q);
 void emac_get_feature(u64 base_addr);
-void emac_get_tx_ts(struct net_local *lp,
-					u32 tx_q, u64 *ts);
-void emac_get_rx_ts(struct net_local *lp,
-					u32 rx_q, u64 *ts);
+void emac_get_tx_ts(struct net_local *lp, u32 tx_q, u64 *ts);
+void emac_get_rx_ts(struct net_local *lp, u32 rx_q, u64 *ts);
+void emac_show_CBS_info(struct net_local* lp, u32 queue);
 
 /* heap buffer realted */
 void emac_init_memory(uintptr_t addr, size_t size);

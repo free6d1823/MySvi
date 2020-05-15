@@ -37,5 +37,6 @@
 //add for usb
 #define	ESHUTDOWN       108	/* Cannot send after transport endpoint shutdown */
 #define	ECONNRESET      104	/* Connection reset by peer */
+#define	ENREDY          105	/* Connection reset by peer */
 
 #define EUSAGE          10086

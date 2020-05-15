@@ -1,0 +1,19 @@
+compile Openocd
+1. sudo apt-get update
+2. sudo apt-get upgrade
+3. sudo apt-get install autotools-dev make libtool pkg-config autoconf automake texinfo libudev1 libudev-dev libusb-1.0-0-dev libfox-1.6-dev
+4. git clone git://git.code.sf.net/p/openocd/code openocd-code
+5. cd openocd-code
+6. ./bootstrap
+7. ./configure --enable-jlink
+8. make
+9. sudo make install
+10. sudo chmod -R 777 /dev/bus/usb/
+
+add toolchain:
+1. sudo scp username@10.10.10.218:/opt/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar /opt
+2. cd /opt
+3. tar -xvf gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu.tar
+4. vim ~/.bashrc
+5. add export PATH="/opt/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin:$PATH"
+6. source ~/.bashrc

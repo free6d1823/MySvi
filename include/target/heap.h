@@ -10,6 +10,8 @@
 void *heap_aligned_alloc(size_t align, size_t size);
 void *heap_alloc(size_t size);
 void heap_free(void *p);
+void *heap_save_current();
+void heap_restore(void *p);
 
 void *tcm_alloc_align(size_t size, size_t align);
 void *tcm_alloc(size_t size);

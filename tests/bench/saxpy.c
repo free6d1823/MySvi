@@ -1,26 +1,25 @@
 #define UNROLL
 
-#ifdef HOSTED
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#define utime(x)	(time(x) * 1000 * 1000)
-#else
-#include <testos.h>
+
+#ifndef HOSTED
+#include <target/compiler.h>
+#include <target/smp.h>
+#include <target/schedule.h>
+#define printf
 #endif
 
-#ifdef CONFIG_SAXPY_SIZE
-#define SAXPY_SIZE	CONFIG_SAXPY_SIZE
-#else
-#define SAXPY_SIZE	2
+#ifdef HOSTED
+#include <errno.h>
+#define utime(x)	(time(x) * 1000 * 1000)
 #endif
+
+#define SAXPY_SIZE	120
 
 #define USECS_PER_SEC	(1 * 1000 * 1000)
-#define __printf
-
-static DEFINE_SPINLOCK(saxpy_lock);
 
 #ifdef CONFIG_SAXPY_TIMEOUT
 #define SAXPY_TIMEOUT		CONFIG_SAXPY_TIMEOUT
@@ -32,16 +31,6 @@ static DEFINE_SPINLOCK(saxpy_lock);
 #else
 #define SAXPY_REPEATS		50000
 #endif
-
-uint64_t saxpy_num_of_runs(void)
-{
-	return SAXPY_REPEATS;
-}
-
-uint64_t saxpy_expected_timeout(void)
-{
-	return SAXPY_TIMEOUT;
-}
 
 void cblas_saxpy(const int N, const float alpha,
 		 const float *X, const int incX,
@@ -98,18 +87,15 @@ struct saxpy_context {
 	saxpy_results was;
 #endif
 };
-
-DEFINE_PERCPU(struct saxpy_context *, saxpy_ctx);
-
-#define X		get_percpu(saxpy_ctx)->X
-#define Y		get_percpu(saxpy_ctx)->Y
-#define expect		get_percpu(saxpy_ctx)->expect
-#define was		get_percpu(saxpy_ctx)->was
+#define X		ctx->X
+#define Y		ctx->Y
+#define expect		ctx->expect
+#define was		ctx->was
 
 #ifdef HOSTED
 int main(int argc, char *argv[])
 #else
-int saxpy(caddr_t percpu_area)
+int saxpy_pcpu(caddr_t percpu_area)
 #endif
 {
 	int i;
@@ -119,11 +105,11 @@ int saxpy(caddr_t percpu_area)
 	float a = 2.0;
 	int errors = 0;
 	int index;
-	int num_of_runs = saxpy_num_of_runs();
-	ktime_t expected_end_time = saxpy_expected_timeout();
+	int num_of_runs = SAXPY_REPEATS;
+	ktime_t expected_end_time = SAXPY_TIMEOUT;
 	ktime_t begin_time, end_time;
 
-	get_percpu(saxpy_ctx) = (struct saxpy_context *)percpu_area;
+	struct saxpy_context *ctx = (struct saxpy_context *)percpu_area;
 
 #ifdef CONFIG_SAXPY_EXPECT
 	for (i = 0; i < n; i++) {
@@ -133,7 +119,7 @@ int saxpy(caddr_t percpu_area)
 		sprintf(expect[i], "%16.8e", base);
 	}
 #endif
-	cblas_saxpy(n, a, X, 1, Y, 1);  
+	cblas_saxpy(n, a, X, 1, Y, 1);
 #ifdef CONFIG_SAXPY_EXPECT
 	for (i = 0; i < n; i++) {
 		sprintf(was[i], "%16.8e", Y[i]);
@@ -146,32 +132,37 @@ int saxpy(caddr_t percpu_area)
 #endif
 
 	begin_time = utime(NULL);
+	expected_end_time += utime();
+
 again:
-	for (index = 0;
-	     likely(num_of_runs == TESTOS_ENDLESS ||
-		    index < num_of_runs); ++index) {
+	for (index = 0; index < num_of_runs; ++index) {
 		if (unlikely(index == 1))
 			begin_time = utime(NULL);
 		cblas_saxpy(n, a, X, 1, Y, 1);
 		if (unlikely(index % 10000 == 0) &&
-		    expected_end_time != TESTOS_INFINITE &&
 		    time_after(utime(), expected_end_time)) {
 			num_of_runs = index;
 			break;
 		}
 	}
 	end_time = utime(NULL);
-	spin_lock(&saxpy_lock);
 	printf("CPU %d:\n", smp_processor_id());
 	printf("Number of runs:                             %d\n",
 	       num_of_runs);
 	printf("User time (us):                             %llu\n",
 	       (uint64_t)(end_time - begin_time));
-	for (i = 0; i < n; i++)
-		__printf("Y[%d] = %16.8e\n", i, Y[i]);
-	spin_unlock(&saxpy_lock);
+
 	/* code for both increments equal to 1 */
-	return errors ? 0 : 1;
+#ifndef HOSTED
+	schedule_mailbox_log("ts@%lld runs=%d User time (us)=%llu errors=%d\n",
+	                     end_time, num_of_runs, (uint64_t)(end_time - begin_time), errors);
+	schedule_notify_taskended();
+#endif
+
+	return 0;
 }
-__define_testfn(saxpy, sizeof (struct saxpy_context), SMP_CACHE_BYTES,
-		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);
+
+#ifndef HOSTED
+__define_testfn(saxpy_pcpu, sizeof (struct saxpy_context), SMP_CACHE_BYTES,
+		0, 0, 0);
+#endif

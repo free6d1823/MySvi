@@ -9,7 +9,10 @@
 #define MAX_VECTORS	NR_IRQS
 #endif
 
-static irq_handler irq_handlers[MAX_VECTORS];
+static struct {
+	irq_handler handler;
+	void* ctx;
+} irq_handlers[MAX_VECTORS];
 static irq_t irq_nr_table[MAX_VECTORS];
 static uint8_t irq_nr_regs = 0;
 static DEFINE_SPINLOCK(irq_lock);
@@ -24,18 +27,8 @@ void irq_unlock_irq(void)
 	spin_unlock(&irq_lock);
 }
 
-#ifdef CONFIG_NVIC
-extern uintptr_t __isr_vector[];    /* vector table is in a fix position - startup.S*/
-
-void irq_register_vector(sirq_t sirq, irq_handler h)
-{
-	uint32_t *base = (uint32_t *)&(__isr_vector);
-	base += 16;
-	*(base+sirq) = (uint32_t)h;
-}
-#else
 /* 0 ~ NR_IRQS-1 is allowed. */
-void irq_register_vector(sirq_t sirq, irq_handler h)
+void irq_register_vector(sirq_t sirq, irq_handler h, void *ctx)
 {
 	uint8_t curr;
 
@@ -44,12 +37,12 @@ void irq_register_vector(sirq_t sirq, irq_handler h)
 	irq_lock_irq();
 	curr = irq_nr_regs;
 	BUG_ON(curr == MAX_VECTORS);
-	irq_handlers[curr] = h;
+	irq_handlers[curr].handler = h;
+	irq_handlers[curr].ctx = ctx;
 	irq_nr_table[curr] = sirq;
 	irq_nr_regs++;
 	irq_unlock_irq();
 }
-#endif
 
 bool do_IRQ(sirq_t sirq)
 {
@@ -60,10 +53,10 @@ bool do_IRQ(sirq_t sirq)
 	irq_lock_irq();
 	for (curr = 0; curr < irq_nr_regs; curr++) {
 		if (sirq == irq_nr_table[curr]) {
-			handler = irq_handlers[curr];
+			handler = irq_handlers[curr].handler;
 			irq_unlock_irq();
 			if (handler)
-				handler();
+				handler(sirq, irq_handlers[curr].ctx);
 			else
 				printf("BUG: irq %d handler is NULL\n", sirq);
 			return true;

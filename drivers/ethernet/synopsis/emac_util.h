@@ -80,6 +80,7 @@ struct ptphdr {
 void emac_InitPacket(uint8_t *PacketBuf, uint32_t length,
 			uint8_t ip, uint8_t tcp, uint8_t badCS);
 void emac_InitPTPPacket(uint8_t *pktBuf, uint32_t* length);
+void emac_InitAVBPacket(uint8_t *pktBuf, uint32_t* length);
 
 int emac_GetMacHdr( void );
 int emac_GetIPHdr( void );

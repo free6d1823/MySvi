@@ -26,17 +26,10 @@ __isr_vector:
     .long   SysTick_Handler                                 /* SysTick Handler*/
 
                                                             /* External Interrupts*/
-    .long   DefaultISR                                      /* 0*/
-    .long   DefaultISR                                      /* 1*/
-    .long   DefaultISR                                      /* 2*/
-    .long   DefaultISR                                      /* 3*/
-    .long   DefaultISR                                      /* 4*/
-    .long   DefaultISR                                      /* 5*/
-    .long   DefaultISR                                      /* 6*/
-    .long   DefaultISR                                      /* 7*/
-    .long   DefaultISR                                      /* 8*/
-    .long   DefaultISR                                      /* 9*/
-	.long   0x1234
+    .rept (256 - 16)
+    .long   nvic_handle_irq
+    .endr
+
     .size    __isr_vector, . - __isr_vector
 
     .text

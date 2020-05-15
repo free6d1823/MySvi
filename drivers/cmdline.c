@@ -7,7 +7,6 @@
 #include <target/readline.h>
 #include <target/cmdline.h>
 #include <target/timer.h>
-#include <target/cpus.h>
 #include <target/utils.h>
 
 #define PROMPT "SVI> "

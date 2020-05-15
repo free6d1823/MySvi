@@ -8,7 +8,6 @@ which  uart device should be used.
 #include <stdint.h>
 #include <stdbool.h>
 #include <target/irq.h>
-#include <asm/reg.h>
 
 #ifdef CONFIG_UART_PL01X_DEV0
 #define UART_CON_ID		0

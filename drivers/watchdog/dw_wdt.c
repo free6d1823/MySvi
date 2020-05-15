@@ -67,7 +67,7 @@ static int dw_wdt_reset(struct wdt_regs *wdt_base)
 	return 0;
 }
 
-static void dw_handle_wdt_irq()
+static void dw_handle_wdt_irq(irq_t irq, void *ctx)
 {
 	printf("dw handle wdt irq.\n");
 	dw_wdt_reset(dw_wdt_bases[dw_wdt_index]);
@@ -78,7 +78,7 @@ static int dw_wdt_irq_init(int index)
 	irq_t dw_wdt_irq = DW_WDT_TRQ(index);
 	dw_wdt_bases[index] = (struct wdt_regs *)(uintptr_t)(DW_WDT_REG_BASE(index));
 	irqc_configure_irq(dw_wdt_irq, 32, IRQ_EDGE_TRIGGERED);
-	irq_register_vector(dw_wdt_irq, dw_handle_wdt_irq);
+	irq_register_vector(dw_wdt_irq, dw_handle_wdt_irq, NULL);
 	irqc_enable_irq(dw_wdt_irq);
 	return 0;
 }

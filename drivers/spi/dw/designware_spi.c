@@ -247,7 +247,7 @@ static int dw_spi_read(const void *cmdbuf, int cmdlen, void *databuf, int datale
 int cmd_spi(int argc, char **argv)
 {
 	int index = 0;
-	int cs;
+	int cs = 0;
 
 	if (argc < 2)
 		return -EUSAGE;

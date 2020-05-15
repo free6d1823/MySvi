@@ -14,6 +14,6 @@ https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/8-2019q3/
 
 (5) start simulation
 
-(6) input "mw l 0xa00c2000 1" into UART_0_PHY to start m4 CPU (on arm64 console)
+(6) input "mw l 0x58072000 1" into UART_0_PHY to start m4 CPU (on arm64 console)
 
 (7) check UART_1_PHY (on m4 console)

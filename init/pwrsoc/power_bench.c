@@ -5,7 +5,6 @@
 #include <target/cmdline.h>
 #include <target/mmu.h>
 #include <target/percpu.h>
-#include <target/cpus.h>
 #include <target/smp.h>
 //#include <target/clock.h>
 #include <target/irq.h>
@@ -96,6 +95,7 @@ void entry(void)
 	//cpu_remote_init();
 	//pwrsoc_bench_imc_init();
 
+	percpu_init();
 	cmd_init();
 	smp_register_cpu();
 
@@ -112,7 +112,6 @@ void secondary_entry(void)
 	irq_init();
 	timer_init();
 	perf_init();
-	percpu_init();
 	/* Mark end of primary boot */
 	check_secondary_entry();
 	//pwrsoc_bench_apc_init();

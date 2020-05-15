@@ -6,6 +6,7 @@
 #include <asm/ptrace.h>
 #include <target/linkage.h>
 
+unsigned long cpus_boot_cpu = 0;
 
 ktime_t tsc_hw_read_counter(void)
 {

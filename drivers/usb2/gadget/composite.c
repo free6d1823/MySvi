@@ -5,12 +5,11 @@
  * Copyright (C) 2006-2008 David Brownell
  * U-Boot porting: Lukasz Majewski <l.majewski@samsung.com>
  */
-#undef DEBUG
-
+#include <stdio.h>
 #include <asm/io.h>
 #include "composite.h"
 #include <target/list.h>
-#include <stdio.h>
+
 
 #define USB_BUFSIZ	4096
 
@@ -104,7 +103,7 @@ int usb_add_function(struct usb_configuration *config,
 	} else
 		value = 0;
 
-	if (!config->fullspeed && function->descriptors)
+	if (!config->fullspeed && function->fs_descriptors)
 		config->fullspeed = 1;
 	if (!config->highspeed && function->hs_descriptors)
 		config->highspeed = 1;
@@ -973,11 +972,17 @@ unknown:
 		}
 
 		if (f && f->setup)
+		{
+			debug("call f->setup function\n");
 			value = f->setup(f, ctrl);
+		}
 		else {
 			c = cdev->config;
 			if (c->setup)
+			{
+				debug("call c->setup function\n");
 				value = c->setup(c, ctrl);
+			}
 		}
 
 		goto done;

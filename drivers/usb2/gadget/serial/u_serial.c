@@ -15,9 +15,7 @@
 /* #define VERBOSE_DEBUG */
 
 
-#include "circbuf.h"
 #include "u_serial.h"
-#include <target/spinlock.h>
 #include <stdio.h>
 /*
  * This component encapsulates the TTY layer glue needed to provide basic
@@ -80,40 +78,6 @@ struct gscons_info {
 	struct usb_request	*console_req;
 };
 
-/*
- * The port structure holds info for each port, one for each minor number
- * (and thus for each /dev/ node).
- */
-struct gs_port {
-	//temp removed
-	//struct tty_port		port;
-	u8		count;
-	spinlock_t		port_lock;	/* guard port_* access */
-
-	struct gserial		*port_usb;
-
-	bool			openclose;	/* open/close in progress */
-	u8			port_num;
-
-	struct list_head	read_pool;
-	int read_started;
-	int read_allocated;
-	struct list_head	read_queue;
-	unsigned		n_read;
-	//struct delayed_work	push;
-
-	struct list_head	write_pool;
-	int write_started;
-	int write_allocated;
-	//struct kfifo		port_write_buf;
-	circbuf_t port_write_buf;
-	//wait_queue_head_t	drain_wait;	/* wait while writes drain */
-	bool                    write_busy;
-	//wait_queue_head_t	close_wait;
-
-	/* REVISIT this state ... */
-	struct usb_cdc_line_coding port_line_coding;	/* 8-N-1 etc */
-};
 
 static struct portmaster {
 	//struct mutex	lock;			/* protect open/close */
@@ -132,19 +96,12 @@ static struct portmaster {
 #else
 #ifndef pr_vdebug
 #define pr_vdebug(fmt, arg...) \
-	({ if (0) return;})  //pr_debug(fmt, ##arg); })
+	pr_debug(fmt, ##arg)
 #define pr_debug(fmt, arg...) \
 	printf(fmt, ##arg)
 #endif /* pr_vdebug */
 #endif
-/*
- * Buffers to hold input and output data
- */
-#define USBTTY_BUFFER_SIZE 2048
-static circbuf_t usbtty_input;
 
-
-uint32_t  fill_input_buffer(char *packet, uint32_t size);
 
 /*-------------------------------------------------------------------------*/
 
@@ -343,6 +300,22 @@ __acquires(&port->port_lock)
 	return port->read_started;
 }
 
+
+static uint32_t  fill_input_buffer(char		*packet, circbuf_t *inbuf, uint32_t size)
+{
+	uint32_t  nb = 0;
+	circbuf_t * buf = inbuf;
+	uint32_t  rx_avail = buf->totalsize - buf->size;
+
+	if(rx_avail>size)
+	{
+		nb = size;
+		buf_push(buf, packet, size);
+		}
+	return nb;
+}
+
+
 #if 0
 /*
  * RX tasklet takes data out of the RX queue and hands it up to the TTY
@@ -457,7 +430,7 @@ static void gs_rx_push(struct work_struct *work)
  * So QUEUE_SIZE packets plus however many the FIFO holds (usually two)
  * can be buffered before the TTY layer's buffers (currently 64 KB).
  */
-static void gs_rx_push(struct gs_port *port)
+static void gs_rx_push(struct gs_port *port, circbuf_t *inbuf)
 {
 	//struct delayed_work	*w = to_delayed_work(work);
 	//struct gs_port		*port = container_of(w, struct gs_port, push);
@@ -467,7 +440,7 @@ static void gs_rx_push(struct gs_port *port)
 	bool			do_push = false;
 	//assert(!(port));
 	/* hand any queued data to the tty */
-	//spin_lock_irq(&port->port_lock);
+	spin_lock(&port->port_lock);
 	//tty = port->port.tty;
 	while (!list_empty(queue)) {
 		struct usb_request	*req;
@@ -515,7 +488,7 @@ static void gs_rx_push(struct gs_port *port)
 			//count = tty_insert_flip_string(&port->port, packet,
 			//		size);
 			//?? copy to upper layer buffer
-			count = fill_input_buffer(packet, size);
+			count = fill_input_buffer(packet, inbuf, size);
 			if (count)
 				do_push = true;
 			if (count != size) {
@@ -555,7 +528,7 @@ static void gs_rx_push(struct gs_port *port)
 	if (!disconnect && port->port_usb)
 		gs_start_rx(port);
 
-	//spin_unlock_irq(&port->port_lock);
+	spin_unlock(&port->port_lock);
 }
 
 #endif
@@ -753,11 +726,8 @@ static int gs_open(int  port_num)
 	/* allocate circular buffer on first open */
 	if (!(port->port_write_buf.data)) {
 
-		//spin_unlock_irq(&port->port_lock);
-		buf_init (&port->port_write_buf, USBTTY_BUFFER_SIZE);
-		//spin_lock_irq(&port->port_lock);
 
-		if (status) {
+		if (buf_init (&port->port_write_buf, USBTTY_BUFFER_SIZE)) {
 			pr_debug("gs_open: port num%d  no buffer\n",
 				port->port_num);
 
@@ -787,6 +757,13 @@ static int gs_open(int  port_num)
 
 		if (gser->connect)
 			gser->connect(gser);
+	}
+	else
+	{
+		//port->count = 0;
+		pr_debug("gs_open: usb not ready\n");
+		status = -ENREDY;
+		return status;
 	}
 
 	pr_debug("gs_open: port num%d \n", port->port_num);
@@ -1005,23 +982,15 @@ static int gs_break_ctl() //struct tty_struct *tty, int duration)
 	return status;
 }
 
-#if 0 //??
-static const struct tty_operations gs_tty_ops = {
+
+static struct gserial_port_operations gs_port_ops = {
 	.open =			gs_open,
 	.close =		gs_close,
 	.write =		gs_write,
 	.put_char =		gs_put_char,
 	.flush_chars =		gs_flush_chars,
-	.write_room =		gs_write_room,
-	.chars_in_buffer =	gs_chars_in_buffer,
-	.unthrottle =		gs_unthrottle,
-	.break_ctl =		gs_break_ctl,
+	.rx_push =		gs_rx_push,
 };
-
-/*-------------------------------------------------------------------------*/
-
-static struct tty_driver *gs_tty_driver;
-#endif
 
 
 static int gs_console_connect(int port_num)
@@ -1068,6 +1037,9 @@ gs_port_alloc(unsigned port_num, struct usb_cdc_line_coding *coding)
 	//?? &port->close_wait);
 
 	//INIT_DELAYED_WORK(&port->push, gs_rx_push);
+	port->port_lock = (spinlock_t) {
+			ARCH_SPINLOCK_INIT
+		};
 
 	INIT_LIST_HEAD(&port->read_pool);
 	INIT_LIST_HEAD(&port->read_queue);
@@ -1169,64 +1141,26 @@ err:
 //EXPORT_SYMBOL_GPL(gserial_alloc_line);
 
 
-#define CTL_CH(c)		((c) - 'a' + 1)
-unsigned char Outchars[USBTTY_BUFFER_SIZE];
-void usb_serialfunc_test(void)
+/**
+ * gserial_getport - get the connect gs port
+ * @port_num: which port is active
+ * Context: any (usually from irq)
+*/
+struct gs_port* gserial_getport(u8 port_num)
 {
-	circbuf_t *inbuf;
-	int i, port_num;
-	char readch;
-	struct gs_port	*port;
-
-	/* prepare buffers... */
-	buf_init (&usbtty_input, USBTTY_BUFFER_SIZE);
-	inbuf = &usbtty_input;
-
-	for(i=0; i<MAX_U_SERIAL_PORTS; i++ )
-	{
-		if(gs_open(i)==0)
-		{
-			port_num=i;
-			break;
-		}
-	}
-	port = ports[port_num].port;
-
-	do
-	{
-		while (inbuf->size!=0)
-		{
-			buf_pop(inbuf,&readch, 1);
-			putc(readch);
-			Outchars[i]=readch;
-			i++;
-		}
-
-		//Sendback the receive chars.
-		gs_write(port, Outchars, i);
-		i=0;
-		if(getc()==CTL_CH('c'))
-			break;
-	} while(1);
-
+	 return ports[port_num].port;
 }
 
 
-
-
-uint32_t  fill_input_buffer(char		*packet, uint32_t size)
+/**
+ * gserial_getportops - get the operations of gs port
+ * Context: any (usually from irq)
+*/
+struct gserial_port_operations* gserial_getportops()
 {
-	uint32_t  nb = 0;
-	circbuf_t * buf = &usbtty_input;
-	uint32_t  rx_avail = buf->totalsize - buf->size;
-
-	if(rx_avail>size)
-	{
-		nb = size;
-		buf_push(buf, packet, size);
-		}
-	return nb;
+	 return &gs_port_ops;
 }
+
 
 /**
  * gserial_connect - notify TTY I/O glue that USB link is active
@@ -1260,25 +1194,19 @@ int gserial_connect(struct gserial *gser, u8 port_num)
 
 	port = ports[port_num].port;
 	if (!port) {
-		//pr_err("serial line %d not allocated.\n", port_num);
+		pr_debug("serial line %d not allocated.\n", port_num);
 		return -EINVAL;
 	}
 	if (port->port_usb) {
-		//pr_err("serial line %d is in use.\n", port_num);
+		pr_debug("serial line %d is in use.\n", port_num);
 		return -EBUSY;
 	}
 
 	/* activate the endpoints */
 	//?? status = usb_ep_enable(gser->in);
-	status = usb_ep_enable(gser->in, NULL);
-	if (status < 0)
-		return status;
 	gser->in->driver_data = port;
 
 	//?? status = usb_ep_enable(gser->out);
-	status = usb_ep_enable(gser->out, NULL);
-	if (status < 0)
-		goto fail_out;
 	gser->out->driver_data = port;
 
 	/* then tell the tty glue that I/O can work */
@@ -1296,8 +1224,8 @@ int gserial_connect(struct gserial *gser, u8 port_num)
 	/* if it's already open, start I/O ... and notify the serial
 	 * protocol about open/close status (connect/disconnect).
 	 */
-	if(1) { //??if (port->port.count) {
-	//	pr_debug("gserial_connect: start ttyGS%d\n", port->port_num);
+	if (port->count) {
+		pr_debug("gserial_connect: start ttyGS%d\n", port->port_num);
 		gs_start_io(port);
 		if (gser->connect)
 			gser->connect(gser);
@@ -1311,9 +1239,6 @@ int gserial_connect(struct gserial *gser, u8 port_num)
 
 	return status;
 
-fail_out:
-	usb_ep_disable(gser->in);
-	return status;
 }
 //EXPORT_SYMBOL_GPL(gserial_connect);
 /**

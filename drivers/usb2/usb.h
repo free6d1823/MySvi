@@ -28,7 +28,8 @@
 #define USB_ALTSETTINGALLOC		4
 #define USB_MAXALTSETTING		128	/* Hard limit */
 
-#define USB_MAX_DEVICE			16
+
+#define USB_MAX_DEVICE			4	/* todo: decrease device cnt to save memory */
 #define USB_MAXCONFIG			8
 #define USB_MAXINTERFACES		8
 #define USB_MAXENDPOINTS		16

@@ -4,7 +4,7 @@
 #include <asm/reg.h>
 
 #ifndef CONFIG_IRQ_POLLING
-void pmu_handle_irq(void)
+void pmu_handle_irq(irq_t irq, void *ctx)
 {
 	uint32_t ovs = read_sysreg(PMOVSCLR_EL0);
 	int evt;
@@ -21,7 +21,7 @@ int pmu_irq_init(void)
 	irq_t pmu_irq = IRQ_PMU;
 
 	irqc_configure_irq(pmu_irq, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(pmu_irq, pmu_handle_irq);
+	irq_register_vector(pmu_irq, pmu_handle_irq, NULL);
 	irqc_enable_irq(pmu_irq);
 	return 0;
 }

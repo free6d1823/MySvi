@@ -121,8 +121,6 @@ extern struct cpu_exec_test __testfn_end[];
 #define c_testfn_sync(fn, size, align, timeout)			\
 	c_testfn_repeat_sync(fn, size, align, 1, timeout)
 
-extern uint64_t cpus_boot_cpu;
-
 void _start(void);
 
 int cpu_remote_init(void);

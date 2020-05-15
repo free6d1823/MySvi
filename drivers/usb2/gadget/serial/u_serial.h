@@ -12,12 +12,51 @@
 #include "../composite.h"
 #include "../../ch9.h"
 #include "usb_cdc_acm.h"
+#include "circbuf.h"
+#include <target/spinlock.h>
 
-#define MAX_U_SERIAL_PORTS	4
+#define MAX_U_SERIAL_PORTS	1
+#define USBTTY_BUFFER_SIZE 2048
 
 struct f_serial_opts {
 	struct usb_function_instance func_inst;
 	u8 port_num;
+};
+
+
+/*
+ * The port structure holds info for each port, one for each minor number
+ * (and thus for each /dev/ node).
+ */
+struct gs_port {
+	//temp removed
+	//struct tty_port		port;
+	u8		count;
+	spinlock_t		port_lock;	/* guard port_* access */
+
+	struct gserial		*port_usb;
+
+	bool			openclose;	/* open/close in progress */
+	u8			port_num;
+
+	struct list_head	read_pool;
+	int read_started;
+	int read_allocated;
+	struct list_head	read_queue;
+	unsigned		n_read;
+	//struct delayed_work	push;
+
+	struct list_head	write_pool;
+	int write_started;
+	int write_allocated;
+	//struct kfifo		port_write_buf;
+	circbuf_t port_write_buf;
+	//wait_queue_head_t	drain_wait;	/* wait while writes drain */
+	bool                    write_busy;
+	//wait_queue_head_t	close_wait;
+
+	/* REVISIT this state ... */
+	struct usb_cdc_line_coding port_line_coding;	/* 8-N-1 etc */
 };
 
 /*
@@ -50,6 +89,16 @@ struct gserial {
 	int (*send_break)(struct gserial *p, int duration);
 };
 
+
+struct gserial_port_operations {
+	int  (*open)(int  port_num);
+	void (*close)();
+	int  (*write)(struct gs_port	*port, const unsigned char *buf, int count);
+	int  (*put_char)(struct gs_port	*port, unsigned char ch);
+	void (*flush_chars)(struct gs_port	*port);
+	void (*rx_push)(struct gs_port *port, circbuf_t *inbuf);
+};
+
 /* utilities to allocate/free request and buffer */
 struct usb_request *gs_alloc_req(struct usb_ep *ep, unsigned len, gfp_t flags);
 void gs_free_req(struct usb_ep *, struct usb_request *req);
@@ -66,9 +115,9 @@ void gserial_disconnect(struct gserial *);
 int gser_bind_config(struct usb_configuration *c, u8 port_num);
 int obex_bind_config(struct usb_configuration *c, u8 port_num);
 
-
+struct gs_port* gserial_getport(u8 port_num);
+struct gserial_port_operations* gserial_getportops();
 int f_gser_init(struct usb_function* *f, struct usb_function_instance* *fi);
-void usb_serialfunc_test(void);
 int g_serial_register(const char *name);
 
 

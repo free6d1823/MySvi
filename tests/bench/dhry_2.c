@@ -1,25 +1,36 @@
 /*
- *************************************************************************
+ ****************************************************************************
  *
  *                   "DHRYSTONE" Benchmark Program
  *                   -----------------------------
- *
+ *                                                                            
  *  Version:    C, Version 2.1
- *
+ *                                                                            
  *  File:       dhry_2.c (part 3 of 3)
  *
  *  Date:       May 25, 1988
  *
  *  Author:     Reinhold P. Weicker
  *
- *************************************************************************
+ ****************************************************************************
  */
 
-void Proc_6 (Enumeration  Enum_Val_Par, Enumeration *Enum_Ref_Par)
+#ifndef REG
+#define REG
+        /* REG becomes defined as empty */
+        /* i.e. no register variables   */
+#endif
+
+//extern  int     Int_Glob;
+//extern  char    Ch_1_Glob;
+
+static void Proc_6 (Enum_Val_Par, Enum_Ref_Par)
 /*********************************/
     /* executed once */
     /* Enum_Val_Par == Ident_3, Enum_Ref_Par becomes Ident_2 */
 
+Enumeration  Enum_Val_Par;
+Enumeration *Enum_Ref_Par;
 {
   *Enum_Ref_Par = Enum_Val_Par;
   if (! Func_3 (Enum_Val_Par))
@@ -27,10 +38,10 @@ void Proc_6 (Enumeration  Enum_Val_Par, Enumeration *Enum_Ref_Par)
     *Enum_Ref_Par = Ident_4;
   switch (Enum_Val_Par)
   {
-    case Ident_1:
+    case Ident_1: 
       *Enum_Ref_Par = Ident_1;
       break;
-    case Ident_2:
+    case Ident_2: 
       if (Int_Glob > 100)
         /* then */
       *Enum_Ref_Par = Ident_1;
@@ -40,24 +51,25 @@ void Proc_6 (Enumeration  Enum_Val_Par, Enumeration *Enum_Ref_Par)
       *Enum_Ref_Par = Ident_2;
       break;
     case Ident_4: break;
-    case Ident_5:
+    case Ident_5: 
       *Enum_Ref_Par = Ident_3;
       break;
   } /* switch */
 } /* Proc_6 */
 
 
-void Proc_7 (One_Fifty Int_1_Par_Val, One_Fifty Int_2_Par_Val,
-             One_Fifty *Int_Par_Ref)
+static void Proc_7 (Int_1_Par_Val, Int_2_Par_Val, Int_Par_Ref)
 /**********************************************/
-    /* executed three times                                      */
+    /* executed three times                                      */ 
     /* first call:      Int_1_Par_Val == 2, Int_2_Par_Val == 3,  */
     /*                  Int_Par_Ref becomes 7                    */
     /* second call:     Int_1_Par_Val == 10, Int_2_Par_Val == 5, */
     /*                  Int_Par_Ref becomes 17                   */
     /* third call:      Int_1_Par_Val == 6, Int_2_Par_Val == 10, */
     /*                  Int_Par_Ref becomes 18                   */
-
+One_Fifty       Int_1_Par_Val;
+One_Fifty       Int_2_Par_Val;
+One_Fifty      *Int_Par_Ref;
 {
   One_Fifty Int_Loc;
 
@@ -66,13 +78,15 @@ void Proc_7 (One_Fifty Int_1_Par_Val, One_Fifty Int_2_Par_Val,
 } /* Proc_7 */
 
 
-void Proc_8 (Arr_1_Dim Arr_1_Par_Ref, Arr_2_Dim Arr_2_Par_Ref,
-             int Int_1_Par_Val, int Int_2_Par_Val)
+static void Proc_8 (Arr_1_Par_Ref, Arr_2_Par_Ref, Int_1_Par_Val, Int_2_Par_Val)
 /*********************************************************************/
     /* executed once      */
     /* Int_Par_Val_1 == 3 */
     /* Int_Par_Val_2 == 7 */
-
+Arr_1_Dim       Arr_1_Par_Ref;
+Arr_2_Dim       Arr_2_Par_Ref;
+int             Int_1_Par_Val;
+int             Int_2_Par_Val;
 {
   REG One_Fifty Int_Index;
   REG One_Fifty Int_Loc;
@@ -89,14 +103,15 @@ void Proc_8 (Arr_1_Dim Arr_1_Par_Ref, Arr_2_Dim Arr_2_Par_Ref,
 } /* Proc_8 */
 
 
-Enumeration Func_1 (Capital_Letter Ch_1_Par_Val,
-                    Capital_Letter Ch_2_Par_Val)
+static Enumeration Func_1 (Ch_1_Par_Val, Ch_2_Par_Val)
 /*************************************************/
     /* executed three times                                         */
     /* first call:      Ch_1_Par_Val == 'H', Ch_2_Par_Val == 'R'    */
     /* second call:     Ch_1_Par_Val == 'A', Ch_2_Par_Val == 'C'    */
     /* third call:      Ch_1_Par_Val == 'B', Ch_2_Par_Val == 'C'    */
 
+Capital_Letter   Ch_1_Par_Val;
+Capital_Letter   Ch_2_Par_Val;
 {
   Capital_Letter        Ch_1_Loc;
   Capital_Letter        Ch_2_Loc;
@@ -114,12 +129,14 @@ Enumeration Func_1 (Capital_Letter Ch_1_Par_Val,
 } /* Func_1 */
 
 
-Boolean Func_2 (Str_30 Str_1_Par_Ref, Str_30 Str_2_Par_Ref)
+static Boolean Func_2 (Str_1_Par_Ref, Str_2_Par_Ref)
 /*************************************************/
     /* executed once */
     /* Str_1_Par_Ref == "DHRYSTONE PROGRAM, 1'ST STRING" */
     /* Str_2_Par_Ref == "DHRYSTONE PROGRAM, 2'ND STRING" */
 
+Str_30  Str_1_Par_Ref;
+Str_30  Str_2_Par_Ref;
 {
   REG One_Thirty        Int_Loc;
       Capital_Letter    Ch_Loc;
@@ -154,11 +171,11 @@ Boolean Func_2 (Str_30 Str_1_Par_Ref, Str_30 Str_2_Par_Ref)
 } /* Func_2 */
 
 
-Boolean Func_3 (Enumeration Enum_Par_Val)
+static Boolean Func_3 (Enum_Par_Val)
 /***************************/
     /* executed once        */
     /* Enum_Par_Val == Ident_3 */
-
+Enumeration Enum_Par_Val;
 {
   Enumeration Enum_Loc;
 

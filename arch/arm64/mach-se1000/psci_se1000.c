@@ -3,6 +3,9 @@
 #include <asm/barrier.h>
 #include <target/cache.h>
 
+/* defined in head.S */
+void _start(void);
+
 #define RESET_CTRL(cpu)	((uint64_t)SYSREG_BASE + 0x10 * (cpu > 4 ? (cpu - 1) : cpu))
 #define RVBAR_L(cpu)	(RESET_CTRL(cpu) + 4)
 

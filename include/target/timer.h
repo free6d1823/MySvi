@@ -38,7 +38,7 @@ typedef uint64_t ktime_t;
 
 #ifndef __ASSEMBLY__
 
-typedef void (*timer_handler)(void);
+typedef void (*timer_handler)(void*);
 
 struct timer_desc {
 	uint8_t type;

@@ -16,6 +16,7 @@
 #include <target/list.h>
 #include <target/delay.h>
 #include <target/spinlock.h>
+#include <target/timer.h>
 
 #include "emac_drv.h"
 #include "emac_util.h"
@@ -31,12 +32,12 @@ LIST_HEAD(emac_devs);
  *
  * Limitation: Only one buffer is supported
  */
-bool emac_simSendRecv(struct net_local* lp, uint8_t queue,
+bool emac_simSendRecv(struct net_local* lp, uint8_t queue, uint8_t rx_q,
                         char* sendBuf, uint32_t sendLen, bool ptp)
 {
 	bool tx_ret, success;
 	char* recvBuf;
-	int i, tx_q, rx_q;
+	int i, tx_q, budget;
 	uint32_t length;
 
 	tx_ret = true;
@@ -48,8 +49,6 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue,
 #endif
 
 	tx_q = queue;
-	rx_q = 0;
-
 
 	tx_ret = dwceqos_xmit(lp, tx_q, (char*)sendBuf, sendLen, ptp);
 	if (!tx_ret) {
@@ -68,10 +67,12 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue,
 	printf("\n");
 	printf("Transmit is done, check Receive\n");
 #endif
-	for (i = 0; i < 4; i++) {
+	/*for (i = 0; i < 4; i++) */{
+		i = rx_q; /* only check specific queue */
+		budget = 1;
 		udelay(1000);
 		length = 0;
-		tx_ret = dwceqos_rx(lp, 1, i, (char **)&recvBuf, &length);
+		tx_ret = dwceqos_rx(lp, budget, i, (char **)&recvBuf, &length);
 		/* 4 bytes crc received, so maybe plus 4 will be great
 		 * length == (sendLen + 4)
 		 */
@@ -109,6 +110,38 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue,
 	return tx_ret;
 }
 
+/* case 0: basic datapath test */
+void emac_basic_dp_test(struct net_local* emac_dev,
+					char* sendBuf, 	u32 sendlen)
+{
+	struct dwceqos_MTL_cfg emac_MTL_cfg;
+
+	/* stub configuration, need to configure new value based on test cases*/
+	memset(&emac_MTL_cfg, 0 , sizeof(struct dwceqos_MTL_cfg));
+	emac_MTL_cfg.rx_queues_count = 1;
+	emac_MTL_cfg.tx_queues_count = 1;
+
+	/* enable specific test mode*/
+	emac_test_mode(emac_dev, &emac_MTL_cfg);
+
+	emac_lpmode_config(emac_dev);
+
+	/**
+	 * Param: 1.buf,2.total length, 3. isIP
+	 * 4. isTCP, or UDP 5. bad checksum
+	 */
+	emac_InitPacket((u8*)sendBuf, sendlen, 1, 1, 0);
+	/* sendq = 0, recvq = 0 */
+	if (emac_simSendRecv(emac_dev, 0, 0, sendBuf, sendlen, false))
+		printf("Basic test passed\n");
+	else
+	{
+		printf("basic test failed\n");
+	}
+
+	dwceqos_tx_reclaim(emac_dev, 0);
+}
+
 /* case 1: multi-channel-queues test */
 void emac_mqc_test(struct net_local* emac_dev,
 					char* sendBuf, 	u32 sendlen)
@@ -135,7 +168,10 @@ void emac_mqc_test(struct net_local* emac_dev,
 	 * 4. isTCP, or UDP 5. bad checksum
 	 */
 	emac_InitPacket((u8*)sendBuf, sendlen, 1, 1, 0);
-	if (emac_simSendRecv(emac_dev, 0, sendBuf, sendlen, false))
+	/* broad cast packet will route to receive queue 1,
+	 * so set the recvq = 1
+	 */
+	if (emac_simSendRecv(emac_dev, 0, 1, sendBuf, sendlen, false))
 		printf("MQC test passed\n");
 	else
 	{
@@ -145,7 +181,7 @@ void emac_mqc_test(struct net_local* emac_dev,
 	dwceqos_tx_reclaim(emac_dev, 0);
 }
 
-/* case 1: multi-channel-queues test */
+/* PTP feature test */
 void emac_PTP_test(struct net_local* emac_dev,
 					char* sendBuf, 	u32 sendlen)
 {
@@ -166,7 +202,7 @@ void emac_PTP_test(struct net_local* emac_dev,
 
 	emac_InitPTPPacket((u8*)sendBuf, &length);
 	printf("send out %d bytes PTP over ethernet packet\n", length);
-	if (emac_simSendRecv(emac_dev, 0, sendBuf, length, true))
+	if (emac_simSendRecv(emac_dev, 0, 0, sendBuf, length, true))
 		printf("PTP test passed\n");
 	else
 	{
@@ -177,6 +213,63 @@ void emac_PTP_test(struct net_local* emac_dev,
 	emac_get_tx_ts(emac_dev, 0, &tx_ts);
 	emac_get_rx_ts(emac_dev, 0, &rx_ts);
 	printf("tx ts=0x%llx, rx ts=0x%llx\n", tx_ts, rx_ts);
+	dwceqos_tx_reclaim(emac_dev, 0);
+}
+
+/* AVB CBS feature test */
+void emac_AVB_CBS_test(struct net_local* emac_dev,
+					char* sendBuf, 	u32 sendlen)
+{
+	struct dwceqos_MTL_cfg emac_MTL_cfg;
+	u32 length = sendlen;
+	u32 i;
+
+	/* stub configuration, need to configure new value based on test cases*/
+	memset(&emac_MTL_cfg, 0 , sizeof(struct dwceqos_MTL_cfg));
+	emac_MTL_cfg.rx_queues_count = 4;
+	emac_MTL_cfg.tx_queues_count = 4;
+	/*
+	 * queue 0 is the default best effort queue
+	 * SUppose 1000Mbps, so bits per cycle = 8ns
+	 * SendSlopeCredit * 1024 = register, means value decrease every 8ns
+	 */
+	for (i = 3; i < emac_MTL_cfg.tx_queues_count; i++) {
+		emac_MTL_cfg.tx_queues_cfg[i].mode_to_use = MTL_QUEUE_AVB;
+		emac_MTL_cfg.tx_queues_cfg[i].send_slope = 1024 * 100;
+		emac_MTL_cfg.tx_queues_cfg[i].idle_slope = 1024 * 100;
+		emac_MTL_cfg.tx_queues_cfg[i].high_credit= 1024 * 2048 * 8;
+		emac_MTL_cfg.tx_queues_cfg[i].low_credit = 0x18000000;
+	}
+	/* enable PTP to make sure time stamp can be recorded */
+	emac_MTL_cfg.init_ptp = true;
+	/* enable specific test mode*/
+	emac_test_mode(emac_dev, &emac_MTL_cfg);
+
+	emac_lpmode_config(emac_dev);
+
+	emac_InitAVBPacket((u8*)sendBuf, &length);
+	{ /* sanity check */
+		printf("\n before AVB packet received \n");
+		for (i = 1; i < emac_MTL_cfg.tx_queues_count; i++)
+			emac_show_CBS_info(emac_dev, i);
+
+		printf("current time = 0x%llx\n", time_get_current_time());
+	}
+
+	/* sent tx_q=1 to make sure CBS works */
+	if (emac_simSendRecv(emac_dev, 3, 0, sendBuf, length, true))
+		printf("CBS test passed\n");
+	else
+	{
+		printf("CBS test failed\n");
+	}
+
+	printf("current end time = 0x%llx\n", time_get_current_time());
+	{ /* sanity check */
+		printf("\n after AVB packet received \n");
+		for (i = 1; i < emac_MTL_cfg.tx_queues_count; i++)
+			emac_show_CBS_info(emac_dev, i);
+	}
 	dwceqos_tx_reclaim(emac_dev, 0);
 }
 
@@ -196,13 +289,25 @@ void emac_basic_test(struct net_local* emac_dev)
 		printf("err: no room for sending\n");
 		return;
 	}
-//case 1:
-	emac_mqc_test(emac_dev, sendBuf, sendlen);
-
+//case 0: basic datapath test
+	memset(sendBuf, 0, PKTTOTAL);
+	emac_basic_dp_test(emac_dev, sendBuf, sendlen);
 	udelay(5000);
+
+//case 1: multi-queue-channel test
+	memset(sendBuf, 0, PKTTOTAL);
+	emac_mqc_test(emac_dev, sendBuf, sendlen);
+	udelay(5000);
+
 //case 2: PTP one-step test
 	memset(sendBuf, 0, PKTTOTAL);
 	emac_PTP_test(emac_dev, sendBuf, sendlen);
+	udelay(5000);
+
+//case 3: AVB packet CBS test
+	memset(sendBuf, 0, PKTTOTAL);
+	emac_AVB_CBS_test(emac_dev, sendBuf, sendlen);
+	udelay(5000);
 
 	heap_free(sendBuf);
 }

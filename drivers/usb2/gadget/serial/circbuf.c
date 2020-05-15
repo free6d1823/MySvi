@@ -34,7 +34,7 @@ int buf_init (circbuf_t * buf, unsigned int size)
 	buf->tail = buf->data;
 	buf->end = &(buf->data[size]);
 
-	return 1;
+	return 0;
 }
 
 int buf_free (circbuf_t * buf)
@@ -45,7 +45,7 @@ int buf_free (circbuf_t * buf)
 	free (buf->data);
 	memset (buf, 0, sizeof (circbuf_t));
 
-	return 1;
+	return 0;
 }
 
 

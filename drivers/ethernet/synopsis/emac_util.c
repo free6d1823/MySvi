@@ -105,6 +105,34 @@ void emac_InitPTPPacket(uint8_t *pktBuf, uint32_t* length)
 	return;
 }
 
+void emac_InitAVBPacket(uint8_t *pktBuf, uint32_t* length)
+{
+	uint8_t* buf;
+	uint16_t* AVBtype;
+	uint32_t* srcID;
+	int i;
+
+	/* Update MAC layer */
+	buf = pktBuf;
+	memset((void*)buf, 0 , *length);
+	memcpy(buf, ethPTPFrame, ETH_ALEN * 2);
+	buf += (ETH_ALEN * 2);
+
+	//buf += 4;//suppose vlan tag
+
+	AVBtype = (uint16_t*)buf;
+	/* AVB ethernet packet format */
+	*AVBtype = 0x88B5;
+	buf += 2;
+
+	for (i = 0; i < 60; i++) {
+		buf[i] = i;
+	}
+
+	*length = ETH_ALEN * 2 + 2 + 60;
+	return;
+}
+
 void emac_InitPacket(uint8_t *pktBuf, uint32_t length, uint8_t ip,
                   uint8_t tcp, uint8_t badCS)
 {

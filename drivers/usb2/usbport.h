@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-
+#include <stdio.h>
 #include <target/regdef.h>
 #include <target/compiler.h>
 #include <target/utils.h>
@@ -27,7 +27,6 @@ struct udevice;
 #define ROUND(a,b)		(((a) + (b) - 1) & ~((b) - 1))
 
 #include <target/delay.h>
-#define mdelay(m) udelay(m * 1000)
 
 #include <target/heap.h>
 #include <string.h>
@@ -43,7 +42,9 @@ static inline void *_calloc(size_t nmemb, size_t size){
 
 #define env_get(n) NULL
 
-#define simple_strtol strtol
+#define simple_strtol  strtol
+#define simple_strtoul strtoul
+
 
 /* Returns time in milliseconds */
 static inline unsigned long get_timer(unsigned long base)

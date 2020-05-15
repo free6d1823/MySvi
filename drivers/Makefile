@@ -8,7 +8,6 @@ obj-y += delay.o
 obj-y += timer.o
 obj-y += console.o
 obj-y += misc.o
-obj-$(CONFIG_ARM64) += cpus.o
 obj-y += percpu.o
 obj-y += readline.o
 obj-y += cmdline.o
@@ -23,7 +22,7 @@ obj-y += heap_simple.o
 obj-$(CONFIG_SMP) += spinlock.o
 obj-$(CONFIG_PERF) += perf.o
 
-
+obj-$(CONFIG_ARCH_QDF2400) += cpus.o
 obj-$(CONFIG_PCI) += pci/
 obj-$(CONFIG_ARCH_HAS_IRQC) += irqchip/
 obj-$(CONFIG_UART) += uart/
@@ -61,5 +60,5 @@ obj-$(CONFIG_GC355) += gc355/
 obj-$(CONFIG_GC520) += gc520/
 obj-$(CONFIG_VC8000E) += vc8000e/
 obj-$(CONFIG_VC8000D) += vc8000d/
-obj-$(CONFIG_GDC) += gdc/
+obj-$(CONFIG_CLK_DRIVER) += clk/
 

@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <target/memory.h>
-#include <target/cpus.h>
 #include <target/delay.h>
 #include <target/uart.h>
 #include <target/cache.h>

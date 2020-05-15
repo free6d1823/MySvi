@@ -12,6 +12,7 @@
 #include <target/list.h>
 #include <target/heap.h>
 #include <target/bitops.h>
+#include <target/delay.h>
 #include <target/heap_generic.h>
 #include <std/stdbool.h>
 #include <std/string.h>
@@ -39,8 +40,6 @@ typedef ulong lbaint_t;
 #define BLK_PRD_SIZE		20
 #define BLK_REV_SIZE		8
 
-
-#define mdelay(m) udelay(m * 1000)
 
 #define ROUND(a,b)		(((a) + (b) - 1) & ~((b) - 1))
 #define PAD_COUNT(s, pad) (((s) - 1) / (pad) + 1)

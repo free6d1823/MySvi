@@ -135,8 +135,8 @@ static int ep_matches(
 			return 0;
 
 		/* BOTH:  "high bandwidth" works only at high speed */
-		//?? temp if ((get_unaligned(&desc->wMaxPacketSize) &
-		//			__constant_cpu_to_le16(3<<11))) 
+		if ((get_unaligned(&desc->wMaxPacketSize) &
+					cpu_to_le32(3<<11)))
 		{
 			if (!gadget->is_dualspeed)
 				return 0;
@@ -149,7 +149,7 @@ static int ep_matches(
 
 	/* report address */
 	if (isdigit(ep->name[2])) {
-		u8 num=0; //?? u8	num = simple_strtoul(&ep->name[2], NULL, 10);
+		u8	num = simple_strtoul(&ep->name[2], NULL, 10);
 		desc->bEndpointAddress |= num;
 #ifdef	MANY_ENDPOINTS
 	} else if (desc->bEndpointAddress & USB_DIR_IN) {
@@ -264,9 +264,7 @@ struct usb_ep *usb_ep_autoconfig(
 		ep = find_ep(gadget, "ep1-bulk");
 		if (ep && ep_matches(gadget, ep, desc))
 			return ep;
-	} else
-#endif
-		if(1) { // (gadget_is_dwc3(gadget)) {
+	} else if (gadget_is_dwc3(gadget)) {
 		const char *name = NULL;
 		/*
 		 * First try standard, common configuration: ep1in-bulk,
@@ -289,6 +287,7 @@ struct usb_ep *usb_ep_autoconfig(
 		if (ep && ep_matches(gadget, ep, desc))
 			return ep;
 	}
+#endif
 
 	/* Second, look at endpoints until an unclaimed one looks usable */
 	list_for_each_entry(ep, &gadget->ep_list, ep_list) {

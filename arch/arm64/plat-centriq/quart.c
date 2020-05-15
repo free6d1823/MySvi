@@ -63,7 +63,7 @@ static inline void __uart##n##_dm_ack_irq(void)				\
 	sirq_t uart_irq = irqc_irq2sirq(qgic2_irqc, UART_DM_IRQ(n));	\
 	irqc_enable_irq(uart_irq);					\
 }									\
-static inline void __uart##n##_dm_handle_irq(void)			\
+static inline void __uart##n##_dm_handle_irq(irq_t irq, void *ctx)			\
 {									\
 	sirq_t uart_irq = irqc_irq2sirq(qgic2_irqc, UART_DM_IRQ(n));	\
 	irqc_disable_irq(uart_irq);					\
@@ -73,7 +73,7 @@ static inline void __uart##n##_dm_config_irq(void)			\
 {									\
 	sirq_t uart_irq = irqc_irq2sirq(qgic2_irqc, UART_DM_IRQ(n));	\
 	irqc_configure_irq(uart_irq, 0, IRQ_LEVEL_TRIGGERED);		\
-	irq_register_vector(uart_irq, __uart##n##_dm_handle_irq);	\
+	irq_register_vector(uart_irq, __uart##n##_dm_handle_irq, NULL);	\
 	irqc_enable_irq(uart_irq);					\
 }									\
 static inline void __uart##n##_dm_config_clock(uint32_t __hz,		\

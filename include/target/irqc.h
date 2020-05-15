@@ -7,7 +7,7 @@
 #define INVALID_IRQC	MAX_IRQ_CHIPS
 
 typedef uint8_t irqc_t;
-typedef void (*irq_handler)(void);
+typedef void (*irq_handler)(irq_t irq, void *ctx);
 
 struct irq_chip {
 	irq_t max_irq;

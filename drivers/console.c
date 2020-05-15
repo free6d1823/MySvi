@@ -29,7 +29,7 @@ static void console_raise_event(uint8_t event)
     dsr_schedule(debug_dsr);
 }
 
-static void console_dsr_handler(void)
+static void console_dsr_handler(void* ctx)
 {
     uint8_t events = debug_events;
 
@@ -56,7 +56,7 @@ int console_early_init(void)
 
 int console_late_init(void)
 {
-    debug_dsr = dsr_register(console_dsr_handler);
+    debug_dsr = dsr_register(console_dsr_handler, NULL);
 
 #ifdef CONFIG_CONSOLE_INPUT
 

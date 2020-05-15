@@ -1,0 +1,8 @@
+
+#menuconfig clk_config
+#	bool "clk driver config"
+
+config CLK_DRIVER
+	bool "clk driver config"
+	default n
+

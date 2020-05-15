@@ -269,7 +269,7 @@ struct imem_err {
 		__imem_config_err_cap(name, continuous);	\
 		irqc_configure_irq(imem_irq, 0,			\
 				   IRQ_EDGE_TRIGGERED);		\
-		irq_register_vector(imem_irq, handler);	\
+		irq_register_vector(imem_irq, handler, NULL);	\
 		irqc_enable_irq(imem_irq);			\
 	} while (0)
 #define __imem_err_address(cap0, cap1)				\
@@ -307,7 +307,7 @@ static inline void sym##_inject_err(uint32_t err, uint64_t addr)\
 {								\
 	__imem_inject_err(name, err);				\
 }								\
-static inline void sym##_handle_err(void)			\
+static inline void sym##_handle_err(irq_t irq, void *ctx)			\
 {								\
 	struct imem_err e;					\
 	__imem_handle_err(name, &e);				\

@@ -171,7 +171,7 @@ static void I2CS_ConfigureGpios(void)
     }
 }
 
-static void arch_handle_i2cs(void)
+static void arch_handle_i2cs(irq_t irq, void *ctx)
 {
     I2CS_Isr();
 }
@@ -180,7 +180,7 @@ static void  I2CS_RegisterIsr(void)
 {
      irq_t irq = pDev.config->irq;
      irqc_configure_irq(irq, 0, IRQ_LEVEL_TRIGGERED);
-     irq_register_vector(irq, arch_handle_i2cs);
+     irq_register_vector(irq, arch_handle_i2cs, NULL);
      irqc_enable_irq(irq);
 }
 

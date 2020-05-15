@@ -151,9 +151,9 @@ static caddr_t cpu_didt_area;
 static uint8_t cpu_didt_refcnt;
 static unsigned long cpu_didt_cpu_mask;
 
-static void cpu_remote_dsr_handler(void);
-static void cpu_local_dsr_handler(void);
-static void cpu_remote_timer_handler(void);
+static void cpu_remote_dsr_handler(void* ctx);
+static void cpu_local_dsr_handler(void* ctx);
+static void cpu_remote_timer_handler(void*);
 static bool cpu_remote_power_on_async(void);
 
 static cpu_completion cpu_async_completion;
@@ -278,7 +278,7 @@ void cpu_local_poll(uint8_t cpu)
 		__cpu_local_init(cpu);
 }
 
-static void cpu_local_timer_handler(void)
+static void cpu_local_timer_handler(void* tid)
 {
 	cpu_raise_event(CPU_EVENT_TIME);
 }
@@ -379,7 +379,7 @@ static void cpu_local_didt_exec(uint8_t cpu)
 		cpu_raise_event(CPU_EVENT_STOP);
 }
 
-static void cpu_local_dsr_handler(void)
+static void cpu_local_dsr_handler(void* ctx)
 {
 	uint8_t cpu = hmp_processor_id();
 	uint8_t event = cpu_ctxs[cpu].async_event;
@@ -415,7 +415,7 @@ int cpu_local_init(void)
 {
 	uint8_t cpu = smp_processor_id();
 
-	cpu_ctxs[cpu].dsr = dsr_register(cpu_local_dsr_handler);
+	cpu_ctxs[cpu].dsr = dsr_register(cpu_local_dsr_handler, NULL);
 	cpu_ctxs[cpu].timer = timer_register(TIMER_DSR,
 					     cpu_local_timer_handler);
 	register_exception_handler(0);
@@ -594,7 +594,7 @@ static void cpu_arch_poll(void)
 		cpu_raise_event(CPU_EVENT_POLL);
 }
 
-static void cpu_remote_timer_handler(void)
+static void cpu_remote_timer_handler(void* tid)
 {
 	uint8_t cpu = hmp_processor_id();
 	ktime_t current_time = time_get_current_time();
@@ -606,7 +606,7 @@ static void cpu_remote_timer_handler(void)
 		cpu_raise_event(CPU_EVENT_TIME);
 }
 
-static void cpu_remote_dsr_handler(void)
+static void cpu_remote_dsr_handler(void* ctx)
 {
 	uint8_t cpu = hmp_processor_id();
 	uint8_t event = cpu_ctxs[cpu].async_event;
@@ -670,8 +670,6 @@ int cpu_remote_cold_boot(uint64_t cpu_mask)
 	while (!cpu_remote_cold_boot_async(cpu_mask));
 	return 0;
 }
-
-uint64_t cpus_boot_cpu = MAX_CPU_NUM;
 
 static void __cpus_sync(unsigned long sync_state,
 		        uint64_t this_cpu_mask, bool entry_or_exit,
@@ -1177,7 +1175,7 @@ int cpu_remote_init(void)
 {
 	uint8_t cpu = hmp_processor_id();
 
-	cpu_ctxs[cpu].dsr = dsr_register(cpu_remote_dsr_handler);
+	cpu_ctxs[cpu].dsr = dsr_register(cpu_remote_dsr_handler, NULL);
 	cpu_ctxs[cpu].timer = timer_register(TIMER_DSR,
 					     cpu_remote_timer_handler);
 

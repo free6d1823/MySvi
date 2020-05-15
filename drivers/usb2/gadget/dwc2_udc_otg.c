@@ -16,8 +16,6 @@
  * Marek Szyprowski <m.szyprowski@samsung.com>
  * Lukasz Majewski <l.majewski@samsumg.com>
  */
-#undef DEBUG
-
 
 #include <errno.h>
 
@@ -42,11 +40,11 @@
 
 #define OTG_DMA_MODE		1
 
-#define DEBUG_SETUP 0
-#define DEBUG_EP0 0
-#define DEBUG_ISR 0
-#define DEBUG_OUT_EP 0
-#define DEBUG_IN_EP 0
+#define DEBUG_SETUP 1
+#define DEBUG_EP0 1
+#define DEBUG_ISR 1
+#define DEBUG_OUT_EP 1
+#define DEBUG_IN_EP 1
 
 #include "dwc2_udc.h"
 
@@ -110,6 +108,18 @@ static void set_max_pktsize(struct dwc2_udc *dev, enum usb_device_speed speed);
 static void nuke(struct dwc2_ep *ep, int status);
 static int dwc2_udc_set_halt(struct usb_ep *_ep, int value);
 static void dwc2_udc_set_nak(struct dwc2_ep *ep);
+
+#undef debug
+/* Show a message if DEBUG is defined in a file */
+#define debug(fmt, args...)			\
+	debug_cond(1, fmt, ##args)
+
+#define debug_cond(cond, fmt, args...)			\
+	do {						\
+		if (cond)				\
+			printf(pr_fmt(fmt), ##args);	\
+	} while (0)
+
 
 void set_udc_gadget_private_data(void *p)
 {
@@ -240,7 +250,7 @@ static int udc_enable(struct dwc2_udc *dev)
 {
 	debug_cond(DEBUG_SETUP != 0, "%s: %p\n", __func__, dev);
 
-	otg_phy_init(dev);
+	//otg_phy_init(dev);  //temp not need phy
 	reconfig_usbd(dev);
 
 	debug_cond(DEBUG_SETUP != 0,
@@ -406,7 +416,8 @@ static void done(struct dwc2_ep *ep, struct dwc2_request *req, int status)
 	/* don't modify queue heads during completion callback */
 	ep->stopped = 1;
 
-#ifdef DEBUG
+//#ifdef DEBUG
+#if 1
 	printf("calling complete callback\n");
 	{
 		int i, len = req->req.length;

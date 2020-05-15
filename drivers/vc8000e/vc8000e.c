@@ -7,11 +7,11 @@
 /*************************************************
 ** VC8000E IP specific definitions
 **************************************************/
-#define CORE_0_IO_ADDR		VC8000E_REG_BASE
+#define CORE_0_IO_ADDR		0xe7830000
 #define CORE_0_IO_SIZE		(272*4)
-#define INT_PIN_CORE_0		197
+#define INT_PIN_CORE_0		410
 
-#define SADEC_AFBC_BASE 0xbc040000
+#define SADEC_AFBC_BASE 0xe7840000
 #define SADEC_AFBC_SIZE 0x204
 #define AFBC_DECODER_ID 0x0301
 

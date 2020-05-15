@@ -11,5 +11,8 @@ config COMMON_C_LIB
         bool "Enable common C lib for memmove function"
         default n
 
+config MEM_FUNC_OPTIMIZE
+	bool "Optimize memmove, memset and memcpy"
+
 endmenu
 

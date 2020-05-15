@@ -2,6 +2,7 @@
 #include <target/console.h>
 #include <errno.h>
 #include <target/utils.h>
+#include <target/clk.h>
 #include "dw16550.h"
 
 #define UART_LCRVAL UART_LCR_8N1		/* 8 data, 1 stop, no parity */
@@ -160,6 +161,7 @@ static uint8_t uart_dw_read_byte(void)
 #define dw_uart_clk 25000000//need to confirm with HW,25MHz suppose
 static void uart_dw_ctrl_init(void)
 {
+	clk_enable(PERI1_UART0_CLK, 1);
 	g_com_port = (DW16550_t)UART_BASE(0);
 	DW16550_init(g_com_port);
 	DW16550_serial_setconfig(g_com_port, UART_DEF_PARAMS);
@@ -206,7 +208,7 @@ static void dw_check_irq(DW16550_t client_com_port, int irq)
 	}
 }
 
-static void dw_handle_irq(void)
+static void dw_handle_irq(irq_t irq, void *ctx)
 {
 	dw_check_irq(g_com_port, UART_IER_RDI);
 
@@ -226,7 +228,7 @@ static void uart_dw_irq_init(bool enable)
 	} else {
 		dw_disable_all_irqs(g_com_port);
 		irqc_configure_irq(uart_irq, 32, IRQ_LEVEL_TRIGGERED);
-		irq_register_vector(uart_irq, dw_handle_irq);
+		irq_register_vector(uart_irq, dw_handle_irq, NULL);
 		irqc_enable_irq(uart_irq);
 		dw_mask_irq(g_com_port, UART_IER_RDI);
 	}

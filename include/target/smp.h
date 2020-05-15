@@ -4,9 +4,10 @@
 #define __TESTOS_SMP_H_INCLUDE__
 
 #include <target/cache.h>
-#include <target/cpus.h>
 
 #define NR_CPUS		MAX_CPU_NUM
+
+#include <asm/cpus.h>
 
 #include <asm/smp.h>
 
@@ -17,6 +18,9 @@
 #define __cache_aligned		__aligned(SMP_CACHE_BYTES)
 
 #ifndef __ASSEMBLY__
+
+extern unsigned long cpus_boot_cpu;
+
 unsigned int plat_my_core_pos(void);
 #endif
 

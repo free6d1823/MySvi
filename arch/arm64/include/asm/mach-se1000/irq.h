@@ -5,8 +5,8 @@
 
 #include <target/barrier.h>
 
-#define UART_CON_IRQ			(111)
-#define DW_WDT_TRQ(n)				(82 + n)
+#define UART_CON_IRQ			(90)
+#define DW_WDT_TRQ(n)				(81 + n)
 
 /* =================================================================
  * QGICv3 IRQs (APC IRQS)

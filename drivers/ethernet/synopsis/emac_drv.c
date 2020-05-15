@@ -1560,6 +1560,12 @@ void emac_get_feature(u64 base_addr)
 	printf("Rx Queues number=%d\n",
 				((emac_dev.feature2 & GENMASK(3, 0)) >> 0) + 1);
 
+	/* show AVB ability*/
+	printf("\nshow AVB ability\n");
+	reg = (emac_dev.feature1 & GENMASK(20, 20)) >> 20;
+	printf("AV feature is %s\n",
+				reg ? "enabled" : "disabled");
+
 	/* show PTP ability*/
 	printf("\nshow PTP ability\n");
 	reg = (emac_dev.feature0 & GENMASK(26, 25)) >> 25;
@@ -1663,10 +1669,82 @@ static void mac_set_mtl_tx_queue_weight(struct net_local* lp,
 	dwceqos_write(lp, MTL_TXQX_WEIGHT_BASE_ADDR(queue), value);
 }
 
-
-static void mac_configure_cbs(struct net_local* lp)
+void emac_show_CBS_info(struct net_local* lp, u32 queue)
 {
-	/* stub function for cbs/avb configuration*/
+	u32 sendslope, idleslope, hicredit, locredit, absvalue;
+	void __iomem *ioaddr = lp->baseaddr;
+
+	sendslope = readl(ioaddr + MTL_SEND_SLP_CREDX_BASE_ADDR(queue));
+	idleslope = readl(ioaddr + MTL_TXQX_WEIGHT_BASE_ADDR(queue));
+	hicredit  = readl(ioaddr + MTL_HIGH_CREDX_BASE_ADDR(queue));
+	locredit  = readl(ioaddr + MTL_LOW_CREDX_BASE_ADDR(queue));
+	absvalue  = readl(ioaddr + MTL_ETSX_STATUS_BASE_ADDR(queue));
+	/*printf("CBS queue %d: send %d, idle %d, hi %d, lo %d\n",
+			queue, sendslope, idleslope,
+			hicredit, locredit);*/
+	printf("Queue %d Average traffic transmitted is %d\n",
+					queue, absvalue);
+}
+
+static void dwmac4_qmode(void __iomem *ioaddr, u32 channel, u8 qmode)
+{
+	u32 mtl_tx_op = readl(ioaddr + MTL_CHAN_TX_OP_MODE(channel));
+
+	mtl_tx_op &= ~MTL_OP_MODE_TXQEN_MASK;
+	if (qmode != MTL_QUEUE_AVB)
+		mtl_tx_op |= MTL_OP_MODE_TXQEN;
+	else
+		mtl_tx_op |= MTL_OP_MODE_TXQEN_AV;
+
+	writel(mtl_tx_op, ioaddr +  MTL_CHAN_TX_OP_MODE(channel));
+}
+
+static void mac_configure_cbs(struct net_local* lp,
+			      u32 send_slope, u32 idle_slope,
+			      u32 high_credit, u32 low_credit, u32 queue)
+{
+	void __iomem *ioaddr = lp->baseaddr;
+	u32 value;
+
+	printf("Queue %d configured as AVB. Parameters:\n", queue);
+	printf("\tsend_slope: 0x%08x\n", send_slope);
+	printf("\tidle_slope: 0x%08x\n", idle_slope);
+	printf("\thigh_credit: 0x%08x\n", high_credit);
+	printf("\tlow_credit: 0x%08x\n", low_credit);
+
+	dwmac4_qmode(ioaddr, queue, MTL_QUEUE_AVB);
+	/* enable AV algorithm */
+	value = readl(ioaddr + MTL_ETSX_CTRL_BASE_ADDR(queue));
+	value |= MTL_ETS_CTRL_AVALG;
+	value |= MTL_ETS_CTRL_CC;
+	writel(value, ioaddr + MTL_ETSX_CTRL_BASE_ADDR(queue));
+
+	/* configure send slope */
+	value = readl(ioaddr + MTL_SEND_SLP_CREDX_BASE_ADDR(queue));
+	value &= ~MTL_SEND_SLP_CRED_SSC_MASK;
+	value |= send_slope & MTL_SEND_SLP_CRED_SSC_MASK;
+	writel(value, ioaddr + MTL_SEND_SLP_CREDX_BASE_ADDR(queue));
+
+	/* configure idle slope (same register as tx weight) */
+	{
+		value = readl(ioaddr + MTL_TXQX_WEIGHT_BASE_ADDR(queue));
+
+		value &= ~MTL_TXQ_WEIGHT_ISCQW_MASK;
+		value |= idle_slope & MTL_TXQ_WEIGHT_ISCQW_MASK;
+		writel(value, ioaddr + MTL_TXQX_WEIGHT_BASE_ADDR(queue));
+	}
+
+	/* configure high credit */
+	value = readl(ioaddr + MTL_HIGH_CREDX_BASE_ADDR(queue));
+	value &= ~MTL_HIGH_CRED_HC_MASK;
+	value |= high_credit & MTL_HIGH_CRED_HC_MASK;
+	writel(value, ioaddr + MTL_HIGH_CREDX_BASE_ADDR(queue));
+
+	/* configure low credit */
+	value = readl(ioaddr + MTL_LOW_CREDX_BASE_ADDR(queue));
+	value &= ~MTL_HIGH_CRED_LC_MASK;
+	value |= low_credit & MTL_HIGH_CRED_LC_MASK;
+	writel(value, ioaddr + MTL_LOW_CREDX_BASE_ADDR(queue));
 	return;
 }
 
@@ -1782,6 +1860,7 @@ void emac_init_hw_mtl(struct net_local* emac_dev,
 	u32 weight, queue;
 	u32 rx_queues_count;
 	u32 tx_queues_count;
+	u32 mode_to_use;
 
 	weight = emac_MTL_cfg->tx_weight;
 	rx_queues_count = emac_MTL_cfg->rx_queues_count;
@@ -1807,8 +1886,20 @@ void emac_init_hw_mtl(struct net_local* emac_dev,
 					emac_MTL_cfg->tx_sched_algorithm);
 
 	/* Configure CBS in AVB TX queues */
-	if (tx_queues_count > 1)
-		mac_configure_cbs(emac_dev);
+	if (tx_queues_count > 1) {
+		for (queue = 0; queue < tx_queues_count; queue++) {
+			mode_to_use = emac_MTL_cfg->tx_queues_cfg[queue].mode_to_use;
+			if (mode_to_use != MTL_QUEUE_AVB)
+				continue;
+
+			mac_configure_cbs(emac_dev,
+					emac_MTL_cfg->tx_queues_cfg[queue].send_slope,
+					emac_MTL_cfg->tx_queues_cfg[queue].idle_slope,
+					emac_MTL_cfg->tx_queues_cfg[queue].high_credit,
+					emac_MTL_cfg->tx_queues_cfg[queue].low_credit,
+					queue);
+		}
+	}
 
 	/* Map RX MTL to DMA channels */
 	{

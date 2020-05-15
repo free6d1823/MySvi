@@ -5,22 +5,8 @@
 #include <errno.h>
 #include <target/timer.h>
 #include <asm/mach/memory.h>
+#include <asm/reg.h>
 
-/* following defines should be used for structure members */
-#define     __IM     volatile const      /*! Defines 'read only' structure member permissions */
-#define     __OM     volatile            /*! Defines 'write only' structure member permissions */
-#define     __IOM    volatile            /*! Defines 'read / write' structure member permissions */
-
-
-typedef struct
-{
-  __IOM uint32_t CTRL;                   /*!< Offset: 0x000 (R/W)  SysTick Control and Status Register */
-  __IOM uint32_t LOAD;                   /*!< Offset: 0x004 (R/W)  SysTick Reload Value Register */
-  __IOM uint32_t VAL;                    /*!< Offset: 0x008 (R/W)  SysTick Current Value Register */
-  __IM  uint32_t CALIB;                  /*!< Offset: 0x00C (R/ )  SysTick Calibration Register */
-} SysTick_Type;
-
-#define     SysTick                      ((SysTick_Type   *)SysTick_BASE  )   /*!< SysTick configuration struct */
 #define     SYSTICK_CTRL_ENA             (1<<0)
 #define     SYSTICK_CTRL_TINT            (1<<1)
 #define     SYSTICK_CTRL_COUNTFLAG       (1<<16)

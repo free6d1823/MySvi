@@ -5,6 +5,12 @@
 #include <target/irq.h>
 #include <target/smp.h>
 
+/*
+ * The always-on domain controls:
+ * sleep timer, power controller, clock controller, interrupt controller,
+ * watchdog timer, global timer, registers, SPMI interface.
+ */
+
 uint64_t __systick_read(void)
 {
 	return read_sysreg(CNTPCT_EL0);
@@ -36,6 +42,7 @@ static inline void __systick_reset_counter(void)
 
 void __systick_init_counter(void)
 {
+	 /*set CNTFRQ_EL0 register equal to the clock frequency of the system counter*/
 	write_sysreg(ARCH_TIMER_FREQUENCY, CNTFRQ_EL0);
 
 	/* CNTPCT_EL0 is always accessible from EL3,
@@ -58,6 +65,7 @@ ktime_t tsc_hw_read_counter(void)
 
 	return (ktime_t)(ticks / TICKS_TO_MICROSECONDS);
 }
+
 
 void __systick_init_timer(void)
 {
@@ -89,3 +97,46 @@ void gpt_hw_oneshot_timeout(ktime_t match_val)
 	write_sysreg(match_val_ticks, CNTPS_CVAL_EL1);
 	__systick_unmask_irq();
 }
+
+
+
+void mpm_global_counter_enable(void)
+{
+	#ifdef ARCH_CENTRIQ
+	/*HWIO_OUTF(MPM_CONTROL_CNTCR, EN, 0x1);*/
+	#endif
+}
+
+void tsc_hw_ctrl_init(void)
+{
+	if (smp_processor_id() >= NR_CPUS)
+		mpm_global_counter_enable();
+	__systick_init_counter();
+}
+
+static void timer_handle_irq(irq_t irq, void *ctx)
+{
+	__systick_mask_irq();
+	timer_handle_interrupt();
+}
+
+#ifndef CONFIG_IRQ_POLLING
+void gpt_hw_irq_init(void)
+{
+	irq_t tirq;
+	uint8_t cpu = smp_processor_id();
+	tirq = IRQ_PTIMER3;
+
+	if (cpu == cpus_boot_cpu)
+		irq_register_vector(tirq, timer_handle_irq, NULL);
+
+	irqc_configure_irq(tirq, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_enable_irq(tirq);
+}
+#endif
+
+void gpt_hw_ctrl_init(void)
+{
+	__systick_init_timer();
+}
+

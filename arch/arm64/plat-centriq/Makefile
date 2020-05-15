@@ -1,7 +1,6 @@
 ﻿obj-y :=
 
 obj-y += plat.o
-obj-y += qtmr.o
 obj-y += clk_ctl.o
 obj-y += fabia.o
 obj-y += agera.o

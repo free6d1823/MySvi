@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <target/memory.h>
 #include <target/cache.h>
-#include <target/cpus.h>
 #include <asm/mmu.h>
 
 

@@ -27,6 +27,18 @@ struct f_gser {
 	u8				port_num;
 };
 
+
+#ifndef pr_fmt
+#define pr_fmt(fmt) fmt
+#endif
+
+#define debug_cond(cond, fmt, args...)			\
+	do {						\
+		if (cond)				\
+			printf(pr_fmt(fmt), ##args);	\
+	} while (0)
+
+#define dev_dbg   debug_cond
 static inline struct f_gser *func_to_gser(struct usb_function *f)
 {
 	return container_of(f, struct f_gser, port.func);
@@ -139,34 +151,54 @@ static struct usb_gadget_strings *gser_strings[] = {
 };
 
 
+static struct usb_endpoint_descriptor *
+fb_ep_desc(struct usb_gadget *g, struct usb_endpoint_descriptor *fs,
+	    struct usb_endpoint_descriptor *hs)
+{
+	if (gadget_is_dualspeed(g) && g->speed == USB_SPEED_HIGH)
+		return hs;
+	return fs;
+}
+
+
 /*-------------------------------------------------------------------------*/
 
 static int gser_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 {
 	struct f_gser		*gser = func_to_gser(f);
 	struct usb_composite_dev *cdev = f->config->cdev;
+	struct usb_gadget *gadget = cdev->gadget;
+	const struct usb_endpoint_descriptor *d;
+	int	   ret;
 
 	/* we know alt == 0, so this is an activation or a reset */
 
 	if (gser->port.in->enabled) {
-		//temp 
-		//dev_dbg(&cdev->gadget->dev,
-		//	"reset generic ttyGS%d\n", gser->port_num);
+		//temp
+		dev_dbg(cdev!=0,
+			"reset generic ttyGS%d\n", gser->port_num);
 		gserial_disconnect(&gser->port);
 	}
+
 	if (!gser->port.in->desc || !gser->port.out->desc) {
-		//dev_dbg(&cdev->gadget->dev,
-		//	"activate generic ttyGS%d\n", gser->port_num);
-		//?? temp remove
-		//if (config_ep_by_speed(cdev->gadget, f, gser->port.in) ||
-		//    config_ep_by_speed(cdev->gadget, f, gser->port.out)) {
-		//	gser->port.in->desc = NULL;
-		//	gser->port.out->desc = NULL;
-		//	return -EINVAL;
-		//}
+		dev_dbg(cdev!=0,
+			"activate generic ttyGS%d\n", gser->port_num);
+
+			d = fb_ep_desc(gadget, &gser_fs_in_desc, &gser_hs_in_desc);	
+			ret = usb_ep_enable(gser->port.in, d);
+			if (ret < 0)
+				return ret;
+			d = fb_ep_desc(gadget, &gser_fs_out_desc, &gser_hs_out_desc);
+			ret = usb_ep_enable(gser->port.out, d);
+			if (ret < 0)
+				goto fail_out;
 	}
-	gserial_connect(&gser->port, gser->port_num);
-	return 0;
+
+	ret = gserial_connect(&gser->port, gser->port_num);
+	return ret;
+fail_out:
+	usb_ep_disable(gser->port.in);
+	return ret;
 }
 
 static void gser_disable(struct usb_function *f)
@@ -174,8 +206,8 @@ static void gser_disable(struct usb_function *f)
 	struct f_gser	*gser = func_to_gser(f);
 	struct usb_composite_dev *cdev = f->config->cdev;
 	//temp remove
-	//dev_dbg(&cdev->gadget->dev,
-	//	"generic ttyGS%d deactivated\n", gser->port_num);
+	dev_dbg(cdev!=0,
+		"generic ttyGS%d deactivated\n", gser->port_num);
 	gserial_disconnect(&gser->port);
 }
 
@@ -237,11 +269,11 @@ static int gser_bind(struct usb_configuration *c, struct usb_function *f)
 	if (status)
 		goto fail;
 	// temp remove
-	//dev_dbg(&cdev->gadget->dev, "generic ttyGS%d: %s speed IN/%s OUT/%s\n",
-	//	gser->port_num,
-	//	gadget_is_superspeed(c->cdev->gadget) ? "super" :
-	//	gadget_is_dualspeed(c->cdev->gadget) ? "dual" : "full",
-	//	gser->port.in->name, gser->port.out->name);
+	dev_dbg(cdev!=0, "generic ttyGS%d: %s speed IN/%s OUT/%s\n",
+		gser->port_num,
+		//gadget_is_superspeed(c->cdev->gadget) ? "super" :
+		gadget_is_dualspeed(c->cdev->gadget) ? "dual" : "full",
+		gser->port.in->name, gser->port.out->name);
 	return 0;
 
 fail:

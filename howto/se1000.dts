@@ -17,13 +17,13 @@
 		device_type = "memory";
 	};
 
-	uart@c1200000 {
+	uart@e9490000 {
 		device_type = "serial";
 		compatible = "ns16550a";
-		reg = <0x0 0xc1200000 0x0 0x10000>;
+		reg = <0x0 0xe9490000 0x0 0x10000>;
 		clocks = <&apbclk>;
 		current-speed = <115200>;
-		interrupts = <0 79 4>;
+		interrupts = <0 58 4>;
 		baud = <115200>;
 		reg-shift = <2>;
 		reg-io-width = <4>;
@@ -31,9 +31,9 @@
 	};
 
 	/* UFS */
-	ufs: ufs@a4030000 {
+	ufs: ufs@e35c0000 {
 		compatible = "snps,g210-tc-6.00-20bit";
-		reg = <0x0 0xa4030000 0x0 0x10000>;
+		reg = <0x0 0xe35c0000 0x0 0x10000>;
 		interrupts = <0 0 4>;
 		clocks = <&ufsclk>, <&ufsclk>;
 		clock-names = "ref_clk", "phy_clk";
@@ -49,9 +49,9 @@
 	};
 
 	/* dwc-mshc */
-	sdhci: sdhci@a4020000 {
+	sdhci: sdhci@e3c00000 {
 		compatible = "snps,dwcmshc-sdhci";
-		reg = <0x0 0xa4020000 0x0 0x10000>;
+		reg = <0x0 0xe3c00000 0x0 0x10000>;
 		interrupts = <0 2 4>;
 		clocks = <&mshcclk>;
 		clock-names = "core";
@@ -65,10 +65,10 @@
 		compatible = "fixed-clock";
 	};
 
-	intc@b6000000 {
+	intc@50000000 {
 		phandle = <0x8001>;
 		interrupts = <0x1 0x9 0x4>;
-		reg = <0x0 0xb6000000 0x0 0x10000 0x0 0xb6060000 0x0 0x200000>;
+		reg = <0x0 0x50000000 0x0 0x10000 0x0 0x50060000 0x0 0x200000>;
 		#redistributor-regions = <0x1>;
 		compatible = "arm,gic-v3";
 		ranges;
@@ -157,6 +157,6 @@
 	chosen {
 		linux,initrd-start = <0x64000000>;
 		linux,initrd-end = <0x6427d7e0>;
-		stdout-path = "/uart@c1200000";
+		stdout-path = "/uart@e9490000";
 	};
 };

@@ -1,0 +1,12 @@
+1.Installation of Python and packages
+(1).download python3.8 from https://www.python.org/ftp/python/3.8.2/python-3.8.2-amd64.exe
+(2).install
+(3).open command window
+    cd /path/to/python/Scripts
+    python -m pip install --upgrade pip
+    pip install opencv-python
+    pip install pillow
+
+2.produce the required bin file.
+(1).open command window
+    python png2bin.py /path/to/*.png

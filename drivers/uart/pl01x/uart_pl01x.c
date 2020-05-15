@@ -76,11 +76,11 @@ static uint8_t pl01x_read_byte(void)
 	return pl01x_read_data(UART_CON_ID);
 }
 
-static void pl01x_handle_irq(void)
+static void pl01x_handle_irq(irq_t irq, void *ctx)
 {
 	//irqc_disable_irq(uart_irq);
 	pl01x_clear_irq(UART_CON_ID, pl01x_irq_status(UART_CON_ID));
-	//pl01x_unmask_irq(UART_CON_ID, UART_RXI);
+	//pl01x_unmask_irq(UART_CON_ID, UART_RXI | UART_RTI);
 	console_handle_irq();
 }
 
@@ -94,9 +94,9 @@ static void pl01x_irq_init(bool enable)
 	} else {
 		pl01x_disable_all_irqs(UART_CON_ID);
 		irqc_configure_irq(uart_irq, 32, IRQ_LEVEL_TRIGGERED);
-		irq_register_vector(uart_irq, pl01x_handle_irq);
+		irq_register_vector(uart_irq, pl01x_handle_irq, NULL);
 		irqc_enable_irq(uart_irq);
-		pl01x_mask_irq(UART_CON_ID, UART_RXI);
+		pl01x_mask_irq(UART_CON_ID, UART_RXI | UART_RTI);
 	}
 }
 
@@ -110,12 +110,16 @@ void pl01x_irq_exit(void)
 
 static void pl01x_irq_ack(void)
 {
-	//pl01x_mask_irq(UART_CON_ID, UART_RXI);
+	//pl01x_mask_irq(UART_CON_ID, UART_RXI | UART_RTI);
 	//irqc_enable_irq(uart_irq);
 }
 
 static void pl01x_init()
 {
+#ifndef CONFIG_PL01X_SBSA
+	pl01x_config_params(UART_CON_ID, UART_DEF_PARAMS);
+	pl01x_config_baudrate(UART_CON_ID, 100000000, UART_CON_BAUDRATE);
+#endif
 	pl01x_uart_enable(UART_CON_ID);
 	pl01x_ctrl_enable(UART_CON_ID);
 }

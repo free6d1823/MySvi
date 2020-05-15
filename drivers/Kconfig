@@ -124,6 +124,7 @@ source drivers/GICv2/Kconfig
 source drivers/sae_smmu/Kconfig
 source drivers/arm_smmu/Kconfig
 source drivers/ethernet/synopsis/Kconfig
+source drivers/clk/Kconfig
 source drivers/hidma/Kconfig
 source drivers/usb2/Kconfig
 source drivers/ufs/Kconfig
@@ -140,7 +141,6 @@ source drivers/gc355/Kconfig
 source drivers/gc520/Kconfig
 source drivers/vc8000e/Kconfig
 source drivers/vc8000d/Kconfig
-source drivers/gdc/Kconfig
 
 endmenu
 

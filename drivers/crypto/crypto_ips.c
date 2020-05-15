@@ -162,7 +162,7 @@ void ips_irq_process()
 
 
 }
-void ips_irq_handle(void)
+void ips_irq_handle(irq_t irq, void *ctx)
 {
 	irq_t ips_irq = SE_IPS_IRQ;
 	//irqc_disable_irq(ips_irq);
@@ -177,7 +177,7 @@ void ips_irq_init()
 	disable_vf0_irq();
 	set_intr_threshold_value();
 	irqc_configure_irq(ips_irq, 32, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(ips_irq, ips_irq_handle);
+	irq_register_vector(ips_irq, ips_irq_handle, NULL);
 	irqc_enable_irq(ips_irq);
 	enable_vf0_irq();
 	//printf("ips irq end initialzie \n");

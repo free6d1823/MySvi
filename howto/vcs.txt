@@ -1,18 +1,40 @@
-1. setup your account (icdesign group) which can login IC security zone
+1.turn on optimizations for size and speed and BSS_IN_DATA setion, and then compile svi:
+  make se1000_defconfig
+  make menuconfig
+  Generic setup ->[*] Allocate BSS in DATA section
+                  [*] Optimize for size
+                  [*] Optimize for speed
+  make clean;make
 
-2. Use NoMachine to login
+2.prepare hex files: init.file.(0/1/...).hex and vdkrom.hex
+   cd ./howto/
+   make vcs
+   ./bin4zebu.sh vdkrom
 
-3. download the RTL of se1000 w/ the following command
-   source /ic/eda_tools/bin/git-env-init.csh
-   git clone icgit@seicgit:/ic/git/se1000.git
-   git checkout dev_top
+3. setup your account (icdesign group) which can login IC security zone
 
-4. complile the tb w/ the following command
+4. Use NoMachine to login
+
+5. download the RTL of se1000 w/ the following command
+   git clone "http://icgerrit.siengine.com/design"
+   git checkout se1000
+
+   git clone "http://icgerrit.siengine.com/verification"
+   git checkout se1000
+
+6. cd design
+   git reset --hard 89290ad11
+   ln -s verification/verif
+
+7. upload init.file.(0/1/...).hex and vdkrom.hex to design/verif/basic_soc_sim_ap/execution_tb/
+   mv vdkrom.hex ./images/image_boot.hex
+
+8. complile the tb w/ the following command
    module load se1000
-   se1000/>  source set_env.csh
-   se1000/verif/basic_soc_sim_ap/execution_tb/> make compile
+   design/>  source set_env.csh
+   design/verif/basic_soc_sim_ap/execution_tb/> make compile
 
-5. run tb with svi at se1000/verif/basic_soc_sim_ap/execution_tb/
+9. run tb with svi at se1000/verif/basic_soc_sim_ap/execution_tb/
    image_boot.bin is svi/howto/vdkrom
    image_test.bin is "howto/bin4vcs.sh arch/arm64/boot/hvep.bin"
       It is 64k.bin+hvep.bin, hvep is loaded at 0x10000
@@ -20,9 +42,9 @@
    make run all_cpu=1   #run the simulation w/ all CPU
    make run fsdb=1      #run the simulation and dump the waveform
 
-6. debug the waveform with Verdi
+10. debug the waveform with Verdi
    bsub -Is verdi -q -nologo -dbdir simv.daidir
-   open test.fsdb in verdi
+   open test.fsdb in verdif
    signal:
       se1000_inst/u_ap_ss/acem0_w*
       se1000_inst/u_ap_ss/acem0_aw*

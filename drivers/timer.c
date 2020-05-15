@@ -33,7 +33,7 @@ void timer_raise_event(uint8_t event)
 	dsr_schedule(cpu_clkevts[cpu].dsr);
 }
 
-void timer_dsr_handler(void)
+void timer_dsr_handler(void* ctx)
 {
 	uint8_t cpu = hmp_processor_id();
 	uint8_t events = cpu_clkevts[cpu].events;
@@ -88,9 +88,12 @@ tid_t timer_register(uint8_t type, timer_handler handler)
 
 static void timer_trigger(struct timer_desc *timer)
 {
+	uint8_t cpu = hmp_processor_id();
+	tid_t timer_id = (timer - &cpu_clkevts[cpu].timer_obj_caches[0]);
+
 	timer->shot = false;
 	if (timer->handler)
-		timer->handler();
+		timer->handler(&timer_id);
 }
 
 static void timer_start_poll(void)
@@ -128,6 +131,7 @@ bool timer_set(tid_t tid, ktime_t time, bool relative)
 	struct timer_queue *timer_list = &cpu_clkevts[cpu].timer_list;
 	struct timer_desc *timer = &cpu_clkevts[cpu].timer_obj_caches[tid];
 	ktime_t current_time = time_get_current_time();
+	tid_t timer_id;
 
 	if (relative) {
 		/* Sanity check overflow if relative time */
@@ -209,6 +213,7 @@ void timer_handle_interrupt(void)
 	uint8_t cpu = hmp_processor_id();
 	struct timer_queue *timer_list = &cpu_clkevts[cpu].timer_list;
 	uint64_t current_time = time_get_current_time();
+	tid_t timer_id;
 
 	timer = list_first_entry(&timer_list->head, struct timer_desc,
 				 timer_list_entry);
@@ -217,35 +222,76 @@ void timer_handle_interrupt(void)
 		if (timer->type == TIMER_ISR) {
 			__timer_clear(cpu, timer);
 			timer_trigger(timer);
-		} else {
-			timer->shot = true;
-			timer_raise_event(TIMER_EVENT_TIMEOUT);
+
+		        /* See if the next timer has also fired */
+		        timer = list_first_entry(&timer_list->head,
+					         struct timer_desc,
+					         timer_list_entry);
+                } else {
+
+						timer->shot = true;
+						timer_raise_event(TIMER_EVENT_TIMEOUT);
+
+                        /* See if the next timer has also fired
+		        		timer = list_first_entry(&timer->timer_list_entry,
+					         		struct timer_desc,
+					         		timer_list_entry); */
+
+						/*find the next if the next is not the last one*/
+						if(!list_is_last(&timer->timer_list_entry, &timer_list->head)){
+							timer = list_entry(timer->timer_list_entry.next,
+								struct timer_desc, timer_list_entry);
+						}else{
+							timer = NULL;
+						}
 		}
 
-		/* See if the next timer has also fired */
+		/* See if the next timer has also fired
 		timer = list_first_entry(&timer_list->head,
 					 struct timer_desc,
-					 timer_list_entry);
+					 timer_list_entry); */
 	}
 }
 
 static void timer_handle_timeout(void)
 {
-	struct timer_desc *timer;
+	struct timer_desc *timer, *next_timer = NULL;
 	uint8_t cpu = hmp_processor_id();
 	struct timer_queue *timer_list = &cpu_clkevts[cpu].timer_list;
+	tid_t timer_id;
 
 	timer = list_first_entry(&timer_list->head, struct timer_desc,
 				 timer_list_entry);
-	while (timer != NULL && timer->type == TIMER_DSR &&
-	       timer->shot) {
-		__timer_clear(cpu, timer);
-		timer_trigger(timer);
+	while (timer != NULL) {
 
-		/* See if the next timer has also fired */
+		if(!list_is_last(&timer->timer_list_entry, &timer_list->head)){
+			next_timer = list_entry(timer->timer_list_entry.next,
+								struct timer_desc, timer_list_entry);
+		}else{
+			next_timer = NULL;
+		}
+
+		if(timer->type == TIMER_DSR && timer->shot){
+			list_del_init(&timer->timer_list_entry);
+			/*__timer_clear(cpu, timer); */
+			timer_trigger(timer);
+		}
+
+		timer = next_timer;
+
+		/* See if the next timer has also fired
 		timer = list_first_entry(&timer_list->head,
 					 struct timer_desc,
-					 timer_list_entry);
+					 timer_list_entry); */
+	}
+
+	/*After all the timer in the list has been checked, find the
+	 *youngest timer to set the hardware timer.
+	 */
+	timer = list_first_entry(&timer_list->head, struct timer_desc,
+				 timer_list_entry);
+	if(timer != NULL){
+		gpt_hw_oneshot_timeout(timer->match_time);
 	}
 }
 
@@ -263,7 +309,7 @@ int timer_init(void)
 	uint8_t cpu = hmp_processor_id();
 
 	INIT_LIST_HEAD(&cpu_clkevts[cpu].timer_list.head);
-	cpu_clkevts[cpu].dsr = dsr_register(timer_dsr_handler);
+	cpu_clkevts[cpu].dsr = dsr_register(timer_dsr_handler, NULL);
 	gpt_hw_ctrl_init();
 #ifdef CONFIG_IRQ_POLLING
 	timer_raise_event(TIMER_EVENT_POLL);
@@ -273,33 +319,117 @@ int timer_init(void)
 	return 0;
 }
 
-#define GLOBAL_LOCK_TEST_TIMEOUT	(100)
+#include <string.h>
+#include <stdlib.h>
 
-static tid_t test_timer_id;
+#define GLOBAL_LOCK_TEST_TIMEOUT	(1000000) /*default value */
+/*save all the timer ids which have been used*/
+typedef struct test_timer_tids{
+	uint8_t max_timers_used;
+	tid_t ids[MAX_TIMERS];
+	ktime_t periodic_times[MAX_TIMERS];
+} test_timer_tids;
 
+static test_timer_tids register_tids;
+
+#if 0
 static void test_timer_reset(void)
 {
 	timer_set(test_timer_id,
 		GLOBAL_LOCK_TEST_TIMEOUT, true);
 }
+#endif
 
-static void test_timer_handler(void)
+static void test_timer_handler(void* tid)
 {
-	printf("I'm DSR timer handler\n");
-	test_timer_reset();
+	tid_t timer_id = *((tid_t*)tid);
+	printf("I am a dsr timer #%d\n",timer_id);
+	/*set the timer for the next time*/;
+	timer_set(timer_id, register_tids.periodic_times[timer_id], true);
 }
 
+static bool __test_timer_do_register(uint8_t type, timer_handler handler, ktime_t periodic_time, tid_t *tid)
+{
+	tid_t timer_id = 0;
+	bool ret = false;
+	ktime_t set_time = 0;
+
+	timer_id = timer_register(TIMER_DSR, test_timer_handler);
+	if(periodic_time == 0){
+		set_time = GLOBAL_LOCK_TEST_TIMEOUT;
+	}else{
+		set_time = periodic_time;
+	}
+
+	if(timer_id != INVALID_TID){
+		ret = true;
+		*tid = timer_id;
+		timer_set(timer_id, set_time, true);
+	}else{
+		ret = false;
+		*tid = 0;
+		printf("out of timers\n");
+	}
+
+	return ret;
+}
+
+//test_timer_id
 
 static int test_timer(int argc, char * argv[])
 {
-	test_timer_id = timer_register(TIMER_DSR,
-		test_timer_handler);
-	test_timer_reset();
+	uint32_t i = 0;
+
+	if(argc == 1){
+		if(true == __test_timer_do_register(TIMER_DSR,
+			test_timer_handler, 0,
+			&register_tids.ids[register_tids.max_timers_used]) ){
+
+			register_tids.periodic_times[register_tids.max_timers_used] =
+				GLOBAL_LOCK_TEST_TIMEOUT;
+			register_tids.max_timers_used++;
+		}
+	}else{
+		if(!strcmp(argv[1], "off")){
+			/*clear all the timers*/
+			for(i = 0; i < register_tids.max_timers_used; i++) {
+				if(register_tids.periodic_times[i] != 0){
+					timer_clear(register_tids.ids[i]);
+					register_tids.periodic_times[i] = 0;
+				}
+
+			}
+		}else if(!strcmp(argv[1], "ptime")){
+			if(argc >= 3){
+				ktime_t ptime = strtoul(argv[2], 0, 0);
+				if(ptime > 0 && __test_timer_do_register(TIMER_DSR,
+					test_timer_handler, ptime,
+					&register_tids.ids[register_tids.max_timers_used])){
+
+					register_tids.periodic_times[register_tids.max_timers_used] = ptime;
+					register_tids.max_timers_used++;
+
+				}
+
+			}else{
+				printf("command wrong parameter\n");
+			}
+
+		}else{
+			printf("command wrong parameter\n");
+		}
+
+	}
+	/*if timer-off, call timer_clear function*/
 	return 0;
 }
 
 
 MK_CMD(timer, test_timer, "dsr timer test",
-		"begin dsr tmr test"
-		"---- enable dsr timer with tick counter ----"
+		"timer "
+		"--create dsr timer with default periodic time\n"
+		"timer ptime [n]"
+		"--create dsr timer with the specific periodic time\n"
+		"timer off"
+		"--clear all the timer actived\n"
 );

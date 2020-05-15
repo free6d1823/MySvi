@@ -54,7 +54,7 @@ void ate_test_step(uint64_t *results)
 
 static int ate_dsr;
 
-static void ate_dsr_handler(void)
+static void ate_dsr_handler(void* ctx)
 {
 	testos_entry_cb entry;
 
@@ -82,7 +82,7 @@ int testos_main(void)
 
 	ate_setup.test_entry = (uint64_t)ate_test_bad;
 	ate_setup.test_entry = (uint64_t)ate_test_good;
-	ate_dsr = dsr_register(ate_dsr_handler);
+	ate_dsr = dsr_register(ate_dsr_handler, NULL);
 	ate_running = true;
 	dsr_schedule(ate_dsr);
 	return 0;

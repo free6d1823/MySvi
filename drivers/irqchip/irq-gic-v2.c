@@ -13,7 +13,7 @@ static inline void gicd_enable_irq(irq_t irq)
 }
 static inline void gicd_disable_irq(irq_t irq)
 {
-	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ICENABLER(dist_base, irq));
+	__raw_writel(GIC_INTERRUPT_ID(irq), GICD_ICENABLER(dist_base, irq));
 }
 static inline void gicd_enable_all_irqs(irq_t max_irq)
 {
@@ -31,11 +31,11 @@ static inline void gicd_disable_all_irqs(irq_t max_irq)
 }
 static inline void gicd_trigger_irq(irq_t irq)
 {
-	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ISPENDR(dist_base, irq));
+	__raw_writel(GIC_INTERRUPT_ID(irq), GICD_ISPENDR(dist_base, irq));
 }
 static inline void gicd_clear_irq(irq_t irq)
 {
-	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ICPENDR(dist_base, irq));
+	__raw_writel(GIC_INTERRUPT_ID(irq), GICD_ICPENDR(dist_base, irq));
 }
 static inline void gicd_configure_irq(irq_t irq, uint8_t priority, uint8_t trigger)
 {

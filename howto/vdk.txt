@@ -8,9 +8,6 @@ dtc -I dts -O dtb se1000.dts >se1000.dtb
 ./bin2elf.sh ~/linux/arch/arm64/boot/Image 0x60280000
 ./bin2elf.sh rootfs.cpio.gz 0x64000000
 
-vdkrom.elf is provided by default.
-./bin2elf.sh vdkrom 0xa4000000
-
 2. set the Images config of VDK
 add hvep, se1000.dtb.elf, Image.elf, vdkrom.elf, rootfs.cpio.gz.elf into the initial_image of AP_SS
 

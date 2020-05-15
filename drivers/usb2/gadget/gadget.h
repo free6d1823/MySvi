@@ -267,7 +267,19 @@ static inline void usb_ep_set_maxpacket_limit(struct usb_ep *ep,
 static inline int usb_ep_enable(struct usb_ep *ep,
 				const struct usb_endpoint_descriptor *desc)
 {
-	return ep->ops->enable(ep, desc);
+	int ret = 0;
+
+	if (ep->enabled)
+		goto out;
+
+	ret = ep->ops->enable(ep, desc);
+	if (ret)
+		goto out;
+	ep->enabled = true;
+
+out:
+	printf("usb ep enable: ret %d\n", ret);
+	return ret;
 }
 
 /**
@@ -284,7 +296,20 @@ static inline int usb_ep_enable(struct usb_ep *ep,
  */
 static inline int usb_ep_disable(struct usb_ep *ep)
 {
-	return ep->ops->disable(ep);
+	int ret = 0;
+
+	if (!ep->enabled)
+		goto out;
+
+
+	ret= ep->ops->disable(ep);
+	if (ret)
+		goto out;
+
+	ep->enabled = false;
+out:
+	printf("usb ep disable: ret %d\n", ret);
+	return ret;
 }
 
 /**
@@ -583,7 +608,7 @@ struct usb_gadget {
 	const char			*name;
 	// temp remove
 	struct device			dev;
-  struct usb_otg_caps  *otg_caps;
+	struct usb_otg_caps  *otg_caps;
 	unsigned			is_dualspeed:1;
 	unsigned			is_otg:1;
 	unsigned			is_a_peripheral:1;
@@ -622,10 +647,11 @@ static inline void *get_gadget_data(struct usb_gadget *gadget)
  */
 static inline int gadget_is_dualspeed(struct usb_gadget *g)
 {
-#ifdef CONFIG_USB_GADGET_DUALSPEED
+/*default is support high speed usb 2.0*/
+#if 1
 	/* runtime test would check "g->is_dualspeed" ... that might be
-	 * useful to work around hardware bugs, but is mostly pointless
-	 */
+	* useful to work around hardware bugs, but is mostly pointless
+	*/
 	return 1;
 #else
 	return 0;

@@ -1,0 +1,33 @@
+If you want to setup the environment in your own virtual machine,
+the period please refer to build.txt, and then start with the step 3.
+1. ssh username@10.10.10.218
+2. download Openocd source code
+   git clone git://git.code.sf.net/p/openocd/code openocd-code
+3. cp svi/howto/openocd/imx8qxp.cfg openocd-code/tcl/target/
+   cp svi/howto/openocd/imx8qxp-evk.cfg openocd-code/tcl/board/
+4. cd openocd-code/tcl
+5. openocd -f interface/jlink.cfg -f board/imx8qxp-evk.cfg
+
+
+Debug: telnet or gdb
+open another terminal
+
+telnet:
+1. telnet localhost 4444
+
+common commands:
+1. halt                             //stop cpu
+2. resume
+3. targets [targetname]             //switch current target
+4. mdw/mdh/mdb [phys] addr [count]  //Display contents of address addr, as 32-bit words (mdw),
+                                      16-bit halfwords (mdh), or 8-bit bytes (mdb).
+5. mww/mwh/mwb [phys] addr [count]  //Writes contents of address addr, as 32-bit words (mdw),
+                                      16-bit halfwords (mdh), or 8-bit bytes (mdb).
+6. bp [address len [hw]]            // set breakpoint
+more infomation please refer to http://openocd.org/doc-release/pdf/openocd.pdf
+
+
+gdb:
+1. aarch64-linux-gnu-gdb
+2. target remote localhost:port
+...

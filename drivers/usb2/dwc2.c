@@ -59,14 +59,53 @@ struct dwc2_priv {
 };
 
 #if !CONFIG_IS_ENABLED(DM_USB)
+#if 0
+//use allocate function
 /* We need cacheline-aligned buffers for DMA transfers and dcache support */
 DEFINE_ALIGN_BUFFER(uint8_t, aligned_buffer_addr, DWC2_DATA_BUF_SIZE,
 		ARCH_DMA_MINALIGN);
 DEFINE_ALIGN_BUFFER(uint8_t, status_buffer_addr, DWC2_STATUS_BUF_SIZE,
 		ARCH_DMA_MINALIGN);
-
+#endif
 static struct dwc2_priv local;
 #endif
+
+
+static inline int wait_for_bit_le32(const void *reg, \
+				     const u32 mask,			\
+				     const bool set,			\
+				     const unsigned int timeout_ms,	\
+				     const bool breakable)		\
+{									\
+	u32 val;							\
+	unsigned long start = get_timer(0);				\
+									\
+	while (1) {							\
+		val = readl(reg);					\
+									\
+		if (!set)						\
+			val = ~val;					\
+									\
+		if ((val & mask) == mask)				\
+			return 0;					\
+									\
+		if (get_timer(start) > timeout_ms)			\
+			break;						\
+									\
+		if (breakable && (getc()=='\n')) {				\
+			puts("Abort\n");				\
+			return -EINTR;					\
+		}							\
+									\
+		udelay(1);						\
+	}								\
+									\
+	debug("%s: Timeout (reg=%p mask=%x wait_set=%i)\n", __func__,	\
+	      reg, mask, set);						\
+									\
+	return -ETIMEDOUT;						\
+}
+
 
 /*
  * DWC2 IP interface
@@ -115,9 +154,8 @@ static void dwc_otg_flush_tx_fifo(struct dwc2_core_regs *regs, const int num)
 
 	writel(DWC2_GRSTCTL_TXFFLSH | (num << DWC2_GRSTCTL_TXFNUM_OFFSET),
 	       &regs->grstctl);
-	////temp remove ret = wait_for_bit_le32(&regs->grstctl, DWC2_GRSTCTL_TXFFLSH,
-	//			false, 1000, false);
-  ret = 0;
+	ret = wait_for_bit_le32(&regs->grstctl, DWC2_GRSTCTL_TXFFLSH,
+				false, 1000, false);
 	if (ret)
 		dev_info(dev, "%s: Timeout!\n", __func__);
 
@@ -135,8 +173,8 @@ static void dwc_otg_flush_rx_fifo(struct dwc2_core_regs *regs)
 	int ret;
 
 	writel(DWC2_GRSTCTL_RXFFLSH, &regs->grstctl);
-	////temp remove ret = wait_for_bit_le32(&regs->grstctl, DWC2_GRSTCTL_RXFFLSH,
-	//			false, 1000, false);
+	ret = wait_for_bit_le32(&regs->grstctl, DWC2_GRSTCTL_RXFFLSH,
+				false, 1000, false);
 	ret = 0;
 	if (ret)
 		dev_info(dev, "%s: Timeout!\n", __func__);
@@ -154,16 +192,16 @@ static void dwc_otg_core_reset(struct dwc2_core_regs *regs)
 	int ret;
 
 	/* Wait for AHB master IDLE state. */
-	// //temp remove ret = wait_for_bit_le32(&regs->grstctl, DWC2_GRSTCTL_AHBIDLE,
-	//			true, 1000, false);
-	ret = 0;
+	ret = wait_for_bit_le32(&regs->grstctl, DWC2_GRSTCTL_AHBIDLE,
+				true, 1000, false);
+
 	if (ret)
 		dev_info(dev, "%s: Timeout!\n", __func__);
 
 	/* Core Soft Reset */
 	writel(DWC2_GRSTCTL_CSFTRST, &regs->grstctl);
-	//temp remove ret = wait_for_bit_le32(&regs->grstctl, DWC2_GRSTCTL_CSFTRST,
-	// 			false, 1000, false);
+	ret = wait_for_bit_le32(&regs->grstctl, DWC2_GRSTCTL_CSFTRST,
+	 			false, 1000, false);
 	if (ret)
 		dev_info(dev, "%s: Timeout!\n", __func__);
 
@@ -301,9 +339,9 @@ static void dwc_otg_core_host_init(struct udevice *dev,
 		clrsetbits_le32(&regs->hc_regs[i].hcchar,
 				DWC2_HCCHAR_EPDIR,
 				DWC2_HCCHAR_CHEN | DWC2_HCCHAR_CHDIS);
-		//temp remove ret = wait_for_bit_le32(&regs->hc_regs[i].hcchar,
-		//			DWC2_HCCHAR_CHEN, false, 1000, false);
-		ret = 0;
+		ret = wait_for_bit_le32(&regs->hc_regs[i].hcchar,
+					DWC2_HCCHAR_CHEN, false, 1000, false);
+
 		if (ret)
 			dev_info("%s: Timeout!\n", __func__);
 	}
@@ -818,9 +856,9 @@ int wait_for_chhltd(struct dwc2_hc_regs *hc_regs, uint32_t *sub, u8 *toggle)
 	int ret;
 	uint32_t hcint, hctsiz;
 
-	// temp remove ret = wait_for_bit_le32(&hc_regs->hcint, DWC2_HCINT_CHHLTD, true,
-	//			2000, false);
-	ret = 0;
+	ret = wait_for_bit_le32(&hc_regs->hcint, DWC2_HCINT_CHHLTD, true,
+				2000, false);
+
 	if (ret)
 		return ret;
 
@@ -1255,18 +1293,50 @@ int submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 int usb_lowlevel_init(int index, enum usb_init_type init, void **controller)
 {
 	struct dwc2_priv *priv = &local;
+	struct dwc2_core_regs *regs ;
+	int  ret;
 
 	memset(priv, '\0', sizeof(*priv));
 	priv->root_hub_devnum = 0;
 	priv->regs = (struct dwc2_core_regs *)CONFIG_USB_DWC2_REG_ADDR;
-	priv->aligned_buffer = aligned_buffer_addr;
-	priv->status_buffer = status_buffer_addr;
+
+	//dma buffers should put in dma master address and use memalign allocate
+	priv->aligned_buffer = malloc_cache_aligned(DWC2_DATA_BUF_SIZE*sizeof(uint8_t));
+	priv->status_buffer = malloc_cache_aligned(DWC2_STATUS_BUF_SIZE*sizeof(uint8_t));
+
 
 	/* board-dependant init */
 	if (board_usb_init(index, USB_INIT_HOST))
 		return -1;
 
-	return dwc2_init_common(NULL, priv);
+	// add for dwc2 host test
+
+	printf("dwc2 usb host mode initializing..");
+	regs = priv->regs;
+	writel(1, &regs->grstctl);
+	while((readl(&regs->grstctl)&0x1)==1){
+		printf("waiting for reset to clear");
+		for(volatile int i=0; i<10000; i++);
+	}
+	if((readl(&regs->gintsts)&(DWC2_GINTSTS_CURMODE_HOST)) == 0)
+	{
+		printf("Should put local cable connector to A-Device, and now exit test...\n");
+		return -1;
+	}
+	ret= dwc2_init_common(NULL, priv);
+	//wait host port interrupt
+	//while((readl(&regs->gintsts)&(1<<24))==0);
+	//while((readl(&regs->hprt0)&(1<<1))==0);
+	if(((readl(&regs->gintsts)&(DWC2_GINTSTS_PORTINTR))==0) || \
+		((readl(&regs->hprt0)&(DWC2_HPRT0_PRTCONNDET))==0))
+	{
+		printf("please  'Plug in' device and test again..\n");
+		return -1;
+	}
+
+	printf("device port connection ok");
+
+	return ret;
 }
 
 int usb_lowlevel_stop(int index)

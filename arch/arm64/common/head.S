@@ -292,3 +292,9 @@ fiq_aarch32:
 serror_aarch32:
 	ventry _bad_mode, 3
 
+
+/****************** data section starts here ******************/
+.section .data, "aw"
+.global cpus_boot_cpu
+/* unsigned long cpus_boot_cpu; */
+cpus_boot_cpu:  .quad   MAX_CPU_NUM

@@ -1,12 +1,4 @@
 #include <target/memory.h>
-#include <asm/memory.h>
-
-#ifdef STACK_SIZE
-#undef STACK_SIZE
-#define STACK_SIZE	0x400
-#endif
-
-#define M_VECTOR_RAM_SIZE 0x0;
 
 ENTRY(Reset_Handler)
 
@@ -14,23 +6,19 @@ ENTRY(Reset_Handler)
 /*		*
  *		*
  *		*
- -------------	interrupts
- *		*
- *		*
- *		*
  -------------	SVI_TEXT_BASE
  *		*
- *		*	text + data + bss
+ *		*	interrupts + text + data + bss
  *		*
  -------------	SVI_DATA_BASE
  *		*
  *		*	data + bss
  *		*
- -------------  HEAP_START if not specified
+ -------------	HEAP_START if not specified
  *		*
  *		*	heap
  *		*
-  -------------  STACK_START if not specified
+  -------------	STACK_START if not specified
  *		*
  *		*	STACKs
  *		*
@@ -39,8 +27,7 @@ ENTRY(Reset_Handler)
 
 SECTIONS
 {
-#ifdef INTERRUPT_BASE
-	. = INTERRUPT_BASE;
+	. = SVI_TEXT_BASE;
 	/* The startup code goes first into internal flash */
 	.interrupts :
 	{
@@ -49,9 +36,7 @@ SECTIONS
 		KEEP(*(.isr_vector))     /* Startup code */
 		. = ALIGN(4);
 	}
-#endif
 
-	. = SVI_TEXT_BASE;
 	__stext = .;
 	.text :
 	{
@@ -82,25 +67,17 @@ SECTIONS
 	{
 		*(.ARM.extab* .gnu.linkonce.armextab.*)
 	}
+
+	.ARM :
+	{
+		__exidx_start = .;
+		*(.ARM.exidx*)
+		__exidx_end = .;
+	}
+
 	__etext = .;
 
-#ifdef INTERRUPT_RAM_BASE
-	.interrupts_ram :
-	{
-		. = ALIGN(4);
-		__interrupts_ram_start__ = .; /* Create a global symbol at data start */
-		*(.m_interrupts_ram)	 /* This is a user defined section */
-		. += M_VECTOR_RAM_SIZE;
-		. = ALIGN(4);
-		__interrupts_ram_end__ = .; /* Define a global symbol at data end */
-	}
-#endif
-
-#ifdef SVI_DATA_BASE
-	. = SVI_DATA_BASE;
-#endif
 	__sdata = .;
-
 	.data :
 	{
 		__data_start = .;
@@ -109,48 +86,24 @@ SECTIONS
 		. = ALIGN(4);
 		__data_end = .;
 	}
+
+#ifndef CONFIG_BSS_IN_DATA
+	.bss (NOLOAD) : ALIGN(BSS_ALIGN) {
+#else
+	.data : ALIGN(BSS_ALIGN) {
+#endif
+	__bss_start = .;
+	*(.bss)
+	*(.bss*)
+	*(COMMON)
+	. = ALIGN(BSS_ALIGN);
+	__bss_end = .;
+	}
+
+	. = ALIGN(PAGE_SIZE);
 	__edata = .;
 
-	/* Uninitialized data section */
-	.bss :
-	{
-		 /* This is used by the startup in order to initialize the .bss section */
-		. = ALIGN(4);
-		__bss_start = .;
-		*(.bss)
-		*(.bss*)
-		*(COMMON)
-		. = ALIGN(4);
-		__bss_end = .;
-	}
-
-#if CONFIG_HEAP_BASE
-	  ASSERT(. <= CONFIG_HEAP_BASE, "heap overlap with data")
-	  . = CONFIG_HEAP_BASE;
-#endif
-
-	.heap :
-	{
-		. = ALIGN(8);
-		__end__ = .;
-		PROVIDE(end = .);
-		. += HEAP_SIZE;
-		__HeapLimit = .;
-	}
-
-#if CONFIG_STACKS_BASE
-	. = CONFIG_STACKS_BASE;
-#endif
-
-	.stack :
-	{
-		. = ALIGN(8);
-		. += STACK_SIZE;
-	}
-
 	__StackTop = STACKS_END;
-	__StackLimit = __StackTop - STACK_SIZE;
-	PROVIDE(__stack = __StackTop);
 
 	.ARM.attributes 0 : { *(.ARM.attributes) }
 }

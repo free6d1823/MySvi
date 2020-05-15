@@ -179,11 +179,3 @@ config MMU_FAST
 	help
 		pagetable is defined in pagetable.c"
 endif
-
-config DATA_BASE
-	hex "configure data base"
-	default "0x0"
-
-config HEAP_BASE
-	hex "configure heap base"
-	default "0x0"

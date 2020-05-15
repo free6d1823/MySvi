@@ -14,7 +14,7 @@
 #include <target/cache.h>
 
 #define CACHE_WRITEBACK_GRANULE		64
-#define mdelay(m) udelay(m * 1000)
+
 #define INFO debug
 #define WARN debug
 #define debug(fmt, args...)		\

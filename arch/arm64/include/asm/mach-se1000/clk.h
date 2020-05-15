@@ -1,0 +1,32 @@
+
+#ifndef __SE1000_CLOCK_CFG_H
+#define __SE1000_CLOCK_CFG_H
+
+
+/* index has to be sequently increased */
+enum CLK_DEVS {
+	PERI0_UART0_CLK,
+	PERI1_UART0_CLK,
+
+	MAX_CLK_DEV, /* must be the last one */
+};
+
+#define APSS0_PLL0_CTRL_REG_BASE 	0x0
+#define APSS0_PLL1_CTRL_REG_BASE 	0x10000
+#define APSS0_PLL2_CTRL_REG_BASE 	0x20000
+
+#define LH_PLL_CTRL_REG_BASE 	0x000C0000
+#define RH_PLL_CTRL_REG_BASE 	0x000D0000
+#define PERI0_SS_APB_CLK		0x2D04
+#define PERI0_SS_APB_RESET		0x3D04
+#define PERI1_SS_APB_CLK		0x2C08
+#define PERI1_SS_APB_RESET		0x3C08
+
+#define CLK_DIVIDER_MASK	0x000000FF
+#define CLK_SEL_MASK		0x00000100
+#define CLK_SEL_POS			8
+#define CLK_GATE_MASK		0x00010000
+#define CLK_GATE_POS		16
+
+
+#endif	/* __SE1000_CLOCK_CFG_H */

@@ -2,11 +2,11 @@
  */
 #include <target/spinlock.h>
 #include <target/smp.h>
-#include <target/cpus.h>
 
 #ifdef CONFIG_MINI_EXCLUSIVE_ACCESS
 
 #include <asm/sysreg.h>
+#include <asm/reg.h>
 #define spin_lock_check() do {\
 		if (read_sysreg(currentel) != 0xc) return;\
 		if (!(read_sysreg(SCTLR_EL3) & SCTLR_M)) return;\

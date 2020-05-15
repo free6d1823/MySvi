@@ -4,25 +4,25 @@
 #define __CORTEXR52_MEMORY_H_INCLUDE__
 
 #include <target/compiler.h>
-#include <target/cpus.h>
 
-#define R52_ROM_BASE 0x10000000
-#define R52_RAM_BASE 0x60000000
+#define R52_ROM_BASE		0x10000000
+
+#define R52_RAM_START		0x60000000
+#define R52_RAM_SIZE		0x60000
+#define R52_RAM_END		R52_RAM_START + R52_RAM_SIZE
+
+#define SVI_TEXT_BASE		R52_RAM_START
+#define SVI_RAM_END		R52_RAM_END
 
 
-#define PAGE_SIZE			4096
+#define PAGE_SIZE		4096
 
-#ifndef HEAP_START
-#define HEAP_START	0x20000000
-#define HEAP_END	0x20000000
-#endif
-
-#define CFGPERIPHBASE       0xAE000000
+#define CFGPERIPHBASE		0xAE000000
 
 #define GICD_gic3_BASE		CFGPERIPHBASE
 #define GICR_gic3_BASE		(CFGPERIPHBASE+0x100000)
-#define GICR_GIC3_CPU_SHIFT		17
+#define GICR_GIC3_CPU_SHIFT	17
 
-#define UART_BASE(n)		0xC1210000
+#define UART_BASE(n)		0x0E94A0000
 
 #endif /* __CORTEXR52_MEMORY_H_INCLUDE__ */

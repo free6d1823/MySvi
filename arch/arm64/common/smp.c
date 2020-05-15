@@ -8,6 +8,7 @@
 #include <asm/sysreg.h>
 #include <target/cmdline.h>
 #include <target/dsr.h>
+#include <target/schedule.h>
 
 uint64_t cpu_midr_map[NR_CPUS] = { [0 ... NR_CPUS-1] = 0 };
 uint64_t cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS-1] = INVALID_MPIDR };
@@ -15,17 +16,19 @@ uint64_t cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS-1] = INVALID_MPIDR };
 static int smp_dsr[NR_CPUS];
 static uint16_t smp_event[NR_CPUS];
 
-static void smp_dsr_handler(void)
+static void smp_dsr_handler(void* ctx)
 {
-    unsigned int cpu = smp_processor_id();
+	unsigned int cpu = smp_processor_id();
+	struct schedule_mailbox *mb = schedule_get_mb(cpu);
 
 	switch (smp_event[cpu]) {
 		case IPI_SCHEDULE:
-			printf("CPU[%d] IPI_SCHEDULE\n", cpu);
+			exec_case(mb->case_id, mb->arg);
+		break;
+		case IPI_ACK:
+			schedule_mailbox_check();
 		break;
 	}
-
-	smp_event[cpu] = 0;
 }
 
 void smp_register_cpu()
@@ -52,7 +55,7 @@ void smp_register_cpu()
 		irqc_enable_irq(sgi);
 	}
 
-	smp_dsr[phy_id] = dsr_register(smp_dsr_handler);
+	smp_dsr[phy_id] = dsr_register(smp_dsr_handler, NULL);
 }
 
 uint64_t get_mpidr(int cpu)
@@ -68,29 +71,9 @@ void handle_IPI(int ipinr)
 	dsr_schedule(smp_dsr[cpu]);
 }
 
-static int do_sgi(int argc, char *argv[])
+void sgi_send(int cpu, int irq)
 {
-	uint8_t cpu, irq;
-
-	if (argc < 3)
-		return -EUSAGE;
-
-	cpu = strtoul(argv[1], NULL, 0);
-	irq = strtoul(argv[2], NULL, 0);
-
-	if (cpu >=NR_CPUS || cpu_logical_map[cpu] == INVALID_MPIDR) {
-		printf("CPU%d is offline, ignore sgi\n", cpu);
-		return -1;
-	}
-
-	if (irq >= IPI_END) {
-		printf("invalid sgi number\n");
-		return -1;
-	}
-
 	gicv3_trigger_sgi(irq, cpu);
-
-	return 0;
 }
 
 static  int do_smplist(int argc, char *argv[])
@@ -120,10 +103,3 @@ static  int do_smplist(int argc, char *argv[])
 MK_CMD(smplist, do_smplist, "list online cpus",
 	"smplist\n"
 );
-
-MK_CMD(sgi, do_sgi, "SGI sending command",
-	"sgi cpu irq\n"
-	"	 - cpu: 0-7\n"
-	"	 - irq: 0-15\n"
-);
-

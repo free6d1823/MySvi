@@ -54,11 +54,6 @@ SECTIONS
     __testfn_end = .;
   }
 
-#if CONFIG_DATA_BASE
-  ASSERT(. <= CONFIG_DATA_BASE, "data overlap with text")
-  . = CONFIG_DATA_BASE;
-#endif
-
   . = ALIGN(PAGE_SIZE);
   __etext = .;
 
@@ -86,13 +81,6 @@ SECTIONS
 
   . = ALIGN(PAGE_SIZE);
   __edata = .;
-
-#if CONFIG_HEAP_BASE
-  ASSERT(. <= CONFIG_HEAP_BASE, "heap overlap with data")
-  . = CONFIG_HEAP_BASE;
-#endif
-
-  __heap_start = .;
 
   ASSERT(. <= STACKS_START, "stacks overflowed with text + data + bss")
 }

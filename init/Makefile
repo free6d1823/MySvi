@@ -4,6 +4,7 @@
 
 obj-y :=
 
+obj-$(CONFIG_SMP) += schedule.o
 obj-$(CONFIG_PWRSOC) += pwrsoc/
 obj-$(CONFIG_TESTOS) += testos/
 obj-$(CONFIG_M4BENCH) += m4bench/

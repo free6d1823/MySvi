@@ -3,11 +3,6 @@ config USB
 
 if USB
 
-config USB_XHCI_HCD
-	bool "xHCI HCD (USB 3.0) support"
-	---help---
-	  The eXtensible Host Controller Interface (xHCI) is standard for USB 3.0
-	  "SuperSpeed" host controller hardware.
 
 config USB_XHCI_PCI
 	bool "Support for PCI-based xHCI USB controller"
@@ -37,6 +32,32 @@ config USB_STORAGE
 	  USB storage driver.
 
 
+config USB_XHCI_HCD
+	bool "xHCI HCD (USB 3.0) support"
+	---help---
+	  The eXtensible Host Controller Interface (xHCI) is standard for USB 3.0
+	  "SuperSpeed" host controller hardware.
+
+
+config USB_DWC3
+	bool "DesignWare USB3 Core support"
+	select  USB_XHCI_HCD
+	---help---
+	  The DesignWare USB 3.0 controller is compliant with the
+	  USB-Implementers Forum (USB-IF) USB 3.0 specifications.
+	  SS-Speed(5 Gbps), Hi-Speed (480 Mbps), Full-Speed (12 Mbps), and Low-Speed (1.5 Mbps)
+	  operation is compliant to the controller Supplement. If you want to
+	  enable this controller in host mode, say Y.
+
+
+config USB_DWC3_GADGET
+	bool "xHCI HCD (USB 3.0) device support"
+	depends on USB_DWC3
+	default y
+	---help---
+	  The eXtensible Host Controller Interface (xHCI) is standard for USB 3.0
+	  "SuperSpeed" host controller hardware.
+
 config USB_DWC2
 	bool "DesignWare USB2 Core support"
 	---help---
@@ -49,7 +70,7 @@ config USB_DWC2
 if USB_DWC2
 config USB_DWC2_BUFFER_SIZE
 	int "Data buffer size in kB"
-	default 64
+	default 16
 	---help---
 	  By default 64 kB buffer is used but if amount of RAM avaialble on
 	  the target is not enough to accommodate allocation of buffer of

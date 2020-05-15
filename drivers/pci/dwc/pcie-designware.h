@@ -164,8 +164,6 @@ enum irqreturn {
 typedef enum irqreturn irqreturn_t;
 #define IRQ_RETVAL(x)	((x) ? IRQ_HANDLED : IRQ_NONE)
 
-#define mdelay(m) udelay(m * 1000)
-
 #define PCI_CLASS_DEVICE	0x0a	/* Device class */
 #define PCI_CLASS_BRIDGE_PCI		0x0604
 
