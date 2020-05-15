@@ -7,13 +7,13 @@
 /*************************************************
 ** VC8000E IP specific definitions
 **************************************************/
-#define CORE_0_IO_ADDR		VC8000D_REG_BASE
+#define CORE_0_IO_ADDR		0xe7800000
 #define CORE_0_IO_SIZE		(437*4)
+#define CORE_L2_IO_ADDR     0xe7810000
+#define VPU_DEC_INTR		408
+#define VPU_DEC_L2_INTR		409
 
-#define VPU_DEC_INTR		195
-#define VPU_DEC_L2_INTR		196
-
-#define SAENC_AFBC_BASE 0xbc020000
+#define SAENC_AFBC_BASE 0xe7820000
 #define SAENC_AFBC_SIZE 0x204
 #define AFBC_ENCODER_ID 0x0300
 
@@ -165,6 +165,54 @@ int vc8000d_afbc(int id)
     return 0;
 }
 
+int vc8000d_l2cache(int id)
+{
+    (void) id; /* current only one L2CacheShaper */
+	uintptr_t base = CORE_L2_IO_ADDR;
+	uint32_t hwid;
+	uint32_t value;
+    uint32_t type1;
+    uint32_t type2;
+    uint32_t type3;
+
+	value = readl((uintptr_t)(base + L2_PRODUCT_VERSION));
+    hwid  = ((value>>20) &0x00000fff);
+    type1 = ((value>>16) &0x0000000f);
+    type2 = ((value>>12) &0x0000000f);
+    type3 = ((value>>4) &0x0000000f);
+    printf("L2CacheShaper ID 0x%x, type= %d, version %d.%d\n", hwid,
+            type1, type2, type3);
+
+    printf("Write shaper configuration:\n");
+	value = readl((uintptr_t)(base + L2_WRITE_CONFIGURATION));
+    type1 = (value &0x0000ffff);
+    printf(" - max_burst_length = %d\n", type1);
+    type1 = ((value>>24) &0x000000ff);
+    printf(" - bus_timeout_reg = %d\n", type1);
+	value = readl((uintptr_t)(base + L2_WRITE_STATUS));
+    type1 = (value &0x0000000f);
+    printf(" - num_chnn = %d\n", type1);
+    type1 = ((value>>4) &0x0000000f);
+    printf(" - num_ids = %d\n", type1);
+    type1 = ((value>>8) &0x000000ff);
+    printf(" - alignment = %d\n", type1);
+
+    printf("Read cache configuration:\n");
+	value = readl((uintptr_t)(base + L2_READ_CONFIGURATION));
+    printf(" - sw_cache_all_e = %d\n", (value &0x00000001));
+    printf(" - sw_cache_execpt_er_e = %d\n", ((value>>1) &0x00000001));
+    printf(" - sw_axi_rd_id_e = %d\n", ((value>>3) &0x00000001));
+    printf(" - base_id = 0x%04x\n", ((value>>4) &0x000000ff));
+    printf(" - sw_timeout_cycles = %d\n", ((value>>16) &0x0000ffff));
+	value = readl((uintptr_t)(base + L2_READ_STATUS));
+    printf(" - cache_chn_num = %d\n", (value &0x0000000f));
+    printf(" - cache_except_list_num = 0x%04x\n", ((value>>4) &0x000003ff));
+    printf(" - cache_line_size = %d\n", ((value>>10) &0x000000ff));
+    printf(" - num_ids = %d\n", ((value>>18) &0x0000000f));
+
+    printf("~ L2CacheShaper test done ~\n");
+    return 0;
+}
 static int cmd_vc8000d(int argc, char **argv)
 {
 	int core_id = 0;
@@ -183,6 +231,8 @@ static int cmd_vc8000d(int argc, char **argv)
 		vc8000d_features(core_id);
 	} else if (argv[1][0] == 'a') {
 		vc8000d_afbc(core_id);
+    } else if (argv[1][0] == 'l') {
+		vc8000d_l2cache(core_id);
 	} else {
 		return -EUSAGE;
 	}
@@ -199,6 +249,7 @@ MK_CMD(vc8d, cmd_vc8000d, "VSI VC8000D test",
 	"    start   - start encode one frame\n"
 	"    feat    - show IP features\n"
 	"    afbc    - afbc encoder test\n"
+    "    l2cache - l2cacheshaper test\n"   
 	"    core_id - [0:1] core number. Default 0\n"
 );
 

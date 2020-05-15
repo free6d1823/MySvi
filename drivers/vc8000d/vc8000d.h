@@ -20,9 +20,6 @@
 
 //#define DWL_HJPEG_E         17//
 
-
-
-
 #define DWL_G2_HEVC_E       0
 #define DWL_G2_VP9_E        1
 #define DWL_G2_RFC_E        2
@@ -95,5 +92,11 @@
 #define REG_COMMAND         0x014
 #define REG_STATUS          0x018
 
+/* L2CacheShaper support */
+#define L2_PRODUCT_VERSION          0x00000000
+#define L2_WRITE_CONFIGURATION      0x00000024
+#define L2_WRITE_STATUS             0x00000028
+#define L2_READ_CONFIGURATION       0x00000208
+#define L2_READ_STATUS              0x00000210
 
 #endif /* __VC8000D_H__ */
