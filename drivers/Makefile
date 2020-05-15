@@ -60,5 +60,6 @@ obj-$(CONFIG_GC355) += gc355/
 obj-$(CONFIG_GC520) += gc520/
 obj-$(CONFIG_VC8000E) += vc8000e/
 obj-$(CONFIG_VC8000D) += vc8000d/
+obj-$(CONFIG_GDC) += gdc/
 obj-$(CONFIG_CLK_DRIVER) += clk/
 

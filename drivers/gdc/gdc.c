@@ -128,7 +128,7 @@ static void get_frame_buffer_callback(  uint32_t total_input, uint32_t * out_add
 	printf("get_frame_buffer_callback: total_input=%d, out_addr=%p, out_lineoffset=%p\n", total_input, out_addr, out_lineoffset);
 #if HAS_FPGA_WRAPPER
     //call frame reader to display
-	acamera_fpga_update_frame_reader(total_input,out_addr,out_lineoffset);
+	acamera_fpga_update_frame_reader(total_input,out_addr,out_lineoffset, NULL);
 #endif
 }
 

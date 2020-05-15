@@ -72,13 +72,17 @@ typedef struct dev_info{
 static dev_irq_info gdc_irq[MAX_GDC_CORES] = {0};
 
 #ifdef USE_SVI
-static void svi_interrupt_handler0()
+static void svi_interrupt_handler0(short unsigned int irq, void *dev_id)
 {
+    (void) irq;
+    (void) dev_id;
 	if(gdc_irq[0].app_handler)
 		gdc_irq[0].app_handler(gdc_irq[0].app_param, 1);
 }
-static void svi_interrupt_handler1()
+static void svi_interrupt_handler1(short unsigned int irq, void *dev_id)
 {
+    (void) irq;
+    (void) dev_id;
 	if(gdc_irq[1].app_handler)
 		gdc_irq[1].app_handler(gdc_irq[1].app_param, 1);
 }
@@ -128,9 +132,9 @@ void system_interrupts_init( int id)
 		irqc_configure_irq(gdc_irq[id].irq, 32, trigger);
 
 		if (id == 1) {
-			irq_register_vector((sirq_t)gdc_irq[id].irq, svi_interrupt_handler1);
+			irq_register_vector((sirq_t)gdc_irq[id].irq, svi_interrupt_handler1, (void*)0);
 		} else {
-			irq_register_vector((sirq_t)gdc_irq[id].irq, svi_interrupt_handler0);
+			irq_register_vector((sirq_t)gdc_irq[id].irq, svi_interrupt_handler0, (void*)0);
 		}
 #else //LINUX
 		ret=request_irq(gdc_irq[id].irq, &system_interrupt_handler, gdc_irq[id].flags, "gdc", id);

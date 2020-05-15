@@ -132,6 +132,7 @@ CONFIG_GC355=y
 CONFIG_GC520=y
 CONFIG_VC8000D=y
 CONFIG_VC8000E=y
+# CONFIG_GDC is not set
 #
 # Advanced kernel features
 #
