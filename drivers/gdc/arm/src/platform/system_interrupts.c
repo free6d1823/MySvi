@@ -34,9 +34,9 @@
  * @IRQ_WAKE_THREAD     handler requests to wake the handler thread
  */
 enum irqreturn {
-        IRQ_NONE                = (0 << 0),
-        IRQ_HANDLED             = (1 << 0),
-        IRQ_WAKE_THREAD         = (1 << 1),
+	IRQ_NONE                = (0 << 0),
+	IRQ_HANDLED             = (1 << 0),
+	IRQ_WAKE_THREAD         = (1 << 1),
 };
 
 typedef enum irqreturn irqreturn_t;
@@ -55,10 +55,10 @@ typedef enum irqreturn irqreturn_t;
 #endif
 
 typedef enum {
-  GDC_IRQ_STATUS_DEINIT = 0,
-  GDC_IRQ_STATUS_ENABLED,
-  GDC_IRQ_STATUS_DISABLED,
-  GDC_IRQ_STATUS_MAX
+	GDC_IRQ_STATUS_DEINIT = 0,
+	GDC_IRQ_STATUS_ENABLED,
+	GDC_IRQ_STATUS_DISABLED,
+	GDC_IRQ_STATUS_MAX
 } irq_status;
 
 #define MAX_GDC_CORES	2
@@ -74,15 +74,15 @@ static dev_irq_info gdc_irq[MAX_GDC_CORES] = {0};
 #ifdef USE_SVI
 static void svi_interrupt_handler0(short unsigned int irq, void *dev_id)
 {
-    (void) irq;
-    (void) dev_id;
+	(void) irq;
+	(void) dev_id;
 	if(gdc_irq[0].app_handler)
 		gdc_irq[0].app_handler(gdc_irq[0].app_param, 1);
 }
 static void svi_interrupt_handler1(short unsigned int irq, void *dev_id)
 {
-    (void) irq;
-    (void) dev_id;
+	(void) irq;
+	(void) dev_id;
 	if(gdc_irq[1].app_handler)
 		gdc_irq[1].app_handler(gdc_irq[1].app_param, 1);
 }
@@ -90,12 +90,12 @@ static void svi_interrupt_handler1(short unsigned int irq, void *dev_id)
 #else //LINUX
 static irqreturn_t system_interrupt_handler(int irq, void *dev_id)
 {
-    int core_id = (int) dev_id;
-    LOG(LOG_DEBUG, "GDC core %d: interrupt comes in (irq = %d)", core_id, irq);
-    if(core_id < MAX_GDC_CORES && gdc_irq[core_id].app_handler)
-	    gdc_irq[core_id].app_handler(gdc_irq[core_id].app_param, 1);
+	int core_id = (int) dev_id;
+	LOG(LOG_DEBUG, "GDC core %d: interrupt comes in (irq = %d)", core_id, irq);
+	if(core_id < MAX_GDC_CORES && gdc_irq[core_id].app_handler)
+		gdc_irq[core_id].app_handler(gdc_irq[core_id].app_param, 1);
 
-  return IRQ_HANDLED;
+	return IRQ_HANDLED;
 }
 #endif
 
@@ -103,9 +103,9 @@ static irqreturn_t system_interrupt_handler(int irq, void *dev_id)
 void system_interrupts_set_irq(int id, int irq_num, int flags)
 {
 	if(id < MAX_GDC_CORES) {
-        gdc_irq[id].irq = irq_num;
-        gdc_irq[id].flags = flags;
-        LOG(LOG_INFO, "Set core %d IRQ to %d\n", id, gdc_irq[id].irq);
+		gdc_irq[id].irq = irq_num;
+		gdc_irq[id].flags = flags;
+		LOG(LOG_INFO, "Set core %d IRQ to %d\n", id, gdc_irq[id].irq);
 	}
 }
 
@@ -120,7 +120,7 @@ void system_interrupts_init( int id)
 
 	if(gdc_irq[id].status != GDC_IRQ_STATUS_DEINIT) {
 		LOG(LOG_WARNING, "irq %d is already initied (status = %d)",
-		        gdc_irq[id].status);
+			gdc_irq[id].status);
 		return;
 	}
 	gdc_irq[id].status = GDC_IRQ_STATUS_ENABLED;
@@ -128,7 +128,7 @@ void system_interrupts_init( int id)
 #ifdef USE_SVI
 		uint8_t trigger= IRQ_LEVEL_TRIGGERED;
 		if (gdc_irq[id].flags & IRQF_TRIGGER_RISING)
-            trigger = IRQ_EDGE_TRIGGERED; 
+			trigger = IRQ_EDGE_TRIGGERED; 
 		irqc_configure_irq(gdc_irq[id].irq, 32, trigger);
 
 		if (id == 1) {
@@ -139,14 +139,13 @@ void system_interrupts_init( int id)
 #else //LINUX
 		ret=request_irq(gdc_irq[id].irq, &system_interrupt_handler, gdc_irq[id].flags, "gdc", id);
 #endif
-	    if(ret != 0)
-		{
+		if(ret != 0) {
 			LOG(LOG_ERR, "Could not get interrupt %d (ret=%d)\n", gdc_irq[id].irq, ret);
 		} else {
 			LOG(LOG_INFO, "Interrupt %d requested (flags = 0x%x, ret = %d)\n",
-	  			gdc_irq[id].irq, gdc_irq[id].flags, ret);
-	  }
-	}else{
+					gdc_irq[id].irq, gdc_irq[id].flags, ret);
+		}
+	}else {
 	  LOG(LOG_ERR, "invalid irq id ! (id = %d), please call system_interrupts_set_irq() first\n", gdc_irq[id].irq);
 	}
 }
@@ -161,20 +160,20 @@ void system_interrupt_set_handler(int id, system_interrupt_handler_t handler, vo
 void system_interrupts_deinit( int id )
 {
 	if(id < MAX_GDC_CORES) {
-	    if ( gdc_irq[id].status == GDC_IRQ_STATUS_DEINIT ) {
-	        LOG( LOG_WARNING, "irq %d is already deinitied (status = %d)",
-	             gdc_irq[id].irq, gdc_irq[id].status );
-	    } else {
-	        gdc_irq[id].status = GDC_IRQ_STATUS_DEINIT;
+		if ( gdc_irq[id].status == GDC_IRQ_STATUS_DEINIT ) {
+			LOG( LOG_WARNING, "irq %d is already deinitied (status = %d)",
+			gdc_irq[id].irq, gdc_irq[id].status );
+		} else {
+			gdc_irq[id].status = GDC_IRQ_STATUS_DEINIT;
 #ifdef USE_SVI
 			irqc_clear_irq((irq_t)gdc_irq[id].irq );
 #else //LINUX
-    	    free_irq( gdc_irq[id].irq, NULL );
+			free_irq( gdc_irq[id].irq, NULL );
 #endif
-        	LOG( LOG_INFO, "Interrupt %d released\n", gdc_irq[id].irq );
+			LOG( LOG_INFO, "Interrupt %d released\n", gdc_irq[id].irq );
 			gdc_irq[id].irq = 0;
 			gdc_irq[id].flags = 0;
-    	}
+		}
 		gdc_irq[id].app_handler = NULL;
 		gdc_irq[id].app_param = NULL;
 	}
@@ -183,28 +182,28 @@ void system_interrupts_deinit( int id )
 
 void system_interrupts_enable( int id )
 {
-    if(gdc_irq[id].status == GDC_IRQ_STATUS_DISABLED) {
-        if(gdc_irq[id].irq > 0) {
+	if(gdc_irq[id].status == GDC_IRQ_STATUS_DISABLED) {
+		if(gdc_irq[id].irq > 0) {
 #ifdef USE_SVI
-	        irqc_enable_irq((irq_t) gdc_irq[id].irq);
+			irqc_enable_irq((irq_t) gdc_irq[id].irq);
 #else //LINUX
-	        enable_irq(gdc_irq[id].irq);
+			enable_irq(gdc_irq[id].irq);
 #endif
-            gdc_irq[id].status = GDC_IRQ_STATUS_ENABLED;
-        }
-    }
+			gdc_irq[id].status = GDC_IRQ_STATUS_ENABLED;
+		}
+	}
 }
 
 void system_interrupts_disable( int id )
 {
-    if(gdc_irq[id].status == GDC_IRQ_STATUS_ENABLED) {
-        if(gdc_irq[id].irq > 0) {
+	if(gdc_irq[id].status == GDC_IRQ_STATUS_ENABLED) {
+		if(gdc_irq[id].irq > 0) {
 #ifdef USE_SVI
-		    irqc_disable_irq((irq_t) gdc_irq[id].irq);
+			irqc_disable_irq((irq_t) gdc_irq[id].irq);
 #else //LINUX
-		    disable_irq(gdc_irq[id].irq);
+			disable_irq(gdc_irq[id].irq);
 #endif
-            gdc_irq[id].status = GDC_IRQ_STATUS_DISABLED;
-        }
-    }
+			gdc_irq[id].status = GDC_IRQ_STATUS_DISABLED;
+		}
+	}
 }
