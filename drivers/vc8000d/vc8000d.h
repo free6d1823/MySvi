@@ -45,12 +45,29 @@
 #define MINOR_NUMBER(id)	(id & 0x000000FF)
 
 /* swreg1 */
-#define HANTRO_DEC_E            0x01
-#define HANTRO_DEC_IRQ_DISABLE  0x10
-#define HANTRO_DEC_ABORT        0x20
-#define HANTRO_DEC_IRQ          0x100
-#define HANTRO_DEC_RDY_INIT     0x1000
-
+#define SW_DEC_E                0x01    /* decoder enable */
+#define SW_DEC_STRM             0x02    /* Stream corruption detected */
+#define SW_DEV_BUS_INT_DIS      0x04    /* Bus error interrupt disable */
+#define SW_DEC_TIMEOUT_SOURCE   0x08    /* source of timeout, 0=bus idle, 1=bus busy */
+#define SW_DEC_IRQ_DIS          0x10    /* decoder IRQ disable */
+#define SW_DEC_ABORT_E          0x20    /* Set 1 cause hardware to abort decoding */
+#define SW_DEC_SELF_RESET_DIS   0x40    /* Self-reset disable */
+#define SW_DEC_TILE_INT_E       0x80    /* Tile decoding interrupt enable */
+#define SW_DEC_IRQ              0x100   /* Decoder requests an interrunt */
+#define SW_DEC_ABORT_INT        0x800   /* Decoding aborted */
+#define SW_DEC_RDY_INIT         0x1000  /* Decoded a frame. Will self rest */
+#define SW_DEC_BUS_INT          0x2000  /* Bus error */
+#define SW_DEC_BUFFER_INT       0x4000  /* Input buffer enpty */
+#define SW_DEC_ASO_INT          0x8000  /* ASO detected (H264), Residual error (VP8) */
+#define SW_DEC_ERROR_INT        0x10000 /* Input stream error */
+#define SW_DEC_SLICE_INT        0x20000
+#define SW_DEC_TIMEOUT     .....0x40000
+#define SW_DEC_LAST_SLICE_INT   0x80000
+#define SW_DEC_NO_SLICE_INT     0x100000
+#define SW_DEC_EXT_TIMEOUT_INT  0x200000
+#define SW_DEC_LINE_CNT_INT     0x400000
+#define SW_DEC_TILE_INT         0x800000
+#define SW_DEC_PIC_INF          0x1000000 /* B slice detected. No interrupt */
 
 /* swreg50 */
 #define DWL_MPEG2_E         31  /* 1 bit */

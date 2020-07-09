@@ -8,7 +8,7 @@
 **************************************************/
 #define GDC_REGISTER_SIZE (0x100)
 #define GDC_REG_ID			(0x00)
-#define GDC_REG_CONFIG_ADDR		(0x10) 	/* Base address of configuration stream */
+#define GDC_REG_CONFIG_ADDR		(0x10)	/* Base address of configuration stream */
 #define GDC_REG_CONFIG_SIZE		(0x14)	/* Size of the configuration stream*/
 #define GDC_REG_DATAIN_WIDTH	(0x20)	/* Width of the input image [15:0]*/
 #define GDC_REG_DATAIN_HEIGHT	(0x24)	/* Height of the input image [15:0]*/
@@ -44,7 +44,7 @@
 #define GDC_ERROR_INCOMPATIBLE	(0x00002000) /* Incompatible configuration (request of unimplemented mode of operation */
 /* GDC_REG_COMMAND bit definition */
 #define GDC_START_FLAG		(0x00000001) /* Transition from 0 to 1 starts the processing */
-#define GDC_STOP_FLAG		(0x00000002)	/* 1 means to abandon the current frame and prepare for processing of the next frame. */
+#define GDC_STOP_FLAG		(0x00000002) /* 1 means to abandon the current frame and prepare for processing of the next frame. */
 /* GDC_REG_SUPPORTS bit definition */
 #define GDC_FEATURE_8BIT_DATA	(0x00000001) /* 8 bit data supported */
 #define GDC_FEATURE_10BIT_DATA	(0x00000002) /* 10 bit data supported */
