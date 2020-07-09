@@ -282,7 +282,7 @@ static int init_net()
 }
 
 
-static int ap_read(uint32_t addr, uint32_t *d)
+static int dap_read(uint32_t addr, uint32_t *d)
 {
 	uint32_t data;
 	uint32_t ack;
@@ -295,7 +295,7 @@ static int ap_read(uint32_t addr, uint32_t *d)
 
 	data = 0;
 	jtag_xPACC(APACC, &data, addr & 0xf, RnW_R, &ack);
-	if (ack & ACK_WAIT) printf("ap_read ACK_WAIT\n");
+	if (ack & ACK_WAIT) printf("dap_read ACK_WAIT\n");
 
 	do {
 		data = 0;
@@ -313,7 +313,7 @@ static int ap_read(uint32_t addr, uint32_t *d)
 }
 
 
-static int ap_write(uint32_t addr, uint32_t d)
+static int dap_write(uint32_t addr, uint32_t d)
 {
 	uint32_t data;
 	uint32_t ack;
@@ -525,8 +525,8 @@ static int memap_read(uint32_t addr, uint32_t *d)
 	int ret;
 	uint32_t base = base2lvl;
 
-	ret = ap_write(base + TAR, addr);
-	ret = ap_read(base + DRW, d);
+	ret = dap_write(base + TAR, addr);
+	ret = dap_read(base + DRW, d);
 
 	return ret;
 }
@@ -537,10 +537,95 @@ static int memap_write(uint32_t addr, uint32_t d)
 	int ret;
 	uint32_t base = base2lvl;
 
-	ret = ap_write(base + TAR, addr);
-	ret = ap_write(base + DRW, d);
+	ret = dap_write(base + TAR, addr);
+	ret = dap_write(base + DRW, d);
 
 	return ret;
+}
+
+
+/* ARM Architecture Reference Manual
+ * ARMv8, for ARMv8-A architecture profile
+ */
+/* H9.2 External debug registers */
+#define EDSCR       0x088
+#define OSLAR_EL1   0x300
+#define EDPRSR      0x314
+#define MIDR_EL1    0xD00
+/* H9.3 Cross-Trigger Interface registers */
+#define CTICONTROL  0x000
+#define CTIINTACK   0x010
+#define CTIAPPSET   0x014
+#define CTIAPPPULSE 0x01C
+#define CTIOUTEN(n) (0x0A0 + (n << 2))
+#define CTITRIGOUTSTATUS 0x134
+#define CTIGATE     0x140
+
+
+/* H9.2.40 EDPRSR, External Debug Processor Status Register */
+#define HALTED      (1 << 4)
+
+/* H9.3.14 CTICONTROL, CTI Control register */
+#define GLBEN       (1 << 0)
+
+#define CHANNEL(x)  (1 << x)
+#define EVENT(n)    (1 << n)
+
+/* H5.4 Description and allocation of CTI triggers */
+#define DEBUG_REQUEST_TRIGGER   0
+#define RESTART_REQUEST_TRIGGER 1
+
+
+/* Example H5-1 Halting a single PE */
+static int debug_request_trigger(uint32_t dbg, uint32_t cti)
+{
+	uint32_t data;
+
+	memap_write(dbg + OSLAR_EL1, 0);
+
+	memap_write(cti + CTICONTROL, GLBEN);
+
+	memap_write(cti + CTIGATE, 0);
+
+	memap_write(cti + CTIOUTEN(DEBUG_REQUEST_TRIGGER), CHANNEL(0));
+
+	memap_write(cti + CTIAPPPULSE, CHANNEL(0));
+
+	do {
+		if (memap_read(dbg + EDPRSR, &data) < 0)
+			return -1;
+	} while (!(data & HALTED));
+
+	memap_write(cti + CTIOUTEN(DEBUG_REQUEST_TRIGGER), 0);
+
+	return 0;
+}
+
+
+/* Example H5-3 Synchronously restarting a group of PEs */
+static int restart_request_trigger(uint32_t dbg, uint32_t cti)
+{
+	uint32_t data;
+
+	memap_write(cti + CTIINTACK, EVENT(0));
+
+	do {
+		if (memap_read(cti + CTITRIGOUTSTATUS, &data) < 0)
+			return -1;
+	} while (data & EVENT(DEBUG_REQUEST_TRIGGER));
+
+	memap_write(cti + CTIOUTEN(RESTART_REQUEST_TRIGGER), CHANNEL(0));
+
+	memap_write(cti + CTIAPPPULSE, CHANNEL(0));
+
+	do {
+		if (memap_read(dbg + EDPRSR, &data) < 0)
+			return -1;
+	} while (data & HALTED);
+
+	memap_write(cti + CTIOUTEN(RESTART_REQUEST_TRIGGER), 0);
+
+	return 0;
 }
 
 
@@ -559,7 +644,7 @@ int main(int argc, char**argv)
 
 		dp_ABORT();
 
-		_ap_read = ap_read;
+		_ap_read = dap_read;
 		enumeration(0, 0);
 
 		printf("\n");
@@ -571,6 +656,7 @@ int main(int argc, char**argv)
 		return 0;
 	}
 
+	/* default use apbap */
 	base2lvl = 0x80000;
 
 	if (argc >= 3 && (argv[1][0] == 'r' || argv[1][0] == 'R')) {
@@ -592,9 +678,15 @@ int main(int argc, char**argv)
 			data = argv[3][0];
 		memap_write(addr, data);
 
+	} else if (argc >= 2 && argv[1][0] == 'd') {
+		debug_request_trigger(0x1010000, 0x1020000);
+	} else if (argc >= 2 && argv[1][0] == 'c') {
+		restart_request_trigger(0x1010000, 0x1020000);
 	} else {
 
 		printf("Do enumeration\n  %s e\n", argv[0]);
+		printf("Do DEBUG_REQUEST_TRIGGER\n  %s d\n", argv[0]);
+		printf("Do RESTART_REQUEST_TRIGGER\n  %s c\n", argv[0]);
 		printf("Read memory with AXI-AP\n  %s r <addr>\n", argv[0]);
 		printf("Write memory with AXI-AP\n  %s w <addr> <value>\n", argv[0]);
 		printf("Read memory with APB-AP\n  %s R <addr>\n", argv[0]);

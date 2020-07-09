@@ -92,7 +92,8 @@ CONFIG_UART_CON_BAUDRATE=1562500
 # CONFIG_UFS is not set
 # CONFIG_FDT is not set
 # CONFIG_PCI is not set
-
+CONFIG_DW_WDT=y
+CONFIG_SUPPORT_SPU_WDT=4
 #
 # Advanced kernel features
 #

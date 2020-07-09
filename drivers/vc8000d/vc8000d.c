@@ -40,7 +40,7 @@ static void decoder_isr(short unsigned int irq, void *dev_id)
 	long i = (long)dev_id;
 	uintptr_t base = core_array[i].base_addr;
 	uint32_t irq_status = readl((uintptr_t)(base + HANTRODEC_IRQ_STAT_DEC*4));
-	
+
 	printf("VC8000 core %d received interrupt, ISR status: %0x0X\n", i, irq_status);
 	if (irq_status & SW_DEC_IRQ) {
 		irq_status = 0;
@@ -59,7 +59,7 @@ int vc8000d_start(int id)
 	printf("VC8000D core %d: init interrupt %d\n", id, core_array[id].irq);
 	irqc_configure_irq(core_array[id].irq, 32, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector((sirq_t)core_array[id].irq, decoder_isr, (void*)data);
-	
+
 	printf("VC8000D core %d: enable interrupt %d\n", id, core_array[id].irq);
 	irqc_enable_irq((irq_t) core_array[id].irq);
 	/* start frame */
@@ -123,7 +123,7 @@ int vc8000d_features(int id)
 		uintptr_t base = core_array[c].base_addr;
 		uint32_t cfg1, cfg2, cfg3;
 		uint32_t tmp;
-		printf("VC8000D core %d supported standards:\n", c); 
+		printf("VC8000D core %d supported standards:\n", c);
 
 		cfg1 = readl((uintptr_t)(base + HANTRODEC_SYNTH_CFG * 4));
 		cfg2 = readl((uintptr_t)(base + HANTRODEC_SYNTH_CFG2 * 4));

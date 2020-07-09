@@ -21,7 +21,11 @@
 #include "emac_drv.h"
 #include "emac_util.h"
 
+#ifdef VCS_TEST
+#define SENDLEN 64
+#else
 #define SENDLEN 1024
+#endif
 #define PKTTOTAL  2048
 LIST_HEAD(emac_devs);
 /**
@@ -44,7 +48,7 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue, uint8_t rx_q,
 	success = false;
 #ifdef EMAC_DEBUG
 	printf("*****status befor Tx*****\n");
-	dwceqos_show_status(lp);
+	dwceqos_show_status(lp, queue, rx_q);
 	printf("\n\n");
 #endif
 
@@ -57,20 +61,19 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue, uint8_t rx_q,
 	}
 
 	/* Sleep for while let Tx complete*/
-	udelay(1000);
+	udelay(5);
 	length = 0;
 	/* check the tx/rx status to make sure tx/rx is done */
-	//checkcode_miss()
+
 #ifdef EMAC_DEBUG
 	printf("*****status after Tx, before Recv*****\n");
-	dwceqos_show_status(lp);
+	dwceqos_show_status(lp, tx_q, rx_q);
 	printf("\n");
 	printf("Transmit is done, check Receive\n");
 #endif
 	/*for (i = 0; i < 4; i++) */{
 		i = rx_q; /* only check specific queue */
 		budget = 1;
-		udelay(1000);
 		length = 0;
 		tx_ret = dwceqos_rx(lp, budget, i, (char **)&recvBuf, &length);
 		/* 4 bytes crc received, so maybe plus 4 will be great
@@ -100,12 +103,12 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue, uint8_t rx_q,
 		printf("emac send/receive data path test success\n");
 	else
 		printf("failed: no buffer received\n");
-#ifdef EMAC_DEBUG
+//#ifdef EMAC_DEBUG
 	printf("*****status after Recv*****\n");
 	dwceqos_get_stats64(lp, 3);
-	dwceqos_show_status(lp);
+	dwceqos_show_status(lp, tx_q, rx_q);
 	printf("*****status end*****\n");
-#endif
+//#endif
 
 	return tx_ret;
 }
@@ -289,25 +292,26 @@ void emac_basic_test(struct net_local* emac_dev)
 		printf("err: no room for sending\n");
 		return;
 	}
-//case 0: basic datapath test
+
 	memset(sendBuf, 0, PKTTOTAL);
 	emac_basic_dp_test(emac_dev, sendBuf, sendlen);
-	udelay(5000);
+
+	udelay(2);
 
 //case 1: multi-queue-channel test
 	memset(sendBuf, 0, PKTTOTAL);
 	emac_mqc_test(emac_dev, sendBuf, sendlen);
-	udelay(5000);
+	udelay(2);
 
 //case 2: PTP one-step test
 	memset(sendBuf, 0, PKTTOTAL);
 	emac_PTP_test(emac_dev, sendBuf, sendlen);
-	udelay(5000);
+	udelay(2);
 
 //case 3: AVB packet CBS test
 	memset(sendBuf, 0, PKTTOTAL);
 	emac_AVB_CBS_test(emac_dev, sendBuf, sendlen);
-	udelay(5000);
+	udelay(2);
 
 	heap_free(sendBuf);
 }
@@ -323,7 +327,9 @@ static struct net_local* emac_basic_init(
 		printf("err: wrong emac base address\n");
 		return NULL;
 	}
+
 	emac_init_memory(buf_addr, buf_size);
+
 	emac_dev = emac_init(emac_base);
 
 	if (NULL == emac_dev) {
@@ -362,6 +368,7 @@ static int do_emac_test(int argc, char *argv[])
 	init = test = close = false;
 	emac_dev = NULL;
 	tmp_emac = NULL;
+	emac_base = EMAC_BASE;
 
 	if (!strcmp(argv[1], "init")) {
 		if (!strcmp(argv[2], "default"))
@@ -433,6 +440,23 @@ static int do_emac_test(int argc, char *argv[])
 	if (test)
 		emac_basic_test(emac_dev);
 	return 1;
+}
+
+void emac_auto_test(void)
+{
+	uint64_t emac_base, buf_addr;
+	struct net_local* emac_dev;
+	uint32_t buf_size;
+
+	emac_base = EMAC_BASE;
+	buf_addr = 0x70000000;
+	buf_size = 0x10000000;
+	/* skipped the smoke test
+	emac_get_feature(emac_base);
+	*/
+	emac_dev = emac_basic_init(emac_base, buf_addr, buf_size);
+
+	emac_basic_test(emac_dev);
 }
 
 MK_CMD(emac, do_emac_test, "emac basic test",

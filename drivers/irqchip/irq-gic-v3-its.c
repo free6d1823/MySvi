@@ -464,7 +464,7 @@ out_unmap:
  * */
 
 static struct its_local* gic_its_basic_init(
-		uint64_t its_base)
+		uintptr_t its_base)
 {
 	struct its_local* its_dev;
 	int ret;
@@ -541,7 +541,7 @@ static int do_gic_its_test(int argc, char *argv[])
 		its_dev = NULL;
 		list_for_each_entry(struct its_local, tmp_its,
 			&gic_its_devs, its_list_entry) {
-			if ((u64)tmp_its->its_baseaddr == its_base) {
+			if ((uintptr_t)tmp_its->its_baseaddr == its_base) {
 				its_dev = tmp_its;
 				break;
 			}

@@ -25,6 +25,7 @@
 #include "emac_drv.h"
 #include "emac_ptp.h"
 
+
 void emac_init_hw_mtl(struct net_local* emac_dev,
 					struct dwceqos_MTL_cfg* emac_MTL_cfg);
 
@@ -122,6 +123,14 @@ static void print_status(struct net_local *lp,
 	u32 reg;
 	struct dwceqos_dma_desc* tx_des;
 
+#ifdef VCS_TEST
+	printf("s1:0x%08x\n",
+			dwceqos_read(lp, REG_DWCEQOS_DMA_DEBUG_ST0));
+	printf("s2:0x%08x\n",
+			dwceqos_read(lp, REG_DWCEQOS_DMA_CH0_STA));
+	printf("IS:0x%08x\n",
+			dwceqos_read(lp, REG_DWCEQOS_DMA_IS));
+#else
 	printf("tx_free %d, tx_cur %d, tx_next %d\n\n", (int)txq->tx_free,
 		(int)txq->tx_cur, (int)txq->tx_next);
 
@@ -156,8 +165,13 @@ static void print_status(struct net_local *lp,
 			reg = dwceqos_read(lp, REG_DWCEQOS_DMA_CH0_CUR_TXDESC),
 			dwceqos_read(lp, REG_DWCEQOS_DMA_CH0_CUR_RXDESC));
 	/* 32bits to 64bits directly, dangerous */
-	tx_des = (struct dwceqos_dma_desc*)((u64)reg);
-	printf("Current TX buf: 0x%08x\n",tx_des->des0);
+	if (reg) {
+		tx_des = (struct dwceqos_dma_desc*)((u64)reg);
+		printf("Current TX buf: 0x%08x\n",tx_des->des0);
+	} else {
+		printf("error, Tx DMA is in wrong status\n");
+	}
+#endif
 }
 
 /* MMC counter */
@@ -471,10 +485,11 @@ static int dwceqos_tx_linear(char *buf, struct net_local *lp,
 	txq->tx_next = (txq->tx_next + 1) % DWCEQOS_TX_DCNT;
 
 	flush_dcache_area(dd, sizeof(struct dwceqos_dma_desc));
-
+#ifndef VCS_TEST
 	printf("%s: tx Desc config info\n", __func__);
 	print_descriptor_tx(txq, tx->last_descriptor);
 	printf("\n");
+#endif
 	return 0;
 }
 
@@ -513,14 +528,16 @@ static void dwceqos_tx_finalize(char *skb, struct net_local *lp,
                     sizeof(struct dwceqos_dma_desc));
 	/* Make the owner bit visible before TX wakeup. */
 	wmb();
+#ifndef VCS_TEST
 	printf("%s: tx Desc config info\n", __func__);
 	print_descriptor_tx(txq, tx->initial_descriptor);
 	printf("\n");
-
+#endif
 	dwceqos_tx_poll_demand(lp, tx_q);
 
 #ifdef EMAC_DEBUG
 	dw_DMA_status_check(lp);
+	puts("TxTrigger\n");
 #endif
 }
 
@@ -642,6 +659,7 @@ static int dwceqos_packet_avail(struct net_local *lp, u32 rx_q)
 {
 	struct emac_rx_queue *rxq;
 	rxq = &lp->rx_queues[rx_q];
+	inval_dcache_addr(&rxq->rx_descs[rxq->rx_cur].des3);
 	return !(rxq->rx_descs[rxq->rx_cur].des3 & DWCEQOS_DMA_RDES3_OWN);
 }
 
@@ -662,10 +680,19 @@ int dwceqos_rx(struct net_local *lp, int budget, u32 rx_q,
 	rxq = &lp->rx_queues[rx_q];
 	*length = 0;
 	while (n_descs < budget) {
-		if (!dwceqos_packet_avail(lp, rx_q))
-			break;
-		else
-		{
+		if (!dwceqos_packet_avail(lp, rx_q)) {
+			int i = 50;
+			while ((i > 0) && (!dwceqos_packet_avail(lp, rx_q))) {
+				i--;
+				udelay(2);
+				if (i % 10 == 9)
+					printf("Rx not ready, keep wating\n");
+			}
+			if (i == 0) {
+				printf("Rx not ready, time out, game over\n");
+				break;
+			}
+		} else {
 			printf("data received at rx_q=%d\n", rx_q);
 		}
 
@@ -826,20 +853,23 @@ static void dwceqos_alloc_rxring_desc(struct emac_rx_queue *rxq, int index)
 	rxq->rx_skb_ring[index].len = DWCEQOS_RX_BUF_SIZE;
 
 	rxq->rx_skb_ring[index].skb = new_skb;
+
+	flush_dcache_area(&rxq->rx_descs[index], sizeof(struct dwceqos_dma_desc));
 }
 
 static void emac_config_bus(struct dwceqos_bus_cfg* bus_cfg)
 {
 	if (NULL == bus_cfg)
 		printf("%s para wrong\n", __func__);
-	/* make things simple, use default value for DMA config
+	/* let's get into real world */
 	bus_cfg->en_lpi = false;
-	bus_cfg->tx_pbl = 0;//8;
-	bus_cfg->rx_pbl = 2;
+	bus_cfg->tx_pbl = 8;
+	bus_cfg->rx_pbl = 8;
 	bus_cfg->write_requests = 16;
 	bus_cfg->read_requests  = 16;
 	bus_cfg->burst_map = 0x7;
-	*/
+
+#ifndef VCS_TEST
 	printf("BusCfg: lpi:%u wr:%u rr:%u bm:%X rxpbl:%u txpbl:%d\n",
 			bus_cfg->en_lpi,
 			bus_cfg->write_requests,
@@ -847,6 +877,7 @@ static void emac_config_bus(struct dwceqos_bus_cfg* bus_cfg)
 			bus_cfg->burst_map,
 			bus_cfg->rx_pbl,
 			bus_cfg->tx_pbl);
+#endif
 }
 
 static int dwceqos_descriptor_init(struct net_local *emac_dev,
@@ -856,7 +887,9 @@ static int dwceqos_descriptor_init(struct net_local *emac_dev,
 	u32 i, queue;
 	struct emac_tx_queue *txq;
 	struct emac_rx_queue *rxq;
+#ifndef VCS_TEST
 	printf("desc init tx_q=%d, rx_q=%d\n", txq_count, rxq_count);
+#endif
 
 	for (queue = 0; queue < txq_count; queue++) {
 		txq = &emac_dev->tx_queues[queue];
@@ -929,7 +962,7 @@ err_out_tx:
 	#ifdef EMAC_DEBUG
 		printf("Rx descriptor show:\n");
 		for (i = 0; i < DWCEQOS_RX_DCNT; ++i) {
-			print_descriptor_rx(rxq, i, 0);
+			print_descriptor_rx(rxq, i);
 		}
 	#endif
 		continue;
@@ -967,10 +1000,13 @@ static void dwceqos_reset_hw(struct net_local *lp)
 	dwceqos_write(lp, REG_DWCEQOS_DMA_MODE, DWCEQOS_DMA_MODE_SWR);
 
 	do {
-		udelay(100);
+		udelay(1);
 		i--;
 		reg = dwceqos_read(lp, REG_DWCEQOS_DMA_MODE);
+		if (i % 10 == 1)
+			printf("%d: %x\n", i, reg);
 	} while ((reg & DWCEQOS_DMA_MODE_SWR) && i);
+
 	/* We might experience a timeout if the chip clock mux is broken */
 	if (!i)
 		printf("DMA reset timed out!\n");
@@ -1019,8 +1055,9 @@ static void dwceqos_config_DMA_bus(struct net_local *lp)
 	else
 		sysbus_reg |= DWCEQOS_DMA_SYSBUS_MODE_WR_OSR_LIMIT(
 			DWCEQOS_DMA_SYSBUS_MODE_WR_OSR_LIMIT_DEFAULT);
-
+#ifndef VCS_TEST
 	printf("SysbusMode %#X\n", sysbus_reg);
+#endif
 
 	dwceqos_write(lp, REG_DWCEQOS_DMA_SYSBUS_MODE, sysbus_reg);
 }
@@ -1082,6 +1119,7 @@ static void emac_start_mtl_dma(struct net_local *lp,
 	regval = dwceqos_read(lp, REG_DWCEQOS_MAC_CFG);
 	dwceqos_write(lp, REG_DWCEQOS_MAC_CFG,
 		      regval | DWCEQOS_MAC_CFG_TE | DWCEQOS_MAC_CFG_RE);
+
 }
 
 static void emac_stop_dma_mtl_mac(struct net_local *lp)
@@ -1207,15 +1245,17 @@ static void emac_dma_operation_mode(struct net_local *lp,
 {
 	u32 rx_channels_count = emac_MTL_cfg->rx_queues_count;
 	u32 tx_channels_count = emac_MTL_cfg->tx_queues_count;
+
 	int rxfifosz;
 	int txfifosz;
 	u32 regval, queue;
 
 	rxfifosz = 128 << (lp->feature1 & GENMASK(4, 0));
 	txfifosz = 128 << ((lp->feature1 & GENMASK(10, 6)) >> 6);
+#ifndef VCS_TEST
 	printf("Tx FIF0 size=%d bytes\n", txfifosz);
 	printf("Rx FIF0 size=%d bytes\n", rxfifosz);
-
+#endif
 	/* Adjust for real per queue fifo size */
 	rxfifosz /= rx_channels_count;
 	txfifosz /= tx_channels_count;
@@ -1421,9 +1461,10 @@ static void dwceqos_init_hw(struct net_local *lp,
 	dwceqos_write(lp, REG_DWCEQOS_MMC_TXIRQMASK, ~0u);
 	lp->mmc_rx_counters_mask = dwceqos_read(lp, REG_DWCEQOS_MMC_RXIRQMASK);
 	lp->mmc_tx_counters_mask = dwceqos_read(lp, REG_DWCEQOS_MMC_TXIRQMASK);
+#ifndef VCS_TEST
 	printf("MMC: Tx_mask=0x%x, Rx_mask=0x%x\n", lp->mmc_tx_counters_mask,
 					lp->mmc_rx_counters_mask);
-
+#endif
 	dwceqos_write(lp, REG_DWCEQOS_MMC_CTRL, DWCEQOS_MMC_CTRL_CNTRST |
 		DWCEQOS_MMC_CTRL_RSTONRD);
 	dwceqos_enable_mmc_interrupt(lp);
@@ -1435,6 +1476,7 @@ static void dwceqos_init_hw(struct net_local *lp,
 	emac_start_mtl_dma(lp, emac_MTL_cfg);
 
 	{ /* sanity check */
+#ifndef VCS_TEST
 		regval = dwceqos_read(lp, REG_DWCEQOS_MAC_CFG);
 		printf("Sanity: MAC core config = 0x%x\n", regval);
 		regval = dwceqos_read(lp, REG_DWCEQOS_MTL_TXQ0_OPER);
@@ -1443,7 +1485,14 @@ static void dwceqos_init_hw(struct net_local *lp,
 		printf("Sanity: DMA chan Tx ctrl = 0x%x\n", regval);
 		regval = dwceqos_read(lp, REG_DWCEQOS_DMA_CH0_RX_CTRL);
 		printf("Sanity: DMA chan Rx ctrl = 0x%x\n", regval);
+#endif
+		struct dwceqos_dma_desc *dd;
+		struct emac_rx_queue* rxq;
+		struct dwceqos_dma_desc* temp;
 
+		rxq = &lp->rx_queues[0];
+
+		dd = &rxq->rx_descs[rxq->rx_cur];
 		regval = dwceqos_read(lp, REG_DWCEQOS_DMA_CH0_TXDESC_LIST);
 		if ((((u32)lp->tx_queues[0].tx_descs_addr) != regval) || (regval == 0)) {
 			printf("error: tx desc 0x%x doesn't match reg 0x%x\n",
@@ -1453,6 +1502,12 @@ static void dwceqos_init_hw(struct net_local *lp,
 		if ((((u32)lp->rx_queues[0].rx_descs_addr) != regval) || (regval == 0)) {
 			printf("error: rx desc 0x%x doesn't match reg 0x%x\n",
 						(u32)lp->rx_queues[0].rx_descs_addr, regval);
+		} else {
+			temp = (struct dwceqos_dma_desc *)(long)regval;
+			if (temp->des0 != dd->des0) {
+				printf("error: rx  buffer 0x%x doesn't match reg 0x%x, reg=0x%x\n",
+							(u32)dd->des0, temp->des0, regval);
+			}
 		}
 	}
 
@@ -1473,7 +1528,9 @@ void emac_lpmode_config(struct net_local *lp)
 	if (0 == (reg & DWCEQOS_MAC_CFG_LPM )) {
 		dwceqos_write(lp, REG_DWCEQOS_MAC_CFG,
 					reg | DWCEQOS_MAC_CFG_LPM);
+#ifndef VCS_TEST
 		printf("Config device loopback mode from 0x%x\n", reg);
+#endif
 	}
 }
 
@@ -1483,7 +1540,11 @@ void emac_get_feature(u64 base_addr)
 	u32 reg, newreg;
 
 	emac_dev.baseaddr = (void*)IOREMAP(base_addr);
+	reg = 0;
+	reg = dwceqos_read(&emac_dev, REG_DWCEQOS_MAC_HW_VERSION);
+	printf("MAC version = 0x%x\n", reg);
 
+	reg = 0;
 	reg = dwceqos_read(&emac_dev, REG_DWCEQOS_MAC_CFG);
 	printf("MAC CFG = 0x%x\n", reg);
 
@@ -1495,6 +1556,7 @@ void emac_get_feature(u64 base_addr)
 		return;
 	} else {
 		dwceqos_write(&emac_dev, REG_DWCEQOS_MAC_CFG, reg);
+		printf("passed sanity check for MAC CFG reg\n");
 	}
 
 	{ /* sanity check for DMA */
@@ -1531,7 +1593,9 @@ void emac_get_feature(u64 base_addr)
 			printf("failed to pass sanity check, errno=%x\n", newreg);
 			return;
 		}
+		printf("passed sanity check for DMA reg, reset HW\n");
 		dwceqos_reset_hw(lp);
+		printf("reset HW end\n");
 	}
 
 	reg = 0;
@@ -1765,10 +1829,12 @@ static void mac_map_mtl_dma(struct net_local* lp, u32 queue, u32 chan)
 		value |= MTL_RXQ_DMA_QXMDMACH(chan, queue);
 	}
 
-	if (queue < 4)
+	if (queue < 4) {
 		dwceqos_write(lp, MTL_RXQ_DMA_MAP0, value);
-	else
+	}
+	else {
 		dwceqos_write(lp, MTL_RXQ_DMA_MAP1, value);
+	}
 }
 static void mac_rx_queue_enable(struct net_local* lp,
 				   u8 mode, u32 queue)

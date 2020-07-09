@@ -80,7 +80,7 @@ void entry(void)
 	soc_early_init();
 	console_early_init();
 
-	puts("\nHello SVI @CPU");
+	puts("\nHello SVI @C");
 	printf("%d\n", smp_processor_id());
 
 	mmu_init();
@@ -113,7 +113,7 @@ void entry(void)
 
 void secondary_entry(void)
 {
-	printf("CPU[%d] UP\n", smp_processor_id());
+	printf("C[%d] UP\n", smp_processor_id());
 
 	mmu_init();
 	dsr_init();

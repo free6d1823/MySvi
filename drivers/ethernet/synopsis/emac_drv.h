@@ -124,8 +124,8 @@ struct dwceqos_bus_cfg {
 	u32 rx_pbl;
 };
 
-#define MTL_MAX_RX_QUEUES 8
-#define MTL_MAX_TX_QUEUES 8
+#define MTL_MAX_RX_QUEUES 4
+#define MTL_MAX_TX_QUEUES 4
 
 struct mac_rxq_cfg {
 	u8 mode_to_use;
@@ -616,6 +616,7 @@ enum packets_types {
 
 /* uncomment it to get more debug info */
 //#define EMAC_DEBUG 1
+#define VCS_TEST 1
 /* MTL Queue Quantum Weight */
 #define MTL_TXQ_WEIGHT_BASE_ADDR	0x00000d18
 #define MTL_TXQ_WEIGHT_BASE_OFFSET	0x40

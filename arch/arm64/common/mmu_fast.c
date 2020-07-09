@@ -80,7 +80,7 @@ int mmu_fast_init(void)
 		return -1;
 	}
 
-	printf("FAST MMU\n");
+	puts("FAST MMU\n");
 
 	/* Initialize the MMU (still disabled) */
 	mmu_fast_initialize();

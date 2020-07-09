@@ -1,2 +1,6 @@
 config DW_WDT
 	bool "designware wdt driver"
+
+config SUPPORT_SPU_WDT
+  int "configure power manage private wdt indx"
+	default 0

@@ -9,7 +9,7 @@
 #include "dw_wdt.h"
 
 static int dw_wdt_index;
-struct wdt_regs *dw_wdt_bases[DW_WDT_NUM];
+struct wdt_regs *dw_wdt_bases[SUPPORT_WDT_MAX_NUM];
 
 static inline int log_2_n_round_up(u32 n)
 {
@@ -27,16 +27,6 @@ static inline int log_2_n_round_up(u32 n)
 		return log2n; /* power of 2 */
 }
 
-static void dw_wdt_enable(struct wdt_regs *wdt_base)
-{
-	writel(0x3, &wdt_base->wdt_cr);
-}
-
-static void dw_wdt_disenable(struct wdt_regs *wdt_base)
-{
-	writel(0x0, &wdt_base->wdt_cr);
-}
-
 static int dw_wdt_is_enabled(struct wdt_regs *wdt_base)
 {
 	ulong val;
@@ -44,7 +34,17 @@ static int dw_wdt_is_enabled(struct wdt_regs *wdt_base)
 	return val & 0x1;
 }
 
-static int dw_wdt_set_timeout(struct wdt_regs *wdt_base, u32 timeout_ms)
+void dw_wdt_enable(struct wdt_regs *wdt_base)
+{
+	writel(DW_WDT_CTR_ENABLE_INT, &wdt_base->wdt_cr);
+}
+
+void dw_wdt_disenable(struct wdt_regs *wdt_base)
+{
+	writel(0x0, &wdt_base->wdt_cr);
+}
+
+int dw_wdt_set_timeout(struct wdt_regs *wdt_base, u32 timeout_ms)
 {
 	signed int i;
 
@@ -59,7 +59,7 @@ static int dw_wdt_set_timeout(struct wdt_regs *wdt_base, u32 timeout_ms)
 	return 0;
 }
 
-static int dw_wdt_reset(struct wdt_regs *wdt_base)
+int dw_wdt_reset(struct wdt_regs *wdt_base)
 {
 	if (dw_wdt_is_enabled(wdt_base))
 		/* restart the watchdog counter */
@@ -69,13 +69,14 @@ static int dw_wdt_reset(struct wdt_regs *wdt_base)
 
 static void dw_handle_wdt_irq(irq_t irq, void *ctx)
 {
-	printf("dw handle wdt irq.\n");
+	printf("dw handle wdt:%d irq.\n", dw_wdt_index);
 	dw_wdt_reset(dw_wdt_bases[dw_wdt_index]);
 }
 
-static int dw_wdt_irq_init(int index)
+int dw_wdt_irq_init(int index)
 {
 	irq_t dw_wdt_irq = DW_WDT_TRQ(index);
+
 	dw_wdt_bases[index] = (struct wdt_regs *)(uintptr_t)(DW_WDT_REG_BASE(index));
 	irqc_configure_irq(dw_wdt_irq, 32, IRQ_EDGE_TRIGGERED);
 	irq_register_vector(dw_wdt_irq, dw_handle_wdt_irq, NULL);
@@ -83,7 +84,7 @@ static int dw_wdt_irq_init(int index)
 	return 0;
 }
 
-static int dw_wdt_start(struct wdt_regs *wdt_base, uint timeout_ms)
+int dw_wdt_start(struct wdt_regs *wdt_base, uint timeout_ms)
 {
 	dw_wdt_set_timeout(wdt_base, timeout_ms);
 	dw_wdt_enable(wdt_base);
@@ -91,7 +92,7 @@ static int dw_wdt_start(struct wdt_regs *wdt_base, uint timeout_ms)
 	return 0;
 }
 
-static int dw_wdt_stop(struct wdt_regs *wdt_base)
+int dw_wdt_stop(struct wdt_regs *wdt_base)
 {
 	dw_wdt_disenable(wdt_base);
 	return 0;
@@ -99,7 +100,7 @@ static int dw_wdt_stop(struct wdt_regs *wdt_base)
 
 int do_cmd_wdt(int argc, char **argv)
 {
-	int ret = 0;
+	int ret = -EUSAGE;
 	int timeout_ms = 10000;
 
 	if (argc < 2)
@@ -107,7 +108,7 @@ int do_cmd_wdt(int argc, char **argv)
 
 	if (!strcmp("init", argv[1])) {
 		dw_wdt_index = strtoul(argv[2], NULL, 0);
-		if ((dw_wdt_index > -1) && (dw_wdt_index < 3)) {
+		if ((dw_wdt_index >= 0) && (dw_wdt_index < SUPPORT_WDT_MAX_NUM)) {
 			ret = dw_wdt_irq_init(dw_wdt_index);
 		}
 	}
@@ -128,9 +129,10 @@ int do_cmd_wdt(int argc, char **argv)
 	return ret;
 }
 
+
 MK_CMD(wdt, do_cmd_wdt, "Designware WDT cmd",
 	" wdt init index \n"
-	"		-the index of wdt controller initialization.\n"
+	"		-index[0, SUPPORT_WDT_MAX_NUM) of controller init.\n"
 	" wdt start timeout\n"
 	"		-start watchdog timer\n"
 	" wdt stop\n"
@@ -138,6 +140,7 @@ MK_CMD(wdt, do_cmd_wdt, "Designware WDT cmd",
 	" wdt reset\n"
 	"		-reset watchdog timer\n"
 );
+
 
 
 

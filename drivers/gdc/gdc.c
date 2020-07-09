@@ -56,7 +56,7 @@ enum test_cases{
 	test_yuv420_planar,
 	test_rgb_444_planar,
 	test_sequential_planes,
-#endif	
+#endif
 	max_gdc_test_cases
 };
 
@@ -82,7 +82,7 @@ struct _gdc_test_param gdc_test_param[max_gdc_test_cases]={
 		.div_width=0,		//div_width
 		.div_height=0		//div_height
 	},
-#if 0	
+#if 0
 	{//test_yuv420_semiplanar
 		.gdc_sequence=semiplanar_yuv420_1920x1080_seq, //gdc_sequence
 		.gdc_sequence_size=sizeof(semiplanar_yuv420_1920x1080_seq),
@@ -91,7 +91,7 @@ struct _gdc_test_param gdc_test_param[max_gdc_test_cases]={
 		.sequential_mode=0, 		//plane_sequential_processing
 		.div_width=0,		//div_width
 		.div_height=1		//div_height
-	},	
+	},
 	{//test_yuv420_planar
 		.gdc_sequence=planar_yuv420_1920x1080_seq, //gdc_sequence
 		.gdc_sequence_size=sizeof(planar_yuv420_1920x1080_seq),

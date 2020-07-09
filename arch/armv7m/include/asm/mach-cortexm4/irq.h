@@ -8,6 +8,7 @@
 /* IRQ NUMBER */
 #define IRQ__UART0	104
 #define UART_CON_IRQ	(1)
+#define DW_WDT_TRQ(n)	(10 + n)
 
 #define NR_IRQS		(240)
 

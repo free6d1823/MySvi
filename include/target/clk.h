@@ -6,9 +6,7 @@
 #endif
 
 #ifdef CONFIG_CLK_DRIVER
-
-#include <target/utils.h>
-#include <asm/mach/clk.h>
+#include <target/clk_se1000.h>
 
 /* APIs */
 /**

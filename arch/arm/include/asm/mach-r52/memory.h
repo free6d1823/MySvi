@@ -25,4 +25,5 @@
 
 #define UART_BASE(n)		0x0E94A0000
 
+#define CLK_RESET_REG_BASE			0x58100000
 #endif /* __CORTEXR52_MEMORY_H_INCLUDE__ */

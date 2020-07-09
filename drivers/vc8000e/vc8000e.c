@@ -39,10 +39,8 @@ static void encoder_isr(short unsigned int irq, void *dev_id)
 	uintptr_t base = core_array[i].base_addr;
 	uint32_t irq_status = readl((uintptr_t)(base + SWREG1));
 	uint32_t wClr;
-	
 	printf("VC8000 core %d received interrupt, ISR status: %0x0X\n", i, irq_status);
 	if (irq_status & SW_ENC_IRQ) {
-		
 		/*	Disable HW when buffer over-flow happen
 		*  HW behavior changed in over-flow
 		*    in-pass, HW cleanup HWIF_ENC_E auto
@@ -70,7 +68,7 @@ int vc8000e_start(int id)
 	printf("VC8000E core %d: init interrupt %d\n", id, core_array[id].irq);
 	irqc_configure_irq(core_array[id].irq, 32, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector((sirq_t)core_array[id].irq, encoder_isr, (void*) data);
-	
+
 	printf("VC8000E core %d: enable interrupt %d\n", id, core_array[id].irq);
 	irqc_enable_irq((irq_t) core_array[id].irq);
 	/* start frame */
