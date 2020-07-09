@@ -2,6 +2,7 @@
 #define __TESTOS_BITOPS_H_INCLUDE__
 
 #include <stdint.h>
+#include <target/memory.h>
 
 #ifndef min
 #define min(x, y)       ((x)<(y)?(x):(y))
@@ -85,16 +86,17 @@ static __inline__ int fls(unsigned int x)
  * set bit if value is nonzero. The last (most significant) bit is
  * at position 64.
  */
-#define _BITS_PER_LONG_ 64
-#if _BITS_PER_LONG_ == 32
+#define BITS_PER_LONG __WORDSIZE
+
+#if BITS_PER_LONG == 32
 static inline int fls64(uint64_t x)
 {
-	__u32 h = x >> 32;
+	uint32_t h = x >> 32;
 	if (h)
 		return fls(h) + 32;
 	return fls(x);
 }
-#elif _BITS_PER_LONG_ == 64
+#elif BITS_PER_LONG == 64
 static inline int fls64(uint64_t x)
 {
 	if (x == 0)
@@ -102,8 +104,33 @@ static inline int fls64(uint64_t x)
 	return __ilog2(x) + 1;
 }
 #else
-#error _BITS_PER_LONG_ not 32 or 64
+#error BITS_PER_LONG not 32 or 64
 #endif
+
+static inline
+int __get_order(unsigned long size)
+{
+	int order;
+
+	size--;
+	size >>= PAGE_SHIFT;
+#if BITS_PER_LONG == 32
+	order = fls(size);
+#else
+	order = fls64(size);
+#endif
+	return order;
+}
+
+#define get_order(n)						\
+(								\
+	__builtin_constant_p(n) ? (				\
+		((n) == 0UL) ? BITS_PER_LONG - PAGE_SHIFT :	\
+		(((n) < (1UL << PAGE_SHIFT)) ? 0 :		\
+		 ilog2((n) - 1) - PAGE_SHIFT + 1)		\
+	) :							\
+	__get_order(n)						\
+)
 
 static inline void __set_bit(int nr, volatile void *addr)
 {
@@ -144,21 +171,6 @@ static inline int ffs (int x)
 	return r;
 }
 
-/*
- * ffz = Find First Zero in word. Undefined if no zero exists,
- * so code should check against ~0UL first..
- */
-static inline unsigned long ffz(unsigned long word)
-{
-	unsigned long result = 0;
-
-	while(word & 1) {
-		result++;
-		word >>= 1;
-	}
-	return result;
-}
-
 static inline void clear_bit(int nr, volatile void *addr)
 {
 	int	* a = (int *) addr;
@@ -170,39 +182,80 @@ static inline void clear_bit(int nr, volatile void *addr)
 	*a &= ~mask;
 }
 
+#define ffz(x)  __ffs(~(x))
+
+/**
+ *  * __ffs - find first bit in word.
+ *   * @word: The word to search
+ *    *
+ *     * Undefined if no bit exists, so code should check against 0 first.
+ *      */
+static unsigned long __ffs(unsigned long word)
+{
+	int num = 0;
+
+#if BITS_PER_LONG == 64
+	if ((word & 0xffffffff) == 0) {
+		num += 32;
+		word >>= 32;
+	}
+#endif
+	if ((word & 0xffff) == 0) {
+		num += 16;
+		word >>= 16;
+	}
+	if ((word & 0xff) == 0) {
+		num += 8;
+		word >>= 8;
+	}
+	if ((word & 0xf) == 0) {
+		num += 4;
+		word >>= 4;
+	}
+	if ((word & 0x3) == 0) {
+		num += 2;
+		word >>= 2;
+	}
+	if ((word & 0x1) == 0)
+		num += 1;
+	return num;
+}
+
 static inline int find_next_zero_bit(void *addr, int size, int offset)
 {
-	unsigned long *p = ((unsigned long *) addr) + (offset >> 5);
-	unsigned long result = offset & ~31UL;
+	unsigned long *p = ((unsigned long *)addr) + (offset / BITS_PER_LONG);
+	unsigned long result = offset & ~(BITS_PER_LONG - 1);
 	unsigned long tmp;
 
 	if (offset >= size)
 		return size;
 	size -= result;
-	offset &= 31UL;
+	offset &= (BITS_PER_LONG - 1);
 	if (offset) {
 		tmp = *(p++);
-		tmp |= ~0UL >> (32-offset);
-		if (size < 32)
+		tmp |= ~0UL >> (BITS_PER_LONG - offset);
+		if (size < BITS_PER_LONG)
 			goto found_first;
 		if (~tmp)
 			goto found_middle;
-		size -= 32;
-		result += 32;
+		size -= BITS_PER_LONG;
+		result += BITS_PER_LONG;
 	}
-	while (size & ~31UL) {
-		if (~(tmp = *(p++)))
+	while (size & ~(BITS_PER_LONG - 1)) {
+		tmp = *(p++);
+		if (~tmp)
 			goto found_middle;
-		result += 32;
-		size -= 32;
+		result += BITS_PER_LONG;
+		size -= BITS_PER_LONG;
 	}
 	if (!size)
 		return result;
 	tmp = *p;
 
 found_first:
-	tmp |= ~0UL >> size;
+	tmp |= ~0UL << size;
 found_middle:
 	return result + ffz(tmp);
 }
+
 #endif /* __TESTOS_BITOPS_H_INCLUDE__ */

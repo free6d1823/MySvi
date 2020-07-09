@@ -29,6 +29,10 @@ extern char __bss_end[];
 
 #endif
 
+#ifndef PAGE_SHIFT
+#define PAGE_SHIFT			12 /*binding with PAGE_SIZE*/
+#endif
+
 /* STACK is for per CPU */
 #define STACK_SHIFT		12
 #define STACK_SIZE		(1 << STACK_SHIFT)

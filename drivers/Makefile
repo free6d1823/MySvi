@@ -63,3 +63,4 @@ obj-$(CONFIG_VC8000D) += vc8000d/
 obj-$(CONFIG_GDC) += gdc/
 obj-$(CONFIG_CLK_DRIVER) += clk/
 
+obj-$(CONFIG_CDNS_QSPI) += qspi/

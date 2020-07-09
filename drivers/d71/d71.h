@@ -198,6 +198,15 @@
 #define LPU1_LAYER1 0x2600  /* LPU1 Layer 1 (Simple) */
 #define LPU1_LAYER2 0x2800  /* LPU1 Layer 2 (Rich) */
 #define LPU1_LAYER3 0x2A00  /* LPU1 Layer 3 (Simple) */
+#define CU1          0x2E00  /* Composition Unit 1 */
+#define CU1_SPLITTER 0x3000  /* CU1 Line Splitter */
+#define CU1_SCALER0  0x3200  /* CU1 Scaling Engine 0 */
+#define CU1_SCALER1  0x3400  /* CU1 Scaling Engine 1 */
+#define CU1_MERGER   0x3600  /* CU1 Line Merger */
+#define DOU1     0x3800  /* Display Output Unit 1 */
+#define DOU1_IPS 0x3A00  /* DOU1 Image Processing Subsystem */
+#define DOU1_BS  0x3E00  /* DOU1 Backend Subsystem */
+
 
 #define D71_DEFAULT_PREPRETCH_LINE	5
 

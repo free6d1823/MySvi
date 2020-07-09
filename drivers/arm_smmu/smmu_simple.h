@@ -56,7 +56,7 @@
  */
 
 #define GENMASK(h, l) \
-	(((~0UL) << (l)) & (~0UL >> (_BITS_PER_LONG_ - 1 - (h))))
+	(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
 
 
 #define GENMASK_ULL(h, l) \
@@ -143,54 +143,6 @@ void __read_once_size(const volatile void *p, void *res, int size)
 #define IOMMU_NOEXEC	(1 << 3)
 #define IOMMU_MMIO	(1 << 4) /* e.g. things like MSI doorbells */
 #define IOMMU_PRIV	(1 << 5)
-
-#define PAGE_SHIFT 12
-static inline __attribute_const__
-int __get_order(unsigned long size)
-{
-	int order;
-
-	size--;
-	size >>= PAGE_SHIFT;
-#if _BITS_PER_LONG_ == 32
-	order = fls(size);
-#else
-	order = fls64(size);
-#endif
-	return order;
-}
-
-/**
- * get_order - Determine the allocation order of a memory size
- * @size: The size for which to get the order
- *
- * Determine the allocation order of a particular sized block of memory.  This
- * is on a logarithmic scale, where:
- *
- *	0 -> 2^0 * PAGE_SIZE and below
- *	1 -> 2^1 * PAGE_SIZE to 2^0 * PAGE_SIZE + 1
- *	2 -> 2^2 * PAGE_SIZE to 2^1 * PAGE_SIZE + 1
- *	3 -> 2^3 * PAGE_SIZE to 2^2 * PAGE_SIZE + 1
- *	4 -> 2^4 * PAGE_SIZE to 2^3 * PAGE_SIZE + 1
- *	...
- *
- * The order returned is used to find the smallest allocation granule required
- * to hold an object of the specified size.
- *
- * The result is undefined if the size is 0.
- *
- * This function may be used to initialise variables with compile time
- * evaluations of constants.
- */
-#define get_order(n)						\
-(								\
-	__builtin_constant_p(n) ? (				\
-		((n) == 0UL) ? _BITS_PER_LONG_ - PAGE_SHIFT :	\
-		(((n) < (1UL << PAGE_SHIFT)) ? 0 :		\
-		 __ilog2((n) - 1) - PAGE_SHIFT + 1)		\
-	) :							\
-	__get_order(n)						\
-)
 
 
 /* MMIO registers */

@@ -30,6 +30,8 @@
 #define ENOTCONN        107
 #define ETIMEDOUT       110
 #define EINPROGRESS     115
+#define	EISNAM          120	/* Is a named type file */
+
 #define ENOMEDIUM       123	/* No medium found */
 #define EMEDIUMTYPE     124	/* Wrong medium type */
 #define ENOTSUPP        524	/* Operation is not supported */

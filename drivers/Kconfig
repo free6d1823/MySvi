@@ -115,6 +115,7 @@ source drivers/i2c/dw/Kconfig
 source drivers/spi/dw/Kconfig
 source drivers/spi/master/Kconfig
 source drivers/spi/slave/Kconfig
+source drivers/qspi/Kconfig
 source drivers/emac/Kconfig
 source drivers/XGmac/Kconfig
 source drivers/trng/Kconfig

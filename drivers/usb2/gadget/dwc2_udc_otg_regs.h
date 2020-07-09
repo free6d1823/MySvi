@@ -62,8 +62,12 @@ struct dwc2_usbotg_reg {
 	u32 gnptxfsiz; /* Non-Periodic Transmit FIFO Size */
 	u8  res0[12];
 	u32 ggpio;     /* 0x038 */
-	u8  res1[20];
-	u32 ghwcfg4; /* User HW Config4 */
+	u32	guid;
+	u32	gsnpsid;	/* 0x040 */
+	u32	ghwcfg1;
+	u32	ghwcfg2;
+	u32	ghwcfg3;
+	u32	ghwcfg4;	/* 0x050 */
 	u8  res2[176];
 	u32 dieptxf[15]; /* Device Periodic Transmit FIFO size register */
 	u8  res3[1728];
@@ -74,9 +78,13 @@ struct dwc2_usbotg_reg {
 	u8  res4[4];
 	u32 diepmsk; /* Device IN Endpoint Common Interrupt Mask */
 	u32 doepmsk; /* Device OUT Endpoint Common Interrupt Mask */
-	u32 daint; /* Device All Endpoints Interrupt */
-	u32 daintmsk; /* Device All Endpoints Interrupt Mask */
-	u8  res5[224];
+	u32 daint; /* Device All Endpoints Interrupt */    /*0x818*/
+	u32 daintmsk; /* Device All Endpoints Interrupt Mask */ /*0x81c*/
+	u32 dtknqr1;
+	u32 dtknqr2;
+	u32 dvbusdis;
+	u32 dvbuspulse;
+	u8  res5[208];
 	struct dwc2_dev_in_endp in_endp[16];
 	struct dwc2_dev_out_endp out_endp[16];
 	u8  res6[768];
@@ -289,5 +297,12 @@ struct dwc2_usbotg_reg {
 /* OTG general core configuration register (OTG_GCCFG:0x38) for STM32MP1 */
 #define GGPIO_STM32_OTG_GCCFG_VBDEN               BIT(21)
 #define GGPIO_STM32_OTG_GCCFG_IDEN                BIT(22)
+
+/* These apply to the GNPTXFSIZ, HPTXFSIZ and DPTXFSIZN registers */
+#define FIFOSIZE_DEPTH_MASK		(0xffff << 16)
+#define FIFOSIZE_DEPTH_SHIFT		16
+#define FIFOSIZE_STARTADDR_MASK		(0xffff << 0)
+#define FIFOSIZE_STARTADDR_SHIFT	0
+#define FIFOSIZE_DEPTH_GET(_x)		(((_x) >> 16) & 0xffff)
 
 #endif

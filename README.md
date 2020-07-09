@@ -11,3 +11,17 @@ make menuconfig
 or
 make ARCH=arm64 se1000_defconfig
 make
+
+#How to add a new device
+arch/arm64/
+  include/asm/mach-se1000/memory.h   #define Base Memory Address
+  configs/se1000_defconfig           #IP CONFIG settings
+drivers/Kconfig add
+  source drivers/<device_name>/Kconfig
+driver/Makefile add
+  obj-$(CONFIG_<device_name> += <device_name>/
+  
+drivers/<device_name>
+  Kconfig				#add Menuconfig item
+  Makefile				#add module to obj-y
+  

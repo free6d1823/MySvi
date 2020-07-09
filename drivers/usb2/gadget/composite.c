@@ -21,7 +21,6 @@
 
 #define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
 #define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
-#define BITS_PER_LONG 32
 
 #undef list_for_each_entry
 #define list_for_each_entry list_for_each_entry_2
@@ -40,6 +39,11 @@ static inline void bitmap_zero(unsigned long *dst, int nbits)
 static inline int test_bit(int nr, const void *addr)
 {
 	return ((unsigned char *)addr)[nr >> 3] & (1u << (nr & 7));
+}
+
+static inline void kfree(const void *block)
+{
+	free((void *)block);
 }
 
 
@@ -61,9 +65,64 @@ static inline void generic_set_bit(int nr, volatile unsigned long *addr)
 }
 
 ///////////
+/* Helper type for accessing packed u16 pointers */
+typedef struct { __le16 val; } __packed __le16_packed;
+
+static struct usb_composite_driver *composite;
+
+static inline void le16_add_cpu_packed(__le16_packed *var, u16 val)
+{
+	var->val = cpu_to_le16(le16_to_cpu(var->val) + val);
+}
 
 
 static struct usb_composite_driver *composite;
+
+/**
+ * function_descriptors() - get function descriptors for speed
+ * @f: the function
+ * @speed: the speed
+ *
+ * Returns the descriptors or NULL if not set.
+ */
+static struct usb_descriptor_header **
+function_descriptors(struct usb_function *f,
+		     enum usb_device_speed speed)
+{
+	struct usb_descriptor_header **descriptors;
+
+	/*
+	 * NOTE: we try to help gadget drivers which might not be setting
+	 * max_speed appropriately.
+	 */
+
+	switch (speed) {
+	case USB_SPEED_SUPER_PLUS:
+		descriptors = f->ssp_descriptors;
+		if (descriptors)
+			break;
+		/* FALLTHROUGH */
+	case USB_SPEED_SUPER:
+		descriptors = f->ss_descriptors;
+		if (descriptors)
+			break;
+		/* FALLTHROUGH */
+	case USB_SPEED_HIGH:
+		descriptors = f->hs_descriptors;
+		if (descriptors)
+			break;
+		/* FALLTHROUGH */
+	default:
+		descriptors = f->fs_descriptors;
+	}
+
+	/*
+	 * if we can't find any descriptors at all, then this gadget deserves to
+	 * Oops with a NULL pointer dereference
+	 */
+
+	return descriptors;
+}
 
 /**
  * usb_add_function() - add a function to a configuration
@@ -104,9 +163,13 @@ int usb_add_function(struct usb_configuration *config,
 		value = 0;
 
 	if (!config->fullspeed && function->fs_descriptors)
-		config->fullspeed = 1;
+		config->fullspeed = true;
 	if (!config->highspeed && function->hs_descriptors)
-		config->highspeed = 1;
+		config->highspeed = true;
+	if (!config->superspeed && function->ss_descriptors)
+		config->superspeed = true;
+	if (!config->superspeed_plus && function->ssp_descriptors)
+		config->superspeed_plus = true;
 
 done:
 	if (value)
@@ -242,10 +305,8 @@ static int config_buf(struct usb_configuration *config,
 
 	/* add each function's descriptors */
 	list_for_each_entry(f, &config->functions, list) {
-		if (speed == USB_SPEED_HIGH)
-			descriptors = f->hs_descriptors;
-		else
-			descriptors = f->descriptors;
+		descriptors = function_descriptors(f, speed);
+
 		if (!descriptors)
 			continue;
 		status = usb_descriptor_fillbuf(next, len,
@@ -393,6 +454,11 @@ static int set_config(struct usb_composite_dev *cdev,
 		     case USB_SPEED_HIGH:
 			     speed = "high";
 			     break;
+			 case USB_SPEED_SUPER:
+			 case USB_SPEED_SUPER_PLUS:
+			     speed = "super";
+			     break;
+
 		     default:
 			     speed = "?";
 			     break;
@@ -417,10 +483,8 @@ static int set_config(struct usb_composite_dev *cdev,
 		 * function's setup callback instead of the current
 		 * configuration's setup callback.
 		 */
-		if (gadget->speed == USB_SPEED_HIGH)
-			descriptors = f->hs_descriptors;
-		else
-			descriptors = f->descriptors;
+		descriptors = function_descriptors(f, gadget->speed);
+
 
 		for (; *descriptors; ++descriptors) {
 			if ((*descriptors)->bDescriptorType != USB_DT_ENDPOINT)
@@ -558,20 +622,21 @@ int usb_add_config_only(struct usb_composite_dev *cdev,
  * the host side.
  */
 
-static void collect_langs(struct usb_gadget_strings **sp, __le16 *buf)
+static void collect_langs(struct usb_gadget_strings **sp, void *buf)
 {
 	const struct usb_gadget_strings	*s;
 	u16				language;
-	__le16				*tmp;
+	__le16_packed			*tmp;
+	__le16_packed			*end = (buf + 252);
 
 	while (*sp) {
 		s = *sp;
 		language = cpu_to_le16(s->language);
-		for (tmp = buf; *tmp && tmp < &buf[126]; tmp++) {
-			if (*tmp == language)
+		for (tmp = buf; tmp->val && tmp < end; tmp++) {
+			if (tmp->val == language)
 				goto repeat;
 		}
-		*tmp++ = language;
+		tmp->val = language;
 repeat:
 		sp++;
 	}
@@ -766,6 +831,59 @@ static void composite_setup_complete(struct usb_ep *ep, struct usb_request *req)
 				req->status, req->actual, req->length);
 }
 
+static int bos_desc(struct usb_composite_dev *cdev)
+{
+	struct usb_ext_cap_descriptor   *usb_ext;
+	struct usb_bos_descriptor       *bos = cdev->req->buf;
+
+	bos->bLength = USB_DT_BOS_SIZE;
+	bos->bDescriptorType = USB_DT_BOS;
+
+	bos->wTotalLength = cpu_to_le16(USB_DT_BOS_SIZE);
+	bos->bNumDeviceCaps = 0;
+
+	/*
+	 * A SuperSpeed device shall include the USB2.0 extension descriptor
+	 * and shall support LPM when operating in USB2.0 HS mode.
+	 */
+	usb_ext = cdev->req->buf + le16_to_cpu(bos->wTotalLength);
+	bos->bNumDeviceCaps++;
+	le16_add_cpu_packed((__le16_packed *)&bos->wTotalLength,
+			    USB_DT_USB_EXT_CAP_SIZE);
+	usb_ext->bLength = USB_DT_USB_EXT_CAP_SIZE;
+	usb_ext->bDescriptorType = USB_DT_DEVICE_CAPABILITY;
+	usb_ext->bDevCapabilityType = USB_CAP_TYPE_EXT;
+	usb_ext->bmAttributes =
+		cpu_to_le32(USB_LPM_SUPPORT | USB_BESL_SUPPORT);
+
+	/*
+	 * The Superspeed USB Capability descriptor shall be implemented
+	 * by all SuperSpeed devices.
+	 */
+	if (gadget_is_superspeed(cdev->gadget)) {
+		struct usb_ss_cap_descriptor *ss_cap;
+
+		ss_cap = cdev->req->buf + le16_to_cpu(bos->wTotalLength);
+		bos->bNumDeviceCaps++;
+		le16_add_cpu_packed((__le16_packed *)&bos->wTotalLength,
+				    USB_DT_USB_SS_CAP_SIZE);
+		ss_cap->bLength = USB_DT_USB_SS_CAP_SIZE;
+		ss_cap->bDescriptorType = USB_DT_DEVICE_CAPABILITY;
+		ss_cap->bDevCapabilityType = USB_SS_CAP_TYPE;
+		ss_cap->bmAttributes = 0; /* LTM is not supported yet */
+		ss_cap->wSpeedSupported =
+			cpu_to_le16(USB_LOW_SPEED_OPERATION |
+				    USB_FULL_SPEED_OPERATION |
+				    USB_HIGH_SPEED_OPERATION |
+				    USB_5GBPS_OPERATION);
+		ss_cap->bFunctionalitySupport = USB_LOW_SPEED_OPERATION;
+		ss_cap->bU1devExitLat = USB_DEFAULT_U1_DEV_EXIT_LAT;
+		ss_cap->bU2DevExitLat =
+			cpu_to_le16(USB_DEFAULT_U2_DEV_EXIT_LAT);
+	}
+	return le16_to_cpu(bos->wTotalLength);
+}
+
 /*
  * The setup() callback implements all the ep0 functionality that's
  * not handled lower down, in hardware or the hardware driver(like
@@ -854,12 +972,10 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 				value = min(w_length, (u16) value);
 			break;
 		case USB_DT_BOS:
-			/*
-			 * The USB compliance test (USB 2.0 Command Verifier)
-			 * issues this request. We should not run into the
-			 * default path here. But return for now until
-			 * the superspeed support is added.
-			 */
+			if (gadget_is_superspeed(cdev->gadget))
+				value = bos_desc(cdev);
+			if (value >= 0)
+				value = min(w_length, (u16)value);
 			break;
 		default:
 			goto unknown;
@@ -1053,10 +1169,10 @@ static void composite_unbind(struct usb_gadget *gadget)
 		composite->unbind(cdev);
 
 	if (cdev->req) {
-		//temp ?? kfree(cdev->req->buf);
+		kfree(cdev->req->buf);
 		usb_ep_free_request(gadget->ep0, cdev->req);
 	}
-	//temp ?? kfree(cdev);
+	kfree(cdev);
 	set_gadget_data(gadget, NULL);
 
 	composite = NULL;

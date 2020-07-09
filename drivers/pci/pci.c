@@ -320,7 +320,7 @@ int pci_scan_bus_devices(struct pci_bus *bus)
 		dev->devfn = PCI_DEVFN(PCI_DEV(bdf), PCI_FUNC(bdf));
 		dev->vendor = vendor;
 		dev->device = device;
-		dev->class = class;
+		dev->class_code = class;
 
 		if ((header_type & 0x7f) == PCI_HEADER_TYPE_NORMAL) {
 			unsigned int val;
@@ -376,6 +376,8 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
 	child->ops = parent->ops;
 	child->primary = parent->number;
 	child->number = busnr;
+
+	child->hose = parent->hose;
 
 	list_add_tail(&child->node, &parent->children);
 
@@ -453,7 +455,7 @@ void pci_walk_bus(struct pci_bus *top, int (*cb)(struct pci_dev *, void *),
 	}
 }
 
-static struct pci_bus *pci_search_bus(struct pci_bus *top, int bus)
+struct pci_bus *pci_search_bus(struct pci_bus *top, int bus)
 {
 	struct pci_bus *b;
 
@@ -549,7 +551,7 @@ static int pci_match_class(struct pci_dev *dev, void *arg)
 	unsigned int classcode = *(unsigned int *)arg;
 	_match = -1;
 
-	if (dev->class == classcode) {
+	if (dev->class_code == classcode) {
 		_match = (dev->bus->number) << 16 | dev->devfn;
 		return 1;
 	}

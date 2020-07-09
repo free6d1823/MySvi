@@ -735,6 +735,8 @@ struct dwc2_core_regs {
 #define DWC2_PCGCCTL_DEEP_SLEEP_OFFSET			7
 #define DWC2_SNPSID_DEVID_VER_2xx			(0x4f542 << 12)
 #define DWC2_SNPSID_DEVID_VER_3xx			(0x4f543 << 12)
+#define DWC2_SNPSID_DEVID_VER_4xx			(0x4f544 << 12)
+
 #define DWC2_SNPSID_DEVID_MASK				(0xfffff << 12)
 #define DWC2_SNPSID_DEVID_OFFSET			12
 
@@ -787,6 +789,7 @@ struct dwc2_core_regs {
 #define CONFIG_DWC2_TX_THR_LENGTH		64
 #undef CONFIG_DWC2_IC_USB_CAP			/* IC Cap */
 
-#define CONFIG_USB_DWC2_REG_ADDR		0xBB420000
+#define CONFIG_USB_DWC2_REG_ADDR		0xE7600000
 
+extern void dwc2_dump_host_registers();
 #endif	/* __DWC2_H__ */

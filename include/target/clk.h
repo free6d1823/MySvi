@@ -1,8 +1,13 @@
 #ifndef __CLK_H_INCLUDE__
 #define __CLK_H_INCLUDE__
 
+#ifdef CONFIG_ARCH_QDF2400
+#include <asm/mach/clk.h>
+#endif
+
 #ifdef CONFIG_CLK_DRIVER
 
+#include <target/utils.h>
 #include <asm/mach/clk.h>
 
 /* APIs */

@@ -327,7 +327,7 @@ int pciauto_config_device(struct pci_dev *dev)
 	pci_prefetch = hose->pci_prefetch;
 	pci_io = hose->pci_io;
 
-	switch (dev->class) {
+	switch (dev->class_code >> 8) {
 	case PCI_CLASS_BRIDGE_PCI:
 		debug("PCI Autoconfig: Found P2P bridge, device %d\n",
 		      PCI_DEV(dev->devfn));

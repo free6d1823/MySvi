@@ -1,12 +1,12 @@
-1.turn on optimizations for size and speed and BSS_IN_DATA setion, and then compile svi:
-  make se1000_defconfig
-  make menuconfig
-  Generic setup ->[*] Allocate BSS in DATA section
-                  [*] Optimize for size
-                  [*] Optimize for speed
-  make clean;make
+1. turn on optimizations for speed and BSS_IN_DATA options, then compile svi:
+   make se1000_defconfig
+   make menuconfig
+      CONFIG_CLK_DRIVER=y
+      CONFIG_BSS_IN_DATA=y
+      CONFIG_CC_OPT_SPEED=y
+   make clean;make
 
-2.prepare hex files: init.file.(0/1/...).hex and vdkrom.hex
+2. prepare hex files: init.file.(0/1/...).hex and vdkrom.hex
    cd ./howto/
    make vcs
    ./bin4zebu.sh vdkrom
@@ -16,42 +16,46 @@
 4. Use NoMachine to login
 
 5. download the RTL of se1000 w/ the following command
-   git clone "http://icgerrit.siengine.com/design"
+   git clone "http://icgerrit.siengine.com/design" design_workarea
    git checkout se1000
 
-   git clone "http://icgerrit.siengine.com/verification"
+   git clone "http://icgerrit.siengine.com/soc_top_verif" soc_top_verif_workarea
    git checkout se1000
 
-6. cd design
-   git reset --hard 89290ad11
-   ln -s verification/verif
+  Now you have two directory: design_workarea and soc_top_verif_workarea
 
-7. upload init.file.(0/1/...).hex and vdkrom.hex to design/verif/basic_soc_sim_ap/execution_tb/
-   mv vdkrom.hex ./images/image_boot.hex
+6. setup env
+   source soc_top_verif_workarea/verif/utils/local_dut.setup
 
-8. complile the tb w/ the following command
-   module load se1000
-   design/>  source set_env.csh
-   design/verif/basic_soc_sim_ap/execution_tb/> make compile
+7. complile the tb w/ the following command
+   cd soc_top_verif_workarea/verif/soc/sim/svi
+   *****use Makefile******
+   make patch
+   make build
+   make run
 
-9. run tb with svi at se1000/verif/basic_soc_sim_ap/execution_tb/
-   image_boot.bin is svi/howto/vdkrom
-   image_test.bin is "howto/bin4vcs.sh arch/arm64/boot/hvep.bin"
-      It is 64k.bin+hvep.bin, hvep is loaded at 0x10000
-   make run             #run the simulation
-   make run all_cpu=1   #run the simulation w/ all CPU
-   make run fsdb=1      #run the simulation and dump the waveform
+   run.py --cfg ../build_cfg/soc/soc_svi.cfg --bld --inf --tcn svi_full
 
-10. debug the waveform with Verdi
-   bsub -Is verdi -q -nologo -dbdir simv.daidir
-   open test.fsdb in verdif
+8.prepare files before run tb with svi
+   cd soc_top_verif_workarea/verif/soc/sim/work/soc_svi/svi_full/
+
+   upload init.file.*.hex and vdkrom.hex to this folder
+
+   cp soc_top_verif_workarea/verif/soc/c_test/ap0_ss_test/smp_*.hex ./
+   mv vdkrom.hex ./smp_*.hex
+
+9.run tb with svi
+   ./run.sh
+
+10.debug the waveform with Verdi
+   bsub -Is verdi -elab ../BUILD/simv.daidir/kdb -q -nologo -ssf tb_top_fsdb
+   or "verdi -q -nologo -dbdir ../BUILD/simv.daidir"
+   open tb_top.fsdb in verdif
    signal:
-      se1000_inst/u_ap_ss/acem0_w*
-      se1000_inst/u_ap_ss/acem0_aw*
-      se1000_inst/u_ap_ss/acem0_r*
-      se1000_inst/u_ap_ss/acem0_ar*
-      se1000_inst/u_ap_ss/u_cluster/g_core[0]/g_little/u_ananke_core/u_vcpu/
+      chip_inst/u_ap0_ss/u_cluster/g_core[0]/g_little/u_ananke_core/u_vcpu/
         u_cpu/u_ananke_dpu/u_dpu_dp/pc_instr0_iss_i
 
-   If you run Verdi seperatedly:
-   Run Verdi->Import Design->From Daidir->simv.daidir
+11.how to profile if simulation is slow:
+   add "-simprofile" when compilation
+   add "-simprofile time+mem" when simulation
+   then "profrpt -output report.dir -view cpu_all simprofile_dir/"

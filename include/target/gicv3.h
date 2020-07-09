@@ -184,6 +184,38 @@
 #define GICR_CHILDREN_ASLEEP	_BV(2)
 #define GICR_PROCESSOR_SLEEP	_BV(1)
 
+/*
+ * ITS registers, offsets from ITS_base
+ */
+#define GITS_CTLR			0x0000
+#define GITS_IIDR			0x0004
+#define GITS_TYPER			0x0008
+#define GITS_CBASER			0x0080
+#define GITS_CWRITER			0x0088
+#define GITS_CREADR			0x0090
+#define GITS_BASER			0x0100
+#define GITS_IDREGS_BASE		0xffd0
+#define GITS_PIDR0			0xffe0
+#define GITS_PIDR1			0xffe4
+/* gic ID check, GICV3 or V4 */
+#define GITS_PIDR2			0xffe8
+#define GITS_PIDR4			0xffd0
+#define GITS_CIDR0			0xfff0
+#define GITS_CIDR1			0xfff4
+#define GITS_CIDR2			0xfff8
+#define GITS_CIDR3			0xfffc
+
+#define GITS_CTLR_ENABLE		(1U << 0)
+#define GITS_CTLR_ImDe			(1U << 1)
+#define	GITS_CTLR_ITS_NUMBER_SHIFT	4
+#define	GITS_CTLR_ITS_NUMBER		(0xFU << GITS_CTLR_ITS_NUMBER_SHIFT)
+#define GITS_CTLR_QUIESCENT		(1U << 31)
+
+#define GIC_PIDR2_ARCH_MASK		0xf0
+#define GIC_PIDR2_ARCH_GICv3		0x30
+#define GIC_PIDR2_ARCH_GICv4		0x40
+/* ITS definition end */
+
 #define GIC_GROUP0		0
 #define GIC_GROUP1S		1
 #define GIC_GROUP1NS		2
@@ -276,5 +308,6 @@ void gicv3_init_gicc(irq_t max_irq, uint8_t max_prio);
 
 void gicv3_handle_irq();
 void gicv3_trigger_sgi(uint8_t irqnr, uint16_t cpu);
+void* gicv3_get_rdist_base(void);
 
 #endif /* __GICV3_ARM64_H_INCLUDE__ */

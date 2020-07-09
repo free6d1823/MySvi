@@ -11,5 +11,6 @@ obj-$(CONFIG_USB_STORAGE) += usb_storage.o
 obj-$(CONFIG_USB_DWC2) += dwc2.o
 obj-$(CONFIG_USB_DWC3) += xhci-dwc3.o
 
-obj-$(CONFIG_USB_DWC2_DEVICE) += gadget/
 
+obj-$(CONFIG_USB_DWC2_DEVICE) += ./gadget/
+obj-$(CONFIG_USB_DWC3_GADGET) += ./gadget/

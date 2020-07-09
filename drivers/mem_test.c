@@ -239,8 +239,14 @@ static int mem_rw_test(ulong star_addr, ulong end_addr, ulong length, ulong offs
 	while(temp_star < end_addr) {
 		i = 0;
 		p = (vu_long *)temp_star;
+		#if __WORDSIZE == 32
+			printf("0x%08lx - 0x%08lx:\n", temp_star, temp_end);
+		#elif __WORDSIZE == 64
+			printf("0x%011llx - 0x%011llx:\n", temp_star, temp_end);
+		#else
+			printf(" __WORDSIZE not 32 or 64\n");
+		#endif
 
-		printf("0x%011llx - 0x%011llx:\n", temp_star, temp_end);
 		start_time = time_get_current_time();
 		while ((ulong)p < temp_end) {
 			*p++ = i++;
@@ -288,7 +294,7 @@ static int do_mem_test(int argc, char * argv[])
 	}
 
 	if (!strcmp(argv[1],"sr")){
-		if(argc < 3 || argc > 5) {
+		if(argc < 3 || argc > 6) {
 			printf("The num of argument is not correct \n");
 			return -EUSAGE;
 		}

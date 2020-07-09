@@ -29,6 +29,9 @@ struct clk {
 	[id] = {flag, p_rate, clk_addr, reset_addr}
 
 struct clk clks_group[MAX_CLK_DEV] = {
+	MAKE_CLK_DEV(CPU0_CLK, 0, 1800000000, 0x12004, 0x13004),
+	MAKE_CLK_DEV(CPU1_CLK, 0, 1800000000, 0x12000, 0x13000),
+	MAKE_CLK_DEV(SYSNOC_CLK, 0, 0, 0xd2f30, 0),
 	MAKE_CLK_DEV(PERI0_UART0_CLK, 0, 400000000,
 		RH_PLL_CTRL_REG_BASE + PERI0_SS_APB_CLK, RH_PLL_CTRL_REG_BASE + PERI0_SS_APB_RESET),
 	MAKE_CLK_DEV(PERI1_UART0_CLK, 0, 400000000,
@@ -118,17 +121,18 @@ void clk_disable(u32 clk_id)
  * */
 void clk_enable(u32 clk_id, u32 src)
 {
-	u32		clk_sel, gate_enable;
+	u32 v;
 
 	if (src > 1) {
 		printf("err: wrong clk src selection\n");
 		return;
 	}
 
-	clk_sel = src << CLK_SEL_POS;
-	gate_enable = 1 << CLK_GATE_POS;
+	v = BIT(CLK_GATE_POS) | (src << CLK_SEL_POS);
+
 	CLK_REG_MASK_SETL(clks_group[clk_id].ioclk_addr,
-			CLK_DIVIDER_MASK , gate_enable|clk_sel);
+			BIT(CLK_GATE_POS) | BIT(CLK_SEL_POS), v);
+
 	/* release the reset signal by default */
 	if (clks_group[clk_id].ioreset_addr != 0)
 		CLK_REG_WRITE(clks_group[clk_id].ioreset_addr, 0);

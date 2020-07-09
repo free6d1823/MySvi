@@ -69,10 +69,19 @@ static void mem_info(void)
 
 }
 
+/* soc_early_init will be defined in board.c if any */
+__weak int soc_early_init()
+{
+	return 0;
+}
+
 void entry(void)
 {
+	soc_early_init();
 	console_early_init();
-	printf("\nHello SVI @CPU%d\n", smp_processor_id());
+
+	puts("\nHello SVI @CPU");
+	printf("%d\n", smp_processor_id());
 
 	mmu_init();
 	mem_info();

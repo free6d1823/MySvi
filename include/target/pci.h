@@ -538,6 +538,7 @@ struct pci_controller {
 
 	struct pci_bus	*bus;		/* Root bus */
 	struct pci_ops  *ops;
+	void *driver_data;
 };
 
 pci_dev_t pci_get_dev_by_class(int hose, unsigned int classcode);

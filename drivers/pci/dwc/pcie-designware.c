@@ -25,8 +25,6 @@
 #define PCIE_PHY_DEBUG_R1_LINK_UP	(0x1 << 4)
 #define PCIE_PHY_DEBUG_R1_LINK_IN_TRAINING	(0x1 << 29)
 
-struct dw_plat_pcie dw_plat_pci;
-struct dw_pcie dw_pci;
 struct resource_entry win;
 
 
@@ -391,36 +389,4 @@ void dw_pcie_setup(struct dw_pcie *pci)
 	}
 	dw_pcie_writel_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL, val);
 }
-
-void dw_enter_loopback_mode(struct dw_pcie *pci)
-{
-	u32 val;
-
-	val = dw_pcie_readl_dbi(pci, GEN3_RELATED_OFF);
-	/* set Gen3Equalization Disable bit */
-	val |= 0x10000;
-	dw_pcie_writel_dbi(pci, GEN3_RELATED_OFF, val);
-
-	val = dw_pcie_readl_dbi(pci, PIPE_LOOPBACK_CONTROL_OFF);
-	val |= 0x80000000;
-	dw_pcie_writel_dbi(pci, PIPE_LOOPBACK_CONTROL_OFF, val);
-
-	val = dw_pcie_readl_dbi(pci, PCIE_PORT_LINK_CONTROL);
-	val |= 0x4;
-	dw_pcie_writel_dbi(pci, PCIE_PORT_LINK_CONTROL, val);
-}
-
-void dw_exit_loopback_mode(struct dw_pcie *pci)
-{
-	u32 val;
-
-	val = dw_pcie_readl_dbi(pci, PCIE_PORT_LINK_CONTROL);
-	val &= 0xfffffffb;
-	dw_pcie_writel_dbi(pci, PCIE_PORT_LINK_CONTROL, val);
-
-	val = dw_pcie_readl_dbi(pci, PIPE_LOOPBACK_CONTROL_OFF);
-	val &= 0x7fffffff;
-	dw_pcie_writel_dbi(pci, PIPE_LOOPBACK_CONTROL_OFF, val);
-}
-
 

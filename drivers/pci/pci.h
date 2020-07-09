@@ -42,7 +42,7 @@ struct pci_dev {
 	unsigned short	device;
 	unsigned short	subsystem_vendor;
 	unsigned short	subsystem_device;
-	unsigned int	class;		/* 3 bytes: (base,sub,prog-if) */
+	unsigned int	class_code;		/* 3 bytes: (base,sub,prog-if) */
 };
 
 struct pci_bus {
@@ -147,4 +147,5 @@ int pci_probe_bridge(struct pci_dev *bridge);
 
 void pci_walk_bus(struct pci_bus *top, int (*cb)(struct pci_dev *, void *),
 	void *userdata);
+struct pci_bus *pci_search_bus(struct pci_bus *top, int bus);
 #endif

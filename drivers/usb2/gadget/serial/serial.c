@@ -19,7 +19,7 @@
 
 #define GS_LONG_NAME			"Gadget Serial"
 #define GS_VERSION_NAME			GS_LONG_NAME " " GS_VERSION_STR
-
+#define GS_MANUFACTURER_NAME	"SVI"
 
 
 /*-------------------------------------------------------------------------*/
@@ -40,7 +40,7 @@
 #define STRING_DESCRIPTION_IDX		USB_GADGET_FIRST_AVAIL_IDX
 
 static struct usb_string strings_dev[] = {
-	[USB_GADGET_MANUFACTURER_IDX].s = "",
+	[USB_GADGET_MANUFACTURER_IDX].s = GS_MANUFACTURER_NAME,
 	[USB_GADGET_PRODUCT_IDX].s = GS_VERSION_NAME,
 	[USB_GADGET_SERIAL_IDX].s = "",
 	[STRING_DESCRIPTION_IDX].s = NULL /* updated; f(use_acm) */,
@@ -81,6 +81,11 @@ static bool use_obex = false;
 
 static unsigned n_ports = 1;
 
+static inline void kfree(const void *block)
+{
+	free((void *)block);
+}
+
 /*-------------------------------------------------------------------------*/
 
 static struct usb_configuration serial_config_driver = {
@@ -92,6 +97,8 @@ static struct usb_configuration serial_config_driver = {
 
 static struct usb_function_instance *fi_serial[MAX_U_SERIAL_PORTS];
 static struct usb_function *f_serial[MAX_U_SERIAL_PORTS];
+
+
 
 #if 0
 struct usb_function *usb_get_function(struct usb_function_instance *fi)
@@ -223,8 +230,8 @@ static int gs_unbind(struct usb_composite_dev *cdev)
 		//??usb_put_function(f_serial[i]);
 		//??usb_put_function_instance(fi_serial[i]);
 	}
-	//temp
-	//kfree(otg_desc[0]);
+
+	kfree(otg_desc[0]);
 	otg_desc[0] = NULL;
 
 	return 0;
@@ -234,7 +241,7 @@ static struct usb_composite_driver gserial_driver = {
 	.name		= "g_serial",
 	.dev		= &device_desc,
 	.strings	= dev_strings,
-	//.max_speed	= USB_SPEED_SUPER,
+	.max_speed	= USB_SPEED_SUPER,
 	.bind		= gs_bind,
 	.unbind		= gs_unbind,
 };

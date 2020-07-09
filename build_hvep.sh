@@ -15,6 +15,10 @@ usage() {
 	echo "       testos:       combined IMC/APC testos image"
 	echo "       testos_split: split IMC/APC testos images"
 	echo "       pwrsoc:       power bench image"
+ 	echo "       se1000:       se1000 image"
+ 	echo "       virt:         virt image"
+ 	echo "       virt32:       virt32 image"
+ 	echo "       m4:           m4 image"
 	echo "       all:          all of above suits"
 	echo "       clean:        cleanup last builds"
 	exit 1
@@ -129,6 +133,18 @@ clean_hvep() {
 	elif [ "x${hvep_target}" = "xpwrsoc" ]; then
 		make O=${OUTDIR}/pwrsoc clean
 		rm -f ${SCRIPT}/power_bench
+ 	elif [ "x${hvep_target}" = "xse1000" ]; then
+		make O=${OUTDIR}/se1000 clean
+		rm -f ${SCRIPT}/se1000_power_bench
+ 	elif [ "x${hvep_target}" = "xvirt" ]; then
+		make O=${OUTDIR}/virt clean
+		rm -f ${SCRIPT}/virt_power_bench
+ 	elif [ "x${hvep_target}" = "xvirt32" ]; then
+		make O=${OUTDIR}/virt32 clean
+		rm -f ${SCRIPT}/r52_power_bench
+ 	elif [ "x${hvep_target}" = "xm4" ]; then
+		make O=${OUTDIR}/m4 clean
+		rm -f ${SCRIPT}/m4_power_bench
 	fi
 	echo "clean" > ${OUTDIR}/.hvep
 	if [ "x${hvep_target}" = "xall" ]; then
@@ -162,7 +178,7 @@ build_hvep() {
 		cp ${outdir}/hvep ${SCRIPT}/${target}
 		sign_hvep ${target} $xbl
 	fi
-	if [ "x$progs " != "x" ]; then
+	if [ "x$progs" != "x" ]; then
 		for prog in $progs; do
 			cp ${outdir}/${prog} ${SCRIPT}/${prog}
 			sign_hvep ${prog}
@@ -179,6 +195,7 @@ if [ -z $1 ]; then
 fi
 
 HVEPSUIT=$1
+JOBS=$(grep "processor" /proc/cpuinfo|sort -u|wc -l)
 
 if [ "x$HVEPSUIT" == "xclean" ]; then
 	clean_hvep
@@ -188,13 +205,23 @@ elif [ "x$HVEPSUIT" == "xall" ]; then
 	elif [ "x$CONSOLE" == "x_dcc" ]; then
 		TESTOS_PROGS="${TESTOS_PROGS} glktest"
 	fi
-	if [ "x$JOBS" = "x1" ]; then
-		JOBS=6
-	fi
+	#if [ "x$JOBS" = "x1" ]; then
+		#JOBS=6
+	#JOBS=$(grep "processor" /proc/cpuinfo|sort -u|wc -l)
+	#fi
 	mrproper_hvep
 	build_hvep pwrsoc pwrsoc_defconfig power_bench yes || fatal "Failed to build pwrsoc!"
+	build_hvep se1000 se1000_defconfig se1000_power_bench yes || fatal "Failed to build se1000!"
+	mrproper_hvep
+	build_hvep virt virt_defconfig virt_power_bench yes || fatal "Failed to build virt!"
 	JOBS=1
 	build_hvep testos testos${CONSOLE}_defconfig testos yes "${TESTOS_PROGS}" || fatal "Failed to build testos!"
+	#JOBS=$(grep "processor" /proc/cpuinfo|sort -u|wc -l)
+	export ARCH=arm CROSS_COMPILE=arm-none-eabi-
+	build_hvep virt32 virt32_defconfig r52_power_bench yes|| fatal "Failed to build r52!"
+	export PATH=/opt/gcc-arm-none-eabi-8-2019-q3-update/bin:$PATH
+	export ARCH=armv7m CROSS_COMPILE=arm-none-eabi-
+	build_hvep m4 m4_defconfig m4_power_bench yes|| fatal "Failed to build m4!"
 	echo "all" > ${OUTDIR}/.hvep
 elif [ "x$HVEPSUIT" == "xtestos" ]; then
 	if [ "x$CONSOLE" == "x" ]; then
@@ -224,4 +251,19 @@ elif [ "x$HVEPSUIT" == "xtestos_split" ]; then
 elif [ "x$HVEPSUIT" == "xpwrsoc" ]; then
 	mrproper_hvep
 	build_hvep pwrsoc pwrsoc_defconfig power_bench yes || fatal "Failed to build pwrsoc!"
+elif [ "x$HVEPSUIT" == "xse1000" ]; then
+	mrproper_hvep
+	build_hvep se1000 se1000_defconfig se1000_power_bench yes || fatal "Failed to build se1000!"
+elif [ "x$HVEPSUIT" == "xvirt" ]; then
+	mrproper_hvep
+	build_hvep virt virt_defconfig virt_power_bench yes || fatal "Failed to build virt!"
+elif [ "x$HVEPSUIT" == "xvirt32" ]; then
+	export ARCH=arm CROSS_COMPILE=arm-none-eabi-
+	mrproper_hvep
+	build_hvep virt32 virt32_defconfig r52_power_bench yes|| fatal "Failed to build r52!"
+elif [ "x$HVEPSUIT" == "xm4" ]; then
+	export PATH=/opt/gcc-arm-none-eabi-8-2019-q3-update/bin:$PATH
+	export ARCH=armv7m CROSS_COMPILE=arm-none-eabi-
+	mrproper_hvep
+	build_hvep m4 m4_defconfig m4_power_bench yes|| fatal "Failed to build m4!"
 fi

@@ -99,6 +99,7 @@ static struct portmaster {
 	pr_debug(fmt, ##arg)
 #define pr_debug(fmt, arg...) \
 	printf(fmt, ##arg)
+#define pr_warn pr_debug
 #endif /* pr_vdebug */
 #endif
 
@@ -282,7 +283,7 @@ __acquires(&port->port_lock)
 		 * may need to call us back (e.g. for disconnect)
 		 */
 		spin_unlock(&port->port_lock);
-		status = usb_ep_queue(out, req, 0);//GFP_ATOMIC);
+		status = usb_ep_queue(out, req, GFP_ATOMIC);
 		spin_lock(&port->port_lock);
 
 		if (status) {
@@ -454,19 +455,19 @@ static void gs_rx_push(struct gs_port *port, circbuf_t *inbuf)
 		switch (req->status) {
 		case -ESHUTDOWN:
 			disconnect = true;
-			//pr_vdebug("ttyGS%d: shutdown\n", port->port_num);
-			printf("ttyGS num %d serial port: shutdown\n", port->port_num);
+
+			pr_vdebug("ttyGS num %d serial port: shutdown\n", port->port_num);
 			break;
 
 		default:
 			/* presumably a transient fault */
-			//pr_warn("ttyGS%d: unexpected RX status %d\n",
-			//	port->port_num, req->status);
-			printf("tty port %d: unexpected RX status %d\n",
+			pr_warn("tty port %d: unexpected RX status %d\n",
 			        port->port_num, req->status);
 			/* FALLTHROUGH */
 		case 0:
 			/* normal completion */
+			pr_warn("tty port %d:  RX completion and rx push from queue %d, data size %d\n",
+				port->port_num, req->status, req->actual);		
 			break;
 		}
 
@@ -494,9 +495,7 @@ static void gs_rx_push(struct gs_port *port, circbuf_t *inbuf)
 			if (count != size) {
 				/* stop pushing; TTY layer can't handle more */
 				port->n_read += count;
-				//pr_vdebug("ttyGS%d: rx block %d/%d\n",
-				//	  port->port_num, count, req->actual);
-				printf("ttyGS%d: rx block %d/%d\n",
+				pr_vdebug("ttyGS%d: rx block %d/%d\n",
 						port->port_num, count, req->actual);
 				break;
 			}
@@ -555,8 +554,8 @@ static void gs_write_complete(struct usb_ep *ep, struct usb_request *req)
 	switch (req->status) {
 	default:
 		/* presumably a transient fault */
-		//?? pr_warn("%s: unexpected %s status %d\n",
-		//?? __func__, ep->name, req->status);
+		pr_warn("%s: unexpected %s status %d\n",
+			__func__, ep->name, req->status);
 		/* FALL THROUGH */
 	case 0:
 		/* normal completion */
@@ -599,7 +598,7 @@ static int gs_alloc_requests(struct usb_ep *ep, struct list_head *head,
 	 * be as speedy as we might otherwise be.
 	 */
 	for (i = 0; i < n; i++) {
-		req = gs_alloc_req(ep, ep->maxpacket, 0);//?? GFP_ATOMIC);
+		req = gs_alloc_req(ep, ep->maxpacket, GFP_ATOMIC);
 		if (!req)
 			return list_empty(head) ? -ENOMEM : 0;
 		req->complete = fn;

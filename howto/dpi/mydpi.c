@@ -3,12 +3,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-//#include <svdpi.h>
-
-static int fd = -1;
 
 int mychar(int c)
 {
+	static int fd = -1;
 	struct termios tty;
 	char ch;
 	int ret;
@@ -42,20 +40,23 @@ int mychar(int c)
 #include <netinet/in.h>
 #include <string.h>
 
+#define BUFFER_LEN 1024
+
 static int server_fd = -1;
-static int rbuf[1024];
+static char rbuf[BUFFER_LEN];
 static int rlen = -1;
 static struct sockaddr src_addr;
 static socklen_t addrlen;
-static int sbuf[1024];
+static char sbuf[BUFFER_LEN];
+static int pos;
 
-#if 0
-int do_jtag(int tdo)
+int do_jtag()
 {
 	int ret;
 	struct sockaddr_in ser_addr;
 
 	if (server_fd < 0) {
+		/* create udp server */
 		server_fd = socket(AF_INET, SOCK_DGRAM, 0); //AF_INET:IPV4;SOCK_DGRAM:UDP
 		memset(&ser_addr, 0, sizeof(ser_addr));
 		ser_addr.sin_family = AF_INET;
@@ -70,30 +71,53 @@ int do_jtag(int tdo)
 		}
 	}
 
-	if (rlen < 0) {
+	if (rlen <= 0) {
+		/* receive one packet */
 		addrlen = sizeof(src_addr);
 		rlen = recvfrom(server_fd, rbuf, sizeof(rbuf), MSG_DONTWAIT, &src_addr, &addrlen);
+
+		if (rlen <= 0) return -1;
+
+		pos = 0;
 	}
 
-
+	return rbuf[pos];
 }
-#else
-int do_jtag(int tdo)
+
+void do_jtag_tdo(int tdo)
 {
-	static unsigned int idcode;
-	static int cur;
-	static const char data[] = {2, 2, 2, 2, 2, 0, /* Run-Test/ Idle */
-		2, 0, 0, /* Shift-DR */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, /* Exit1-DR */
-		};
+	if (rlen <= 0) return;
 
-	if (tdo == -1)
-		return data[cur++ % sizeof(data)];
+	sbuf[pos++] = tdo;
 
-	idcode = (idcode >> 1) | (tdo << 31);
-	if (cur % sizeof(data) == 0 && idcode)
-		printf("idcode = 0x%x\n", idcode);
+	/* got full data */
+	if (rlen == pos) {
+		sendto(server_fd, sbuf, rlen, 0, &src_addr, addrlen);
+		/* ready to recv the next packet */
+		rlen = -1;
+	}
+}
+
+#if 0
+int main(int argc, char**argv)
+{
+	int i;
+
+	while (rlen <= 0) {
+		do_jtag();
+	}
+
+	while (rlen > 0) {
+		do_jtag_tdo(pos);
+	}
+
+	while (rlen <= 0) {
+		do_jtag();
+	}
+
+	while (rlen > 0) {
+		do_jtag_tdo(pos);
+	}
 
 	return 0;
 }

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <target/barrier.h>
 #include <asm/io.h>
+#include <target/regdef.h>
 
 typedef uint8_t  __u8;
 typedef uint32_t __u32;
@@ -29,23 +30,103 @@ typedef unsigned long ulong;
 typedef volatile unsigned long vu_long;
 typedef __signed__ char __s8;
 
+static inline void __raw_writesb(unsigned long addr, const void *data,
+				 int bytelen)
+{
+	uint8_t *buf = (uint8_t *)data;
+	while(bytelen--)
+		__raw_writeb(*buf++, addr);
+}
+
+static inline void __raw_writesw(unsigned long addr, const void *data,
+				 int wordlen)
+{
+	uint16_t *buf = (uint16_t *)data;
+	while(wordlen--)
+		__raw_writew(*buf++, addr);
+}
+
+static inline void __raw_writesl(unsigned long addr, const void *data,
+				 int longlen)
+{
+	uint32_t *buf = (uint32_t *)data;
+	while(longlen--)
+		__raw_writel(*buf++, addr);
+}
+
+static inline void __raw_readsb(unsigned long addr, void *data, int bytelen)
+{
+	uint8_t *buf = (uint8_t *)data;
+	while(bytelen--)
+		*buf++ = __raw_readb(addr);
+}
+
+static inline void __raw_readsw(unsigned long addr, void *data, int wordlen)
+{
+	uint16_t *buf = (uint16_t *)data;
+	while(wordlen--)
+		*buf++ = __raw_readw(addr);
+}
+
+static inline void __raw_readsl(unsigned long addr, void *data, int longlen)
+{
+	uint32_t *buf = (uint32_t *)data;
+	while(longlen--)
+		*buf++ = __raw_readl(addr);
+}
+
+#define writesl(a, d, s)	__raw_writesl((unsigned long)a, d, s)
+#define readsl(a, d, s)		__raw_readsl((unsigned long)a, d, s)
+#define writesw(a, d, s)	__raw_writesw((unsigned long)a, d, s)
+#define readsw(a, d, s)		__raw_readsw((unsigned long)a, d, s)
+#define writesb(a, d, s)	__raw_writesb((unsigned long)a, d, s)
+#define readsb(a, d, s)		__raw_readsb((unsigned long)a, d, s)
+
+#define readb	__raw_readb
+#define readw	__raw_readw
+#define readl	__raw_readl
+#define readq	__raw_readq
+#define writeb	__raw_writeb
+#define writew	__raw_writew
+#define writel	__raw_writel
+#define writeq	__raw_writeq
+
+
+#define readb_be(addr)							\
+	__raw_readb((__force unsigned *)(addr))
+#define readw_be(addr)							\
+	be16_to_cpu(__raw_readw((__force unsigned *)(addr)))
+#define readl_be(addr)							\
+	be32_to_cpu(__raw_readl((__force unsigned *)(addr)))
+#define readq_be(addr)							\
+	be64_to_cpu(__raw_readq((__force unsigned *)(addr)))
+
+#define writeb_be(val, addr)						\
+	__raw_writeb((val), (__force unsigned *)(addr))
+#define writew_be(val, addr)						\
+	__raw_writew(cpu_to_be16((val)), (__force unsigned *)(addr))
+#define writel_be(val, addr)						\
+	__raw_writel(cpu_to_be32((val)), (__force unsigned *)(addr))
+#define writeq_be(val, addr)						\
+	__raw_writeq(cpu_to_be64((val)), (__force unsigned *)(addr))
+
 #include <endian.h>
 #define __le16_to_cpu(x) le16toh(x)
 #define le16_to_cpu(x)   le16toh(x)
 #define le32_to_cpu(x)   le32toh(x)
 #define le64_to_cpu(x)   le64toh(x)
+#define be16_to_cpu(x)	 be16toh(x)
+#define be32_to_cpu(x)	 be32toh(x)
+#define be64_to_cpu(x)   be64toh(x)
 
 #define cpu_to_le16(x)   htole16(x)
 #define cpu_to_le32(x)   htole32(x)
 #define cpu_to_le64(x)   htole64(x)
+#define cpu_to_be16(x)   htobe16(x)
+#define cpu_to_be32(x)   htobe32(x)
+#define cpu_to_be64(x)   htobe64(x)
 
 #define le16_to_cpus(x)  do { (void)(x); } while (0)
-
-#define readl __raw_readl
-#define writel __raw_writel
-
-#define readb  __raw_readb
-#define writeb __raw_writeb
 
 #define writel_mask(v,m,a) __raw_writel_mask(v,m,a)
 
@@ -112,11 +193,21 @@ typedef __signed__ char __s8;
 #define setbits_8(addr, set) setbits(8, addr, set)
 #define clrsetbits_8(addr, clear, set) clrsetbits(8, addr, clear, set)
 
-typedef u64 dma_addr_t;/*ONLY support 64bits*/
+/* set CONFIG_ARCH_PHYS_ADDR_T_32BIT=y when DMA addr bus width is 32bits */
+#ifdef CONFIG_ARCH_DMA_ADDR_T_32BIT
+typedef u32 dma_addr_t;
+#else
+typedef u64 dma_addr_t;
+#endif
 
+/* set CONFIG_PHYS_ADDR_T_32BIT=y when phys BUS width is 32bits */
+#ifdef CONFIG_PHYS_ADDR_T_32BIT
+typedef u32 phys_addr_t;
+typedef u32 phys_size_t;
+#else
 typedef u64 phys_addr_t;
 typedef u64 phys_size_t;
-
+#endif
 
 #define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
 #define  BITS_PER_BYTE 8

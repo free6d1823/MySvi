@@ -11,6 +11,7 @@
 ulong ib_windows_map_array[BITS_TO_LONGS(EP_IB_WIN_NUM)];
 ulong ob_windows_map_array[BITS_TO_LONGS(EP_OUT_WIN_NUM)];
 phys_addr_t outbound_addr_array[EP_OUT_WIN_NUM];
+
 struct pci_epc epc_dw;
 struct pci_epc_mem mem_dw;
 ulong bit_map_array[BITMAP_SIZE_LONG_DW];
@@ -132,8 +133,7 @@ static u8 dw_pcie_ep_find_capability(struct dw_pcie *pci, u8 cap)
 static int dw_pcie_ep_write_header(struct pci_epc *epc, u8 func_no,
 				   struct pci_epf_header *hdr)
 {
-	struct dw_pcie *pci = &dw_pci;;
-	struct dw_pcie_ep *ep = &pci->ep;
+	struct dw_pcie *pci = epc->driver_data;
 
 	dw_pcie_dbi_ro_wr_en(pci);
 	dw_pcie_writew_dbi(pci, PCI_VENDOR_ID, hdr->vendorid);
@@ -205,8 +205,8 @@ static int dw_pcie_ep_outbound_atu(struct dw_pcie_ep *ep, phys_addr_t phys_addr,
 static void dw_pcie_ep_clear_bar(struct pci_epc *epc, u8 func_no,
 				 struct pci_epf_bar *epf_bar)
 {
-	struct dw_pcie *pci = &dw_pci;
-	struct dw_pcie_ep *ep = &pci->ep;;
+	struct dw_pcie *pci = epc->driver_data;
+	struct dw_pcie_ep *ep = &pci->ep;
 	enum pci_barno bar = epf_bar->barno;
 	u32 atu_index = ep->bar_to_atu[bar];
 
@@ -220,8 +220,8 @@ static int dw_pcie_ep_set_bar(struct pci_epc *epc, u8 func_no,
 			      struct pci_epf_bar *epf_bar)
 {
 	int ret;
-	struct dw_pcie *pci = &dw_pci;
-	struct dw_pcie_ep *ep = &pci->ep;;
+	struct dw_pcie *pci = epc->driver_data;
+	struct dw_pcie_ep *ep = &pci->ep;
 	enum pci_barno bar = epf_bar->barno;
 	size_t size = epf_bar->size;
 	int flags = epf_bar->flags;
@@ -272,8 +272,8 @@ static void dw_pcie_ep_unmap_addr(struct pci_epc *epc, u8 func_no,
 {
 	int ret;
 	u32 atu_index;
-	struct dw_pcie *pci = &dw_pci;
-	struct dw_pcie_ep *ep = &pci->ep;;
+	struct dw_pcie *pci = epc->driver_data;
+	struct dw_pcie_ep *ep = &pci->ep;
 
 	ret = dw_pcie_find_index(ep, addr, &atu_index);
 	if (ret < 0)
@@ -288,8 +288,8 @@ static int dw_pcie_ep_map_addr(struct pci_epc *epc, u8 func_no,
 			       u64 pci_addr, size_t size)
 {
 	int ret;
-	struct dw_pcie *pci = &dw_pci;
-	struct dw_pcie_ep *ep = &pci->ep;;
+	struct dw_pcie *pci = epc->driver_data;
+	struct dw_pcie_ep *ep = &pci->ep;
 
 	ret = dw_pcie_ep_outbound_atu(ep, addr, pci_addr, size);
 	if (ret) {
@@ -393,8 +393,8 @@ static int dw_pcie_ep_raise_irq(struct pci_epc *epc, u8 func_no,
 
 static void dw_pcie_ep_stop(struct pci_epc *epc)
 {
-	struct dw_pcie *pci = &dw_pci;
-	struct dw_pcie_ep *ep = &pci->ep;;
+	struct dw_pcie *pci = epc->driver_data;
+	struct dw_pcie_ep *ep = &pci->ep;
 
 	if (!pci->ops->stop_link)
 		return;
@@ -404,8 +404,8 @@ static void dw_pcie_ep_stop(struct pci_epc *epc)
 
 static int dw_pcie_ep_start(struct pci_epc *epc)
 {
-	struct dw_pcie *pci = &dw_pci;
-	struct dw_pcie_ep *ep = &pci->ep;;
+	struct dw_pcie *pci = epc->driver_data;
+	struct dw_pcie_ep *ep = &pci->ep;
 
 	if (!pci->ops->start_link)
 		return -EINVAL;
@@ -416,8 +416,8 @@ static int dw_pcie_ep_start(struct pci_epc *epc)
 static const struct pci_epc_features*
 dw_pcie_ep_get_features(struct pci_epc *epc, u8 func_no)
 {
-	struct dw_pcie *pci = &dw_pci;
-	struct dw_pcie_ep *ep = &pci->ep;;
+	struct dw_pcie *pci = epc->driver_data;
+	struct dw_pcie_ep *ep = &pci->ep;
 
 	if (!ep->ops->get_features)
 		return NULL;
@@ -576,9 +576,6 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
 		return -EINVAL;
 	}
 
-	ep->num_ib_windows = EP_IB_WIN_NUM;
-	ep->num_ob_windows = EP_OUT_WIN_NUM;
-
 	ep->ib_window_map = ib_windows_map_array;
 	ep->ob_window_map = ob_windows_map_array;
 	ep->outbound_addr = outbound_addr_array;
@@ -590,7 +587,7 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
 	if (ep->ops->ep_init)
 		ep->ops->ep_init(ep);
 
-	epc->max_functions = DW_MAX_FUNCTION;
+	epc->max_functions = ep->max_fun;;
 
 	ret = __pci_epc_mem_init(epc, ep->phys_base, ep->addr_size,
 				 ep->page_size);

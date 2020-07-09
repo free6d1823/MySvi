@@ -35,7 +35,6 @@
 #define LINK_WAIT_MAX_IATU_RETRIES	5
 #define LINK_WAIT_IATU			9
 
-#define BITS_PER_LONG 64
 #define GENMASK(h, l) \
 	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
 
@@ -177,29 +176,10 @@ typedef enum irqreturn irqreturn_t;
 #define IORESOURCE_DMA		0x00000800
 #define IORESOURCE_BUS		0x00001000
 
-#define DW_PCIE_DBI0_BASE 0xbb000000
-#define DW_PCIE_DBI0_SIZE 0x100000
-#define DW_PCIE_DBI1_BASE 0xbb100000
-#define DW_PCIE_DBI1_SIZE 0x100000
-#define DW_PCIE_DBI2_BASE 0xbb200000
-#define DW_PCIE_DBI2_SIZE 0x100000
-#define DW_PCIE_DBI3_BASE 0xbb300000
-#define DW_PCIE_DBI3_SIZE 0x100000
-
-#define DW_PCIE_CFG_BASE DW_PCIE_DBI0_BASE
-#define DW_PCIE_CFG_SIZE DW_PCIE_DBI0_SIZE
-
-#define DW_PCIE_MEMORY_IO_START 0x4000000000ul
-#define DW_PCIE_MEMORY_IO_END 0x7fffffffful
-#define DW_PCIE_MEMORY_IO_OFFSET 0x0
-
 /* PCIe EP */
-#define DBI_BASE2_ADDR 0x00
-#define EP_CONF_PHYS_BASE 0x00
 #define EP_CONF_SIZE 0
-#define EP_IB_WIN_NUM 0
-#define EP_OUT_WIN_NUM 0
-#define DW_MAX_FUNCTION 1
+#define EP_IB_WIN_NUM 6
+#define EP_OUT_WIN_NUM 2
 
 /* page size is 4K */
 #define PAGES_DW EP_CONF_SIZE >> 12
@@ -256,6 +236,7 @@ struct pci_epc {
 	struct pci_epc_mem		*mem;
 	u8				max_functions;
 	struct config_group		*group;
+	void                            *driver_data;
 };
 
 /**
@@ -403,7 +384,6 @@ struct resource_entry {
 typedef u64 resource_size_t;
 
 struct pcie_port;
-struct dw_pcie;
 struct dw_pcie_ep;
 
 enum dw_pcie_region_type {
@@ -477,10 +457,10 @@ struct pcie_port {
 	u64			mem_base;
 	phys_addr_t		mem_bus_addr;
 	u32			mem_size;
+	struct resource		*busn;
 	struct resource		*cfg;
 	struct resource		*io;
 	struct resource		*mem;
-	struct resource		*busn;
 	int			irq;
 	const struct dw_pcie_host_ops *ops;
 	int			msi_irq;
@@ -489,7 +469,7 @@ struct pcie_port {
 	dma_addr_t		msi_data;
 	u32			num_vectors;
 	u32			irq_mask[MAX_MSI_CTRLS];
-	//DECLARE_BITMAP(msi_irq_in_use, MAX_MSI_IRQS);
+	void		*private_data;
 };
 
 enum dw_pcie_as_type {
@@ -521,6 +501,7 @@ struct dw_pcie_ep {
 	phys_addr_t		msi_mem_phys;
 	u8			msi_cap;	/* MSI capability offset */
 	u8			msix_cap;	/* MSI-X capability offset */
+	u8			max_fun;
 };
 
 struct dw_pcie_ops {
@@ -545,6 +526,9 @@ struct dw_pcie {
 	struct pcie_port	pp;
 	struct dw_pcie_ep	ep;
 	const struct dw_pcie_ops *ops;
+	enum dw_pcie_device_mode	mode;
+	void		*private_data;
+
 };
 
 #define to_dw_pcie_from_pp(port) container_of((port), struct dw_pcie, pp)
@@ -641,9 +625,7 @@ static inline void dw_pcie_dbi_ro_wr_dis(struct dw_pcie *pci)
 	val &= ~PCIE_DBI_RO_WR_EN;
 	dw_pcie_writel_dbi(pci, reg, val);
 }
-
-extern struct dw_plat_pcie dw_plat_pci;
-extern struct dw_pcie dw_pci;
+extern struct pci_controller hose_se1000[4];
 extern struct resource_entry win;
 extern int dw_pcie_rd_config(struct pci_controller *hose, int bdf, unsigned int where,
                            u32 *val,  enum pci_size_t pci_size);
@@ -659,7 +641,7 @@ int dw_pcie_host_init(struct pcie_port *pp);
 int dw_pcie_allocate_domains(struct pcie_port *pp);
 void dw_enter_loopback_mode(struct dw_pcie *pci);
 void dw_exit_loopback_mode(struct dw_pcie *pci);
-int dw_loopback_test(phys_addr_t *source, int value, phys_addr_t *target);
+int dw_plat_pcie_init(struct dw_pcie *pci);
 #else
 static inline irqreturn_t dw_handle_msi_irq(struct pcie_port *pp)
 {

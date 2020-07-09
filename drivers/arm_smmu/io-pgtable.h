@@ -58,7 +58,7 @@
 	(((~0UL) << (l)) & (~0UL >> (CONFIG_SANDBOX_BITS_PER_LONG - 1 - (h))))
 #else
 #define GENMASK(h, l) \
-	(((~0UL) << (l)) & (~0UL >> (_BITS_PER_LONG_ - 1 - (h))))
+	(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
 #endif
 
 #define GENMASK_ULL(h, l) \
@@ -363,7 +363,7 @@ int __get_order(unsigned long size)
 
 	size--;
 	size >>= PAGE_SHIFT;
-#if _BITS_PER_LONG_ == 32
+#if BITS_PER_LONG == 32
 	order = fls(size);
 #else
 	order = fls64(size);
@@ -396,7 +396,7 @@ int __get_order(unsigned long size)
 #define get_order(n)						\
 (								\
 	__builtin_constant_p(n) ? (				\
-		((n) == 0UL) ? _BITS_PER_LONG_ - PAGE_SHIFT :	\
+		((n) == 0UL) ? BITS_PER_LONG - PAGE_SHIFT :	\
 		(((n) < (1UL << PAGE_SHIFT)) ? 0 :		\
 		 __ilog2((n) - 1) - PAGE_SHIFT + 1)		\
 	) :							\

@@ -231,7 +231,6 @@ int usb_assign_descriptors(struct usb_function *f,
 		if (!f->hs_descriptors)
 			goto err;
 	}
-#if 0
 	if (ss && gadget_is_superspeed(g)) {
 		f->ss_descriptors = usb_copy_descriptors(ss);
 		if (!f->ss_descriptors)
@@ -242,7 +241,6 @@ int usb_assign_descriptors(struct usb_function *f,
 		if (!f->ssp_descriptors)
 			goto err;
 	}
-#endif
 	return 0;
 err:
 	usb_free_all_descriptors(f);

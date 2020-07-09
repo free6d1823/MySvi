@@ -16,7 +16,12 @@
 #include <stdio.h>
 #include "usb_storage.h"
 #include <target/cmdline.h>
-
+#ifdef	CONFIG_USB_DWC2
+#include "dwc2.h"
+#endif
+#ifdef	CONFIG_USB_DWC3
+#include "dwc3.h"
+#endif
 
 #ifdef CONFIG_USB_STORAGE
 static int usb_stor_curr_dev = -1; /* current device */
@@ -674,6 +679,8 @@ static void usb_show_info(struct usb_device *udev)
 }
 #endif
 
+
+
 /******************************************************************************
  * usb command intepreter
  */
@@ -685,6 +692,17 @@ static int do_usb(int argc, char * argv[])
 
 	if (argc < 2)
 		return -EUSAGE;
+
+	if (strncmp(argv[1], "regrw", 5) == 0) {
+		printf("starting USB Regs read write...\n");
+#ifdef	CONFIG_USB_DWC2
+		dwc2_dump_host_registers();
+#endif
+#ifdef	CONFIG_USB_DWC3
+		//dwc3_dumpregiser();
+#endif
+		return 0;
+	}
 
 	if (strncmp(argv[1], "start", 5) == 0) {
 		if (usb_started)
@@ -778,6 +796,7 @@ static int do_usb(int argc, char * argv[])
 
 
 MK_CMD(usb, do_usb,	"USB sub-system",
+	"usb regrw - start register reead write test \n"
 	"usb start - start (scan) USB controller\n"
 	"usb reset - reset (rescan) USB controller\n"
 	"usb stop [f] - stop USB [f]=force stop\n"

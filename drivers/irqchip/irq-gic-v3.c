@@ -401,3 +401,8 @@ void gic3_init(void *dist_base, 	void *rdist_base)
 		irqc_register(&gic3_chip);
 	}
 }
+
+void* gicv3_get_rdist_base(void)
+{
+	return gic_data.rdist_base;
+}

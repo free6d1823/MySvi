@@ -20,9 +20,6 @@ static int dw_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
 {
 	struct dw_pcie *pci;
 
-	if (pp->ops->rd_own_conf)
-		return pp->ops->rd_own_conf(pp, where, size, val);
-
 	pci = to_dw_pcie_from_pp(pp);
 	return dw_pcie_read(pci->dbi_base + where, size, val);
 }
@@ -31,9 +28,6 @@ static int dw_pcie_wr_own_conf(struct pcie_port *pp, int where, int size,
 			       u32 val)
 {
 	struct dw_pcie *pci;
-
-	if (pp->ops->wr_own_conf)
-		return pp->ops->wr_own_conf(pp, where, size, val);
 
 	pci = to_dw_pcie_from_pp(pp);
 	return dw_pcie_write(pci->dbi_base + where, size, val);
@@ -346,40 +340,28 @@ static struct pci_host_bridge *host_bridge_init(void)
 
 int dw_pcie_host_init(struct pcie_port *pp)
 {
-	struct dw_pcie *pci = &dw_pci;
 	struct pci_bus *bus, *child;
 	struct pci_host_bridge *bridge;
 	struct resource *cfg_res;
 	int ret;
-
-	pp->cfg0_size = DW_PCIE_CFG_SIZE >> 1;
-	pp->cfg1_size = DW_PCIE_CFG_SIZE >> 1;
-	pp->cfg0_base = DW_PCIE_CFG_BASE;
-	pp->cfg1_base = DW_PCIE_CFG_BASE + pp->cfg0_size;
+	struct dw_pcie *pci = container_of(pp, struct dw_pcie, pp);
+	struct pci_controller *hose = pci->private_data;
 
 	bridge = host_bridge_init();
 	if (!bridge)
 		return -ENOMEM;
 
-	/* Get the I/O and memory ranges from DT */
-	win.res.start = DW_PCIE_MEMORY_IO_START;
-	win.res.end = DW_PCIE_MEMORY_IO_END;
-	win.res.flags = IORESOURCE_MEM;
-	win.offset = DW_PCIE_MEMORY_IO_OFFSET;
-
-	switch (win.res.flags) {
-		case IORESOURCE_MEM:
-			pp->mem = &(win.res);
-			pp->mem->name = "MEM";
-			pp->mem_size = win.res.end - win.res.start + 1;
-			pp->mem_bus_addr = pp->mem->start - win.offset;
+	switch (hose->regions->flags) {
+		case PCI_REGION_MEM:
+			pp->mem_size = hose->regions->size;
+			pp->mem_bus_addr = hose->regions->bus_start;
 			break;
-		case IORESOURCE_IO:
+		case PCI_REGION_IO:
 			printf("Don't support IO space!\n");
 			break;
 	}
 
-	pp->mem_base = pp->mem->start;
+	pp->mem_base = hose->regions->phys_start;
 
 	if (!pp->va_cfg0_base) {
 		pp->va_cfg0_base = (void *)pp->cfg0_base;
@@ -398,8 +380,6 @@ int dw_pcie_host_init(struct pcie_port *pp)
 			goto error;
 		}
 	}
-
-	pci->num_viewport = 2;
 
 	if (pp->ops->host_init) {
 		ret = pp->ops->host_init(pp);
@@ -428,7 +408,7 @@ static int dw_pcie_access_other_conf(struct pcie_port *pp, struct pci_bus *bus,
 	u32 busdev, cfg_size;
 	u64 cpu_addr;
 	void *va_cfg_base;
-	struct dw_pcie *pci = &dw_pci;
+	struct dw_pcie *pci = container_of(pp, struct dw_pcie, pp);
 
 	busdev = ((bus->number << 24) & 0xff000000) | ((PCI_SLOT(devfn) << 19) & 0xf80000) |
 		 ((PCI_FUNC(devfn) << 16) & 0x70000);
@@ -458,28 +438,6 @@ static int dw_pcie_access_other_conf(struct pcie_port *pp, struct pci_bus *bus,
 					  pp->io_bus_addr, pp->io_size);
 
 	return ret;
-}
-
-static int dw_pcie_rd_other_conf(struct pcie_port *pp, struct pci_bus *bus,
-				 u32 devfn, int where, int size, u32 *val)
-{
-	if (pp->ops->rd_other_conf)
-		return pp->ops->rd_other_conf(pp, bus, devfn, where,
-					      size, val);
-
-	return dw_pcie_access_other_conf(pp, bus, devfn, where, size, val,
-					 false);
-}
-
-static int dw_pcie_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
-				 u32 devfn, int where, int size, u32 val)
-{
-	if (pp->ops->wr_other_conf)
-		return pp->ops->wr_other_conf(pp, bus, devfn, where,
-					      size, val);
-
-	return dw_pcie_access_other_conf(pp, bus, devfn, where, size, &val,
-					 true);
 }
 
 static int dw_pcie_valid_device(struct pcie_port *pp, struct pci_bus *bus,
@@ -513,25 +471,31 @@ static int dw_pcie_rd_conf(struct pci_bus *bus, u32 devfn, int where,
 	if (bus->number == pp->root_bus_nr)
 		return dw_pcie_rd_own_conf(pp, where, size, val);
 
-	return dw_pcie_rd_other_conf(pp, bus, devfn, where, size, val);
+	return dw_pcie_access_other_conf(pp, bus, devfn, where, size, val, false);
 }
 
 int dw_pcie_rd_config(struct pci_controller *hose, int bdf, unsigned int where,
                            u32 *val,  enum pci_size_t pci_size)
 {
-	struct pci_bus *bus = hose->bus;
 	u32 devfn = (u32)bdf >> 8;
 	int size;
+	int b_num = PCI_BUS(bdf);
+	struct dw_pcie *pci = hose->driver_data;
+	struct pcie_port *pp = &pci->pp;
+	struct pci_bus *bus = pci_search_bus(hose->bus, b_num);
+
+	bus->sysdata = pp;
+
 	switch (pci_size) {
 	case PCI_SIZE_8:
 		size = 1;
-		return 0;
+		break;
 	case PCI_SIZE_16:
 		size = 2;
-		return 0;
+		break;
 	case PCI_SIZE_32:
 		size = 4;
-		return 0;
+		break;
 	default:
 		return -EINVAL;
 	}
@@ -551,26 +515,31 @@ static int dw_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
 	if (bus->number == pp->root_bus_nr)
 		return dw_pcie_wr_own_conf(pp, where, size, val);
 
-	return dw_pcie_wr_other_conf(pp, bus, devfn, where, size, val);
+	return dw_pcie_access_other_conf(pp, bus, devfn, where, size, &val, true);
 }
 
-int dw_pcie_wr_config(struct pci_controller *hose, int bdf,
+int dw_pcie_wr_config(struct pci_controller *hose, pci_dev_t bdf,
                            unsigned int where, u32 val, enum pci_size_t pci_size)
 {
-        struct pci_bus *bus = hose->bus;
         u32 devfn = (u32)bdf >> 8;
+	int b_num = PCI_BUS(bdf);
 	int size;
+        struct dw_pcie *pci = hose->driver_data;
+        struct pcie_port *pp = &pci->pp;
+	struct pci_bus *bus = pci_search_bus(hose->bus, b_num);
+
+	bus->sysdata = pp;
 
 	switch (pci_size) {
 	case PCI_SIZE_8:
 		size = 1;
-		return 0;
+		break;
 	case PCI_SIZE_16:
 		size = 2;
-		return 0;
+		break;
 	case PCI_SIZE_32:
 		size = 4;
-		return 0;
+		break;
 	default:
 		return -EINVAL;
 	}
@@ -592,7 +561,7 @@ static u8 dw_pcie_iatu_unroll_enabled(struct dw_pcie *pci)
 void dw_pcie_setup_rc(struct pcie_port *pp)
 {
 	u32 val, ctrl, num_ctrls;
-	struct dw_pcie *pci = &dw_pci;
+	struct dw_pcie *pci = container_of(pp, struct dw_pcie, pp);
 
 	dw_pcie_setup(pci);
 

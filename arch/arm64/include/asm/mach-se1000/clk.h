@@ -5,6 +5,9 @@
 
 /* index has to be sequently increased */
 enum CLK_DEVS {
+	CPU0_CLK,
+	CPU1_CLK,
+	SYSNOC_CLK,
 	PERI0_UART0_CLK,
 	PERI1_UART0_CLK,
 

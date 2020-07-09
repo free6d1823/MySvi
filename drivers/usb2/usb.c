@@ -58,6 +58,7 @@ int usb_init(void)
 
 	dev_index = 0;
 	asynch_allowed = 1;
+
 	usb_hub_reset();
 
 	/* first make all devices unknown */
@@ -1085,6 +1086,7 @@ int usb_select_config(struct usb_device *dev)
 
 	/* only support for one config for now */
 	err = usb_get_configuration_len(dev, 0);
+	printf("usb get configuration length:%x\n", err);
 	if (err >= 0) {
 		tmpbuf = (unsigned char *)malloc_cache_aligned(err);
 		if (!tmpbuf)

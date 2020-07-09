@@ -3,6 +3,12 @@ config USB
 
 if USB
 
+config USB_XHCI_HCD
+	bool "xHCI HCD (USB 3.0) support"
+	---help---
+	  The eXtensible Host Controller Interface (xHCI) is standard for USB 3.0
+	  "SuperSpeed" host controller hardware.
+
 
 config USB_XHCI_PCI
 	bool "Support for PCI-based xHCI USB controller"
@@ -30,13 +36,6 @@ config USB_STORAGE
 	bool "USB storage support"
 	---help---
 	  USB storage driver.
-
-
-config USB_XHCI_HCD
-	bool "xHCI HCD (USB 3.0) support"
-	---help---
-	  The eXtensible Host Controller Interface (xHCI) is standard for USB 3.0
-	  "SuperSpeed" host controller hardware.
 
 
 config USB_DWC3

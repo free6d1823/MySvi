@@ -30,7 +30,7 @@ static unsigned in_epnum;
 
 #undef list_for_each_entry
 #define list_for_each_entry list_for_each_entry_2
-
+#define gadget_is_dwc3(g)        (!strcmp("dwc3-gadget", (g)->name))
 /*
  * This should work with endpoints from controller drivers sharing the
  * same endpoint naming convention.  By example:
@@ -264,7 +264,10 @@ struct usb_ep *usb_ep_autoconfig(
 		ep = find_ep(gadget, "ep1-bulk");
 		if (ep && ep_matches(gadget, ep, desc))
 			return ep;
-	} else if (gadget_is_dwc3(gadget)) {
+	} else
+#endif
+
+	  if (gadget_is_dwc3(gadget)) {
 		const char *name = NULL;
 		/*
 		 * First try standard, common configuration: ep1in-bulk,
@@ -287,7 +290,6 @@ struct usb_ep *usb_ep_autoconfig(
 		if (ep && ep_matches(gadget, ep, desc))
 			return ep;
 	}
-#endif
 
 	/* Second, look at endpoints until an unclaimed one looks usable */
 	list_for_each_entry(ep, &gadget->ep_list, ep_list) {

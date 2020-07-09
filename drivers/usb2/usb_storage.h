@@ -43,12 +43,6 @@ typedef uint32_t phys_addr_t;
 typedef uint32_t phys_size_t;
 #endif
 
-#define uswap_32(x) \
-	((((x) & 0xff000000) >> 24) | \
-	 (((x) & 0x00ff0000) >>  8) | \
-	 (((x) & 0x0000ff00) <<  8) | \
-	 (((x) & 0x000000ff) << 24))
-# define be32_to_cpu(x)		uswap_32(x)
 #define LOG2(x) (((x & 0xaaaaaaaa) ? 1 : 0) + ((x & 0xcccccccc) ? 2 : 0) + \
 		 ((x & 0xf0f0f0f0) ? 4 : 0) + ((x & 0xff00ff00) ? 8 : 0) + \
 		 ((x & 0xffff0000) ? 16 : 0))

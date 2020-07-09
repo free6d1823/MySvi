@@ -1162,9 +1162,9 @@ help:
 	@echo  'Kernel packaging:'
 	@$(MAKE) $(build)=$(package-dir) help
 	@echo  ''
-	#@echo  'Documentation targets:'
-	#@$(MAKE) -f $(srctree)/Documentation/DocBook/Makefile dochelp
-	#@echo  ''
+#@echo  'Documentation targets:'
+#@$(MAKE) -f $(srctree)/Documentation/DocBook/Makefile dochelp
+#@echo  ''
 	@echo  'Architecture specific targets ($(ARCH)):'
 	@$(if $(archhelp),$(archhelp),\
 		echo '  No architecture specific help defined for $(ARCH)')

@@ -1141,6 +1141,10 @@ static int _xhci_submit_bulk_msg(struct usb_device *udev, unsigned long pipe,
 	return xhci_bulk_tx(udev, pipe, length, buffer);
 }
 
+
+
+static unsigned char* tmpbuf;
+
 /**
  * submit the control type of request to the Root hub/Device based on the devnum
  *
@@ -1179,8 +1183,18 @@ static int _xhci_submit_control_msg(struct usb_device *udev, unsigned long pipe,
 			return ret;
 		}
 	}
+	if(usb_pipeout(pipe))
+		memcpy(tmpbuf, buffer, length);
 
-	return xhci_ctrl_tx(udev, pipe, setup, length, buffer);
+	if(xhci_ctrl_tx(udev, pipe, setup, length, tmpbuf)==0)
+	{
+	  	if(usb_pipein(pipe))
+	  		memcpy(buffer, tmpbuf, length);
+	  	return 0;
+	}
+	else
+		return -1;
+	//return xhci_ctrl_tx(udev, pipe, setup, length, buffer);
 }
 
 static int xhci_lowlevel_init(struct xhci_ctrl *ctrl)
@@ -1233,6 +1247,8 @@ static int xhci_lowlevel_init(struct xhci_ctrl *ctrl)
 
 	reg = HC_VERSION(xhci_readl(&hccr->cr_capbase));
 	printf("USB XHCI %x.%02x\n", reg >> 8, reg & 0xff);
+
+	tmpbuf = memalign(ARCH_DMA_MINALIGN,sizeof(unsigned char)*4096);
 
 	return 0;
 }

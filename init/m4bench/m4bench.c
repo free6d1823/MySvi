@@ -20,7 +20,7 @@ static void mem_info(void)
 int main(void)
 {
 	console_early_init();
-	printf("\nHello SVI\n");
+	puts("\nHello SVI\n");
 	mem_info();
 
 	dsr_init();

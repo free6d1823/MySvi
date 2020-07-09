@@ -40,6 +40,7 @@
 
 #define OTG_DMA_MODE		1
 
+
 #define DEBUG_SETUP 1
 #define DEBUG_EP0 1
 #define DEBUG_ISR 1
@@ -120,6 +121,8 @@ static void dwc2_udc_set_nak(struct dwc2_ep *ep);
 			printf(pr_fmt(fmt), ##args);	\
 	} while (0)
 
+#define dev_info(dev, fmt, args...)		\
+	printf(fmt, ##args)
 
 void set_udc_gadget_private_data(void *p)
 {
@@ -925,6 +928,71 @@ static struct dwc2_udc memory = {
 		.fifo_num = 3,
 	},
 };
+
+
+
+/**
+ * dwc2_hsotg_dump - dump state of the udc
+ * @hsotg: Programming view of the DWC_otg controller
+ *
+ */
+void dwc2_hsotg_dump()
+{
+
+	u32 val;
+	int idx;
+	struct dwc2_udc *dev = the_controller;
+
+	if(reg==NULL)	{
+		dev_info(dev, "dwc2 otg register address not assigned\n");
+		return;
+	}
+		dev_info(dev, "GUID=0x%08x, GSNPSID=0x%08x\n",
+			readl(&reg->guid), readl(&reg->gsnpsid));
+
+		dev_info(dev, "DCFG=0x%08x, DCTL=0x%08x, DIEPMSK=%08x\n",
+			readl(&reg->dcfg), readl(&reg->dctl),
+			readl(&reg->diepmsk));
+
+		dev_info(dev, "GAHBCFG=0x%08x, GHWCFG1=0x%08x\n",
+			readl(&reg->gahbcfg), readl(&reg->ghwcfg1));
+
+		dev_info(dev, "GRXFSIZ=0x%08x, GNPTXFSIZ=0x%08x\n",
+			readl(&reg->grxfsiz), readl(&reg->gnptxfsiz));
+
+	/* show periodic fifo settings */
+
+	for (idx = 0; idx < 15; idx++) {
+		val = readl(&reg->dieptxf[idx]);
+		dev_info(dev, "DPTx[%d] FSize=%d, StAddr=0x%08x\n", idx,
+			 val >> FIFOSIZE_DEPTH_SHIFT,
+			 val & FIFOSIZE_STARTADDR_MASK);
+	}
+
+	for (idx = 0; idx < 15; idx++) {
+		writel(0x60004000, &reg->in_endp[idx].diepdma);
+		writel(0x60004000, &reg->out_endp[idx].doepdma);
+	}
+
+	for (idx = 0; idx < DWC2_MAX_HW_ENDPOINTS; idx++) {
+		dev_info(dev,
+			 "ep%d-in: EPCTL=0x%08x, SIZ=0x%08x, DMA=0x%08x\n", idx,
+			 readl(&reg->in_endp[idx].diepctl),
+			 readl(&reg->in_endp[idx].dieptsiz),
+			 readl(&reg->in_endp[idx].diepdma));
+
+		dev_info(dev,
+			 "ep%d-out: EPCTL=0x%08x, SIZ=0x%08x, DMA=0x%08x\n",
+			 idx, readl(&reg->out_endp[idx].doepctl),
+			 readl(&reg->out_endp[idx].doeptsiz),
+			 readl(&reg->out_endp[idx].doepdma));
+	}
+
+	dev_info(dev, "DVBUSDIS=0x%08x, DVBUSPULSE=%08x\n",
+		 readl(&reg->dvbusdis), readl(&reg->dvbuspulse));
+
+}
+
 
 /*
  *	probe - binds to the platform device

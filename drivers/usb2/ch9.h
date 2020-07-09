@@ -135,6 +135,10 @@
 #define	TEST_PACKET	4
 #define	TEST_FORCE_EN	5
 
+/* Status Type */
+#define USB_STATUS_TYPE_STANDARD	0
+#define USB_STATUS_TYPE_PTM		1
+
 /*
  * New Feature Selectors as added by USB 3.0
  * See USB 3.0 spec Table 9-6
@@ -151,12 +155,32 @@
 #define USB_INTRF_FUNC_SUSPEND_LP	(1 << (8 + 0))
 #define USB_INTRF_FUNC_SUSPEND_RW	(1 << (8 + 1))
 
+/*
+ * Interface status, Figure 9-5 USB 3.0 spec
+ */
+#define USB_INTRF_STAT_FUNC_RW_CAP     1
+#define USB_INTRF_STAT_FUNC_RW         2
 #define USB_ENDPOINT_HALT		0	/* IN/OUT will STALL */
 
 /* Bit array elements as returned by the USB_REQ_GET_STATUS request. */
 #define USB_DEV_STAT_U1_ENABLED		2	/* transition into U1 state */
 #define USB_DEV_STAT_U2_ENABLED		3	/* transition into U2 state */
 #define USB_DEV_STAT_LTM_ENABLED	4	/* Latency tolerance messages */
+/*
+ * Feature selectors from Table 9-8 USB Power Delivery spec
+ */
+#define USB_DEVICE_BATTERY_WAKE_MASK	40
+#define USB_DEVICE_OS_IS_PD_AWARE	41
+#define USB_DEVICE_POLICY_MODE		42
+#define USB_PORT_PR_SWAP		43
+#define USB_PORT_GOTO_MIN		44
+#define USB_PORT_RETURN_POWER		45
+#define USB_PORT_ACCEPT_PD_REQUEST	46
+#define USB_PORT_REJECT_PD_REQUEST	47
+#define USB_PORT_PORT_PD_RESET		48
+#define USB_PORT_C_PORT_PD_CHANGE	49
+#define USB_PORT_CABLE_PD_RESET		50
+#define USB_DEVICE_CHARGING_POLICY	54
 
 /**
  * struct usb_ctrlrequest - SETUP data for a USB device control request
@@ -222,13 +246,16 @@ struct usb_ctrlrequest {
 #define USB_DT_WIRELESS_ENDPOINT_COMP	0x11
 #define USB_DT_WIRE_ADAPTER		0x21
 #define USB_DT_RPIPE			0x22
+/* From HID 1.11 spec */
+#define USB_DT_HID_REPORT		0x22
 #define USB_DT_CS_RADIO_CONTROL		0x23
 /* From the T10 UAS specification */
 #define USB_DT_PIPE_USAGE		0x24
 /* From the USB 3.0 spec */
 #define	USB_DT_SS_ENDPOINT_COMP		0x30
-/* From HID 1.11 spec */
-#define USB_DT_HID_REPORT		0x22
+
+/* From the USB 3.1 spec */
+#define	USB_DT_SSP_ISOC_ENDPOINT_COMP	0x31
 
 /* Conventional codes for class-specific descriptors.  The convention is
  * defined in the USB "Common Class" Spec (3.11).  Individual class specs
@@ -626,7 +653,7 @@ static inline int usb_endpoint_is_isoc_out(
  */
 static inline int usb_endpoint_maxp(const struct usb_endpoint_descriptor *epd)
 {
-	return __le16_to_cpu(get_unaligned(&epd->wMaxPacketSize));
+	return __le16_to_cpu(get_unaligned(&epd->wMaxPacketSize)) & USB_ENDPOINT_MAXP_MASK;
 }
 
 /**
@@ -648,6 +675,20 @@ static inline int usb_endpoint_interrupt_type(
 {
 	return epd->bmAttributes & USB_ENDPOINT_INTRTYPE;
 }
+
+/*-------------------------------------------------------------------------*/
+
+/* USB_DT_SSP_ISOC_ENDPOINT_COMP: SuperSpeedPlus Isochronous Endpoint Companion
+ * descriptor
+ */
+struct usb_ssp_isoc_ep_comp_descriptor {
+	__u8  bLength;
+	__u8  bDescriptorType;
+	__le16 wReseved;
+	__le32 dwBytesPerInterval;
+} __attribute__ ((packed));
+
+#define USB_DT_SSP_ISOC_EP_COMP_SIZE		8
 
 /*-------------------------------------------------------------------------*/
 
@@ -684,6 +725,8 @@ usb_ss_max_streams(const struct usb_ss_ep_comp_descriptor *comp)
 
 /* Bits 1:0 of bmAttributes if this is an isoc endpoint */
 #define USB_SS_MULT(p)			(1 + ((p) & 0x3))
+/* Bit 7 of bmAttributes if a SSP isoc endpoint companion descriptor exists */
+#define USB_SS_SSP_ISOC_COMP(p)		((p) & (1 << 7))
 
 /*-------------------------------------------------------------------------*/
 
@@ -732,6 +775,7 @@ struct usb_otg20_descriptor {
 #define USB_OTG_HNP		(1 << 1)	/* swap host/device roles */
 #define USB_OTG_ADP		(1 << 2)	/* support ADP */
 
+#define OTG_STS_SELECTOR	0xF000		/* OTG status selector */
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_DEBUG:  for special highspeed devices, replacing serial console */
@@ -759,6 +803,7 @@ struct usb_interface_assoc_descriptor {
 	__u8  iFunction;
 } __attribute__ ((packed));
 
+#define USB_DT_INTERFACE_ASSOCIATION_SIZE	8
 
 /*-------------------------------------------------------------------------*/
 
@@ -853,6 +898,8 @@ struct usb_wireless_cap_descriptor {	/* Ultra Wide Band */
 	__u8  bReserved;
 } __attribute__((packed));
 
+#define USB_DT_USB_WIRELESS_CAP_SIZE	11
+
 /* USB 2.0 Extension descriptor */
 #define	USB_CAP_TYPE_EXT		2
 
@@ -891,6 +938,9 @@ struct usb_ss_cap_descriptor {		/* Link Power Management */
 	__u8  bU1devExitLat;
 	__le16 bU2DevExitLat;
 } __attribute__((packed));
+
+#define USB_DEFAULT_U1_DEV_EXIT_LAT     0x01	/* Less then 1 microsec */
+#define USB_DEFAULT_U2_DEV_EXIT_LAT     0x01F4	/* Less then 500 microsec */
 
 #define USB_DT_USB_SS_CAP_SIZE	10
 
@@ -967,19 +1017,9 @@ enum usb_device_speed {
 	USB_SPEED_HIGH,				/* usb 2.0 */
 	USB_SPEED_WIRELESS,			/* wireless (usb 2.5) */
 	USB_SPEED_SUPER,			/* usb 3.0 */
+	USB_SPEED_SUPER_PLUS,			/* usb 3.1 */
 };
 
-#ifdef __KERNEL__
-
-/**
- * usb_speed_string() - Returns human readable-name of the speed.
- * @speed: The speed to return human-readable name for.  If it's not
- *   any of the speeds defined in usb_device_speed enum, string for
- *   USB_SPEED_UNKNOWN will be returned.
- */
-extern const char *usb_speed_string(enum usb_device_speed speed);
-
-#endif
 
 enum usb_device_state {
 	/* NOTATTACHED isn't in the USB spec, and this state acts

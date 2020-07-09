@@ -12,6 +12,8 @@
 #include "../config.h"
 
 
+#define MAX_ERRNO	4095
+
 /*
  * This function packages a simple "generic serial" port with no real
  * control mechanisms, just raw data transfer over two bulk endpoints.
@@ -38,11 +40,53 @@ struct f_gser {
 			printf(pr_fmt(fmt), ##args);	\
 	} while (0)
 
-#define dev_dbg   debug_cond
+
+#define dev_dbg(dev, fmt, args...)		\
+	debug(fmt, ##args)
+#define dev_err(dev, fmt, args...)		\
+	printf(fmt, ##args)
+#define dev_warn(dev, fmt, args...)		\
+	printf(fmt, ##args)
+
+
+/* messaging utils */
+#define DBG(d, fmt, args...) \
+	dev_dbg(&(d)->gadget->dev , fmt , ## args)
+#define VDBG(d, fmt, args...) \
+	dev_vdbg(&(d)->gadget->dev , fmt , ## args)
+#define ERROR(d, fmt, args...) \
+	dev_err(&(d)->gadget->dev , fmt , ## args)
+#define WARNING(d, fmt, args...) \
+	dev_warn(&(d)->gadget->dev , fmt , ## args)
+
+#define IS_ERR_VALUE(x) unlikely((x) >= (unsigned long)-MAX_ERRNO)
+
+static inline void *ERR_PTR(long error)
+{
+	return (void *) error;
+}
+
+static inline long IS_ERR(const void *ptr)
+{
+	return IS_ERR_VALUE((unsigned long)ptr);
+}
+
+static inline long PTR_ERR(const void *ptr)
+{
+	return (long) ptr;
+}
+
+
+static inline void kfree(const void *block)
+{
+	free((void *)block);
+}
+
 static inline struct f_gser *func_to_gser(struct usb_function *f)
 {
 	return container_of(f, struct f_gser, port.func);
 }
+
 
 /*-------------------------------------------------------------------------*/
 
@@ -153,9 +197,11 @@ static struct usb_gadget_strings *gser_strings[] = {
 
 static struct usb_endpoint_descriptor *
 fb_ep_desc(struct usb_gadget *g, struct usb_endpoint_descriptor *fs,
-	    struct usb_endpoint_descriptor *hs)
+	    struct usb_endpoint_descriptor *hs, struct usb_endpoint_descriptor *ss)
 {
-	if (gadget_is_dualspeed(g) && g->speed == USB_SPEED_HIGH)
+	if(gadget_is_superspeed(g) && g->speed == USB_SPEED_SUPER)
+		return ss;
+	else if (gadget_is_dualspeed(g) && g->speed == USB_SPEED_HIGH)
 		return hs;
 	return fs;
 }
@@ -184,11 +230,11 @@ static int gser_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 		dev_dbg(cdev!=0,
 			"activate generic ttyGS%d\n", gser->port_num);
 
-			d = fb_ep_desc(gadget, &gser_fs_in_desc, &gser_hs_in_desc);	
+			d = fb_ep_desc(gadget, &gser_fs_in_desc, &gser_hs_in_desc, &gser_ss_in_desc);
 			ret = usb_ep_enable(gser->port.in, d);
 			if (ret < 0)
 				return ret;
-			d = fb_ep_desc(gadget, &gser_fs_out_desc, &gser_hs_out_desc);
+			d = fb_ep_desc(gadget, &gser_fs_out_desc, &gser_hs_out_desc, &gser_ss_out_desc);
 			ret = usb_ep_enable(gser->port.out, d);
 			if (ret < 0)
 				goto fail_out;
@@ -205,8 +251,8 @@ static void gser_disable(struct usb_function *f)
 {
 	struct f_gser	*gser = func_to_gser(f);
 	struct usb_composite_dev *cdev = f->config->cdev;
-	//temp remove
-	dev_dbg(cdev!=0,
+
+	dev_dbg(&cdev->gadget->dev,
 		"generic ttyGS%d deactivated\n", gser->port_num);
 	gserial_disconnect(&gser->port);
 }
@@ -268,17 +314,15 @@ static int gser_bind(struct usb_configuration *c, struct usb_function *f)
 			gser_ss_function, NULL);
 	if (status)
 		goto fail;
-	// temp remove
-	dev_dbg(cdev!=0, "generic ttyGS%d: %s speed IN/%s OUT/%s\n",
+	dev_dbg(&cdev->gadget->dev, "generic ttyGS%d: %s speed IN/%s OUT/%s\n",
 		gser->port_num,
-		//gadget_is_superspeed(c->cdev->gadget) ? "super" :
+		gadget_is_superspeed(c->cdev->gadget) ? "super" :
 		gadget_is_dualspeed(c->cdev->gadget) ? "dual" : "full",
 		gser->port.in->name, gser->port.out->name);
 	return 0;
 
 fail:
-	//temp remove
-	//ERROR(cdev, "%s: can't bind, err %d\n", f->name, status);
+	ERROR(cdev, "%s: can't bind, err %d\n", f->name, status);
 
 	return status;
 }
@@ -318,7 +362,7 @@ static void gser_free_inst(struct usb_function_instance *f)
 
 	opts = container_of(f, struct f_serial_opts, func_inst);
 	gserial_free_line(opts->port_num);
-	//kfree(opts);
+	kfree(opts);
 }
 
 static struct usb_function_instance *gser_alloc_inst(void)
@@ -329,15 +373,13 @@ static struct usb_function_instance *gser_alloc_inst(void)
 	//temp
 	opts = malloc(sizeof(*opts)); //kzalloc(sizeof(*opts), GFP_KERNEL);
 	if (!opts)
-		return (void *)-ENOMEM;
-	//	return ERR_PTR(-ENOMEM);
+		return ERR_PTR(-ENOMEM);
 
 	opts->func_inst.free_func_inst = gser_free_inst;
 	ret = gserial_alloc_line(&opts->port_num);
 	if (ret) {
-		//kfree(opts);
-		return (void *)-ENOMEM;
-		//return ERR_PTR(ret);
+		kfree(opts);
+		return ERR_PTR(ret);
 	}
 	//temp remove
 	//config_group_init_type_name(&opts->func_inst.group, "",
@@ -351,7 +393,7 @@ static void gser_free(struct usb_function *f)
 	struct f_gser *serial;
 
 	serial = func_to_gser(f);
-	//kfree(serial);
+	kfree(serial);
 }
 
 static void gser_unbind(struct usb_configuration *c, struct usb_function *f)
@@ -369,8 +411,7 @@ static struct usb_function *gser_alloc(struct usb_function_instance *fi)
 	gser = malloc(sizeof(*gser));
 
 	if (!gser)
-		return (void*)-ENOMEM;
-	//	return ERR_PTR(-ENOMEM);
+		return ERR_PTR(-ENOMEM);
 
 	opts = container_of(fi, struct f_serial_opts, func_inst);
 
@@ -382,7 +423,7 @@ static struct usb_function *gser_alloc(struct usb_function_instance *fi)
 	gser->port.func.unbind = gser_unbind;
 	gser->port.func.set_alt = gser_set_alt;
 	gser->port.func.disable = gser_disable;
-	//temp gser->port.func.free_func = gser_free;
+	gser->port.func.free_func = gser_free;
 
 	return &gser->port.func;
 }

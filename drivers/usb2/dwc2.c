@@ -1218,7 +1218,8 @@ static int dwc2_init_common(struct udevice *dev, struct dwc2_priv *priv)
 		 snpsid >> 12 & 0xf, snpsid & 0xfff);
 
 	if ((snpsid & DWC2_SNPSID_DEVID_MASK) != DWC2_SNPSID_DEVID_VER_2xx &&
-	    (snpsid & DWC2_SNPSID_DEVID_MASK) != DWC2_SNPSID_DEVID_VER_3xx) {
+	    (snpsid & DWC2_SNPSID_DEVID_MASK) != DWC2_SNPSID_DEVID_VER_3xx &&
+	    (snpsid & DWC2_SNPSID_DEVID_MASK) != DWC2_SNPSID_DEVID_VER_4xx) {
 		dev_info(dev, "SNPSID invalid (not DWC2 OTG device): %08x\n",
 			 snpsid);
 		return -ENODEV;
@@ -1287,6 +1288,23 @@ int submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 		   int len, int interval)
 {
 	return _submit_int_msg(&local, dev, pipe, buffer, len, interval);
+}
+
+void dwc2_dump_host_registers()
+{
+	struct dwc2_priv *priv = &local;
+	struct dwc2_core_regs *regs ;
+
+
+	priv->regs = (struct dwc2_core_regs *)CONFIG_USB_DWC2_REG_ADDR;
+	regs = priv->regs;
+	dev_info(priv, "%s\n", __func__);
+
+	/* Read Host regs */
+	dev_info(priv, "guid:0x%x\n", readl(&regs->guid));
+	dev_info(priv, "gsnpsid:0x%x\n", readl(&regs->gsnpsid));
+	dev_info(priv, "haint:0x%x\n", readl(&regs->host_regs.haint));
+
 }
 
 /* U-Boot USB control interface */

@@ -309,7 +309,7 @@ enum packets_types {
  */
 
 #define GENMASK(h, l) \
-	(((~0UL) << (l)) & (~0UL >> (_BITS_PER_LONG_ - 1 - (h))))
+	(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
 
 #define DWCEQOS_DMA_SYSBUS_MODE_RD_OSR_LIMIT(x) \
 	(((x) << 16) & 0x000F0000)

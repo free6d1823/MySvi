@@ -12,7 +12,7 @@
 
 static int dw_plat_pcie_host_init(struct pcie_port *pp)
 {
-	struct dw_pcie *pci = &dw_pci;
+	struct dw_pcie *pci = container_of(pp, struct dw_pcie, pp);
 
 	dw_pcie_setup_rc(pp);
 	dw_pcie_wait_for_link(pci);
@@ -44,13 +44,11 @@ static const struct dw_pcie_ops dw_pcie_ops = {
 
 static void dw_plat_pcie_ep_init(struct dw_pcie_ep *ep)
 {
-#if 0
 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
 	enum pci_barno bar;
 
 	for (bar = BAR_0; bar <= BAR_5; bar++)
 		dw_pcie_ep_reset_bar(pci, bar);
-#endif
 }
 
 static int dw_plat_pcie_ep_raise_irq(struct dw_pcie_ep *ep, u8 func_no,
@@ -93,19 +91,13 @@ static struct dw_pcie_ep_ops pcie_ep_ops = {
 	//.get_features = dw_plat_pcie_get_features,
 };
 
-static int dw_plat_add_pcie_ep(struct dw_plat_pcie *dw_plat_pcie)
+static int dw_add_pcie_ep(struct dw_pcie *pci)
 {
         int ret;
         struct dw_pcie_ep *ep;
-        struct dw_pcie *pci = dw_plat_pcie->pci;
 
         ep = &pci->ep;
         ep->ops = &pcie_ep_ops;
-
-        pci->dbi_base2 = DBI_BASE2_ADDR;
-
-        ep->phys_base = EP_CONF_PHYS_BASE;
-        ep->addr_size = EP_CONF_SIZE;
 
         ret = dw_pcie_ep_init(ep);
         if (ret) {
@@ -115,9 +107,8 @@ static int dw_plat_add_pcie_ep(struct dw_plat_pcie *dw_plat_pcie)
         return 0;
 }
 
-static int dw_plat_add_pcie_port(struct dw_plat_pcie *dw_plat_pcie)
+static int dw_add_pcie_port(struct dw_pcie *pci)
 {
-	struct dw_pcie *pci = dw_plat_pcie->pci;
 	struct pcie_port *pp = &pci->pp;
 	int ret;
 
@@ -132,32 +123,23 @@ static int dw_plat_add_pcie_port(struct dw_plat_pcie *dw_plat_pcie)
 	return 0;
 }
 
-int dw_plat_pcie_init(enum dw_pcie_device_mode mode)
+int dw_plat_pcie_init(struct dw_pcie *pci)
 {
 	int ret;
-	struct dw_pcie *pci;
-	struct dw_plat_pcie *plat_pci;
 
-	pci = &dw_pci;
-	plat_pci = &dw_plat_pci;
-	pci->ops = &dw_pcie_ops;
-	plat_pci->pci = pci;
-	plat_pci->mode = mode;
-	pci->dbi_base = (void *)DW_PCIE_DBI0_BASE;
-
-	switch (plat_pci->mode) {
+	switch (pci->mode) {
 	case DW_PCIE_RC_TYPE:
-		ret = dw_plat_add_pcie_port(plat_pci);
+		ret = dw_add_pcie_port(pci);
 		if (ret < 0)
 			return ret;
 		break;
 	case DW_PCIE_EP_TYPE:
-		ret = dw_plat_add_pcie_ep(plat_pci);
+		ret = dw_add_pcie_ep(pci);
 		if (ret < 0)
 			return ret;
 		break;
 	default:
-		printf("INVALID device type %d\n", plat_pci->mode);
+		printf("INVALID device type %d\n", pci->mode);
 	}
 
 	return 0;
@@ -167,11 +149,46 @@ static struct pci_ops pci_generic_ecam_ops = {
 	.read_config	= dw_pcie_rd_config,
 	.write_config	= dw_pcie_wr_config,
 };
-struct pci_controller hose_se1000 = {
-	.name = "pcie_dwc",
-	.cfg_base = (unsigned int *)0xbb000000,
-	.regions = {
-				{0x400000000, 0x400000000, 0x400000000, PCI_REGION_MEM},
+
+struct resource	busn_se1000 = {
+	 .start = 0,
+	 .end = 255,
+};
+
+
+struct dw_pcie dw_pci[4] = {
+	{
+		.ops = &dw_pcie_ops,
+		.dbi_base = (void *)0xbb000000,
+		.num_viewport = 2,
+		.mode = DW_PCIE_RC_TYPE,
+		.pp.cfg0_base = 0xbb000000,
+		.pp.cfg0_size = 0x100000 >> 1,
+		.pp.cfg1_base = 0xbb080000,
+		.pp.cfg1_size = 0x100000 >> 1,
+		.pp.busn = &busn_se1000,
+		.private_data = &hose_se1000[0],
+	},
+	{
+		.ops = &dw_pcie_ops,
+		.dbi_base = (void *)0xbb000000,
+		.dbi_base2 = (void *)0x0,
+		.ep.phys_base = 0xbb000000,
+		.ep.addr_size = 0x100000,
+		.ep.num_ib_windows = EP_IB_WIN_NUM,
+		.ep.num_ob_windows = EP_OUT_WIN_NUM,
+		.ep.max_fun = 1,
+		.mode = DW_PCIE_EP_TYPE,
+		.private_data = &hose_se1000[1],
+	},
+};
+
+struct pci_controller hose_se1000[4] = {
+	{
+		.name = "pcie_dwc",
+		.cfg_base = (unsigned int *)0xbb000000,
+		.regions = {
+				{0x40000000, 0x40000000, 0x400000000, PCI_REGION_MEM},
 				{0,          0,          0,          0},
 				{0,          0,          0,          0},
 				{0,          0,          0,          0},
@@ -179,90 +196,50 @@ struct pci_controller hose_se1000 = {
 				{0,          0,          0,          0},
 				{0,          0,          0,          0},
 			},
-	.region_count = 1,
+		.region_count = 1,
+		.driver_data = &dw_pci[0],
+	},
+	{
+		.name = "pcie_dwc_ep",
+		.cfg_base = (unsigned int *)0x725000000,
+		.regions = {
+				{0x82000000, 0x72600000, 0x100000, PCI_REGION_MEM},
+				{0,          0,          0,          0},
+				{0,          0,          0,          0},
+				{0,          0,          0,          0},
+				{0,          0,          0,          0},
+				{0,          0,          0,          0},
+				{0,          0,          0,          0},
+			},
+		.region_count = 1,
+		.driver_data = &dw_pci[1],
+	},
 };
 
-int pci_init()
+int pci_init(u32 id)
 {
 	int hose_id;
 	int ret;
-	enum dw_pcie_device_mode mode = DW_PCIE_RC_TYPE;
+	struct dw_pcie *pci;
 
-	ret = dw_plat_pcie_init(mode);
+	if(id >= 4)
+		return -EINVAL;
+
+	pci = hose_se1000[id].driver_data;
+
+	ret = dw_plat_pcie_init(pci);
 	if (ret) {
 		printf("Failed to initialize dw plat pcie\n");
 		return ret;
 	}
 
-	hose_se1000.ops = &pci_generic_ecam_ops;
-	hose_id = pci_register_hose(&hose_se1000);
-	pci_probe_hose(&hose_se1000);
+	if(pci->mode ==  DW_PCIE_RC_TYPE){
+		hose_se1000[id].ops = &pci_generic_ecam_ops;
+		pci_probe_hose(&hose_se1000[id]);
+	}
+	hose_id = pci_register_hose(&hose_se1000[id]);
 
 	return 0;
 }
-
-int loopback_bar_inbound_iatu_set(struct dw_pcie *pci, phys_addr_t *target)
-{
-	int ret;
-	enum dw_pcie_as_type as_type = DW_PCIE_AS_MEM;
-	enum pci_barno bar = BAR_0;
-	u32 free_win = PCIE_ATU_REGION_INDEX0;
-
-	ret = dw_pcie_prog_inbound_atu(pci, free_win, bar, (u64)target,
-			as_type);
-	if (ret < 0) {
-		printf( "Failed to program IB window\n");
-		return ret;
-	}
-
-	dw_pcie_dbi_ro_wr_en(pci);
-	/* set bar 64-bit&memory mapped bar */
-	dw_pcie_writel_dbi(pci, PCI_BASE_ADDRESS_0, 0x100);
-	dw_pcie_writel_dbi(pci, PCI_BASE_ADDRESS_1, 0x0);
-	dw_pcie_dbi_ro_wr_dis(pci);
-
-	/* set bar space base address */
-	dw_pcie_writel_dbi(pci, PCI_BASE_ADDRESS_0, 0x0);
-	dw_pcie_writel_dbi(pci, PCI_BASE_ADDRESS_1, 0x4);
-
-	return 0;
-}
-
-int dw_loopback_test(phys_addr_t *source, int value, phys_addr_t *target)
-{
-	int ret;
-	int receive_data;
-	struct dw_pcie *pci;
-	struct dw_plat_pcie *plat_pci;
-	enum dw_pcie_device_mode mode = DW_PCIE_RC_TYPE;
-
-	pci = &dw_pci;
-
-	ret = dw_plat_pcie_init(mode);
-	if(ret != 0){
-		printf("dw_plat_pcie_init fail!\n");
-		return ret;
-	}
-
-	/* set usp bar */
-	ret = loopback_bar_inbound_iatu_set(pci, target);
-	if(ret != 0){
-		printf("loopback bar inbound iatu set fail!\n");
-		return ret;
-	}
-
-	dw_enter_loopback_mode(pci);
-
-	__raw_writel(value, source);
-
-	dw_exit_loopback_mode(pci);
-
-	receive_data = readl(target);
-
-	printf("The loopback target addr: 0x%llx,data: 0x%x\n", target, receive_data);
-
-	return 0;
-}
-
 
 

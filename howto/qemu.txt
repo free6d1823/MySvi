@@ -32,6 +32,13 @@ qemu-system-aarch64 -machine virt,gic-version=3,secure=on -m 1000 -cpu cortex-a7
 -device usb-storage,bus=usb-bus.0,drive=usbstick,port=4
 备注：usb bus的默认值是usb-bus.0，port指定在哪个端口
 
+调试PCI桥
+qemu-system-aarch64 -machine virt,gic-version=3,secure=on -m 1000 -cpu cortex-a72 -nographic -kernel ./hvep -s \
+-device pcie-pci-bridge,id=pcie-bridge-0,bus=pcie.0,addr=3 \
+-device qemu-xhci,addr=6,bus=pcie-bridge-0 \
+-drive if=none,id=usbstick,file=myimage,format=raw \
+-device usb-storage,bus=usb-bus.0,drive=usbstick,port=4
+
 
 5. 使用gdb调试
 user@u16:~/svi$ aarch64-linux-gnu-gdb hvep
@@ -54,3 +61,8 @@ Step2: Jump into kernel by command below:
 	kernel 0x40280000 0x40200000
 
 Note: the size of rootfs.cpio.gz should be matched with linux,initrd-start/linux,initrd-end in virt.dts
+
+qemu tips:
+Ctrl+a then 'x'  : exit from qemu
+Ctrl+a then 'c'  : qemu menu
+

@@ -91,8 +91,10 @@ struct usb_function {
 	const char			*name;
 	struct usb_gadget_strings	**strings;
 	struct usb_descriptor_header	**descriptors;
-	struct usb_descriptor_header	**hs_descriptors;
 	struct usb_descriptor_header	**fs_descriptors;
+	struct usb_descriptor_header	**hs_descriptors;
+	struct usb_descriptor_header	**ss_descriptors;
+	struct usb_descriptor_header	**ssp_descriptors;
 
 	struct usb_configuration	*config;
 
@@ -107,6 +109,7 @@ struct usb_function {
 					struct usb_function *);
 	void			(*unbind)(struct usb_configuration *,
 					struct usb_function *);
+	void			(*free_func)(struct usb_function *f);
 
 	/* runtime state management */
 	int			(*set_alt)(struct usb_function *,
@@ -221,14 +224,23 @@ struct usb_configuration {
 	struct list_head	list;
 	struct list_head	functions;
 	u8			next_interface_id;
+	unsigned		superspeed:1;
 	unsigned		highspeed:1;
 	unsigned		fullspeed:1;
+	unsigned		superspeed_plus:1;
 	struct usb_function	*interface[MAX_CONFIG_INTERFACES];
 };
 
 int usb_add_config(struct usb_composite_dev *,
 		struct usb_configuration *);
 
+/* predefined index for usb_composite_driver */
+enum {
+	USB_GADGET_MANUFACTURER_IDX	= 0,
+	USB_GADGET_PRODUCT_IDX,
+	USB_GADGET_SERIAL_IDX,
+	USB_GADGET_FIRST_AVAIL_IDX,
+};
 /**
  * struct usb_composite_driver - groups configurations into a gadget
  * @name: For diagnostics, identifies the driver.
@@ -263,7 +275,7 @@ struct usb_composite_driver {
 	const char				*name;
 	const struct usb_device_descriptor	*dev;
 	struct usb_gadget_strings		**strings;
-
+	enum usb_device_speed			max_speed;
 	/* REVISIT:  bind() functions can be marked __init, which
 	 * makes trouble for section mismatch analysis.  See if
 	 * we can't restructure things to avoid mismatching...
@@ -362,13 +374,7 @@ struct usb_function_instance {
 };
 
 
-/* predefined index for usb_composite_driver */
-enum {
-	USB_GADGET_MANUFACTURER_IDX	= 0,
-	USB_GADGET_PRODUCT_IDX,
-	USB_GADGET_SERIAL_IDX,
-	USB_GADGET_FIRST_AVAIL_IDX,
-};
+
 
 
 void usb_function_unregister(struct usb_function_driver *f);

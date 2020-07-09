@@ -10,7 +10,7 @@
 
 #define PHY0_SLEEP              (1 << 5)
 #define DWC2_MAX_HW_ENDPOINTS	16
-#define CONFIG_USB_DWC2_REG_ADDR		0xBB420000
+#define CONFIG_USB_DWC2_REG_ADDR		0xE7600000
 
 struct dwc2_plat_otg_data {
 	void		*priv;

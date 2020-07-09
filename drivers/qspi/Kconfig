@@ -1,0 +1,3 @@
+
+config CDNS_QSPI
+	bool "Cadence QSPI support"

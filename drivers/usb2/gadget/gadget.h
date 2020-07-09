@@ -647,16 +647,28 @@ static inline void *get_gadget_data(struct usb_gadget *gadget)
  */
 static inline int gadget_is_dualspeed(struct usb_gadget *g)
 {
-/*default is support high speed usb 2.0*/
-#if 1
-	/* runtime test would check "g->is_dualspeed" ... that might be
-	* useful to work around hardware bugs, but is mostly pointless
-	*/
-	return 1;
-#else
-	return 0;
-#endif
+	return g->max_speed >= USB_SPEED_HIGH;
 }
+
+/**
+ * gadget_is_superspeed() - return true if the hardware handles superspeed
+ * @g: controller that might support superspeed
+ */
+static inline int gadget_is_superspeed(struct usb_gadget *g)
+{
+	return g->max_speed >= USB_SPEED_SUPER;
+}
+
+/**
+ * gadget_is_superspeed_plus() - return true if the hardware handles
+ *	superspeed plus
+ * @g: controller that might support superspeed plus
+ */
+static inline int gadget_is_superspeed_plus(struct usb_gadget *g)
+{
+	return g->max_speed >= USB_SPEED_SUPER_PLUS;
+}
+
 
 /**
  * gadget_is_otg - return true iff the hardware is OTG-ready

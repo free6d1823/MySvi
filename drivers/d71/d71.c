@@ -4,8 +4,15 @@
 #include <target/cmdline.h>
 #include <target/memory.h>
 #include <std/string.h>
+#include <stdlib.h>
 
 #define DEFAULT_PREPRETCH_LINE 5
+static uintptr_t d71_addr = D71_REG_BASE;
+static uintptr_t lpu0_layer1_addr = 0x60000000;
+static uintptr_t lpu0_layer0_addr = 0x602c0000;
+static uintptr_t update_addr = 0x60160000;
+static uintptr_t lpu1_layer0_addr = 0x60400000;
+static uintptr_t lpu_layer_wb = 0x60800000;
 
 struct dpu_pipe d71_pipe;
 #define writel_mask(v,m,a) __raw_writel_mask(v,m,a)
@@ -131,8 +138,8 @@ static int cu_init(void __iomem *base)
 	/* Composition size */
 	writel(HV_SIZE(640, 480), base + CU_SIZE);
 
-	/* Bacground color: white color */
-	writel(0x3fffffff, base + CU_BG_COLOR);
+	/* Bacground color: green color */
+	writel(0x00ff0000, base + CU_BG_COLOR);
 
 	return 0;
 }
@@ -142,7 +149,7 @@ static int cu_input(void __iomem *base, int input)
 	base += input * PER_CU_INPUT;
 	writel(HV_SIZE(640, 480), base + CU_INPUT_SIZE);
 	writel(HV_OFFSET(0, 0), base + CU_INPUT_OFFSET);
-	__raw_setl(CU_INPUT_CONTROL_EN | CU_INPUT_CONTROL_PAD, base + CU_INPUT_CONTROL);
+	__raw_setl(CU_INPUT_CONTROL_EN , base + CU_INPUT_CONTROL);
 
 	return 0;
 }
@@ -195,6 +202,16 @@ static void cu_disable(void __iomem *base, int index)
 	}
 }
 
+static int d71_bind(void __iomem *out, int oidx, void __iomem *in, int iidx)
+{
+	u16 id;
+
+	id = readl(out + OUTPUT_ID + 4 * oidx);
+	writel(id, in + INPUT_ID + 4 * iidx);
+
+	return 0;
+}
+
 static int lpu_layer_init(void __iomem *base, uintptr_t fb)
 {
 	writel((u32)fb, base + L_P0_PTR_LOW);
@@ -205,11 +222,34 @@ static int lpu_layer_init(void __iomem *base, uintptr_t fb)
 	/* __raw_setl(L_AD_CONTROL_AEN, base + L_AD_CONTROL); */
 
 	writel(HV_SIZE(640, 480), base + L_IN_SIZE);
-	writel(FORMAT_XRGB_8888, base + L_FORMAT);
+	writel(FORMAT_ARGB_8888, base + L_FORMAT);
 	writel(L_CONTROL_EN, base + BLK_CONTROL);
 
 	return 0;
 }
+
+static int d71_wb_layer_init(void __iomem *base, uintptr_t fb, int lpu_i)
+{
+	void __iomem *layer_wb_addr = base + LPU0_LAYER_WR + lpu_i * 0x2000;
+	void __iomem *cu = base + CU0 + lpu_i * 0x2000;
+
+	writel((u32)fb, layer_wb_addr + L_P0_PTR_LOW);
+	writel((fb >> 16) >> 16, layer_wb_addr + L_P0_PTR_HIGH);
+
+	writel(640 * 4, layer_wb_addr + L_P0_STRIDE);
+
+	/* __raw_setl(L_AD_CONTROL_AEN, base + L_AD_CONTROL); */
+
+	writel(HV_SIZE(640, 480), layer_wb_addr + L_IN_SIZE);
+	writel(FORMAT_ARGB_8888, layer_wb_addr + L_FORMAT);
+
+	__raw_setl(L_CONTROL_EN , layer_wb_addr + BLK_CONTROL);
+
+	d71_bind(cu, 0, layer_wb_addr, 0);
+
+	return 0;
+}
+
 
 static int lpu_layer_pipe_update(void __iomem *base, int lpu_i, struct dpu_pipe * pipe)
 {
@@ -268,18 +308,6 @@ static int lpu_dump(void __iomem *base)
 	return 0;
 }
 
-
-static int d71_bind(void __iomem *out, int oidx, void __iomem *in, int iidx)
-{
-	u16 id;
-
-	id = readl(out + OUTPUT_ID + 4 * oidx);
-	writel(id, in + INPUT_ID + 4 * iidx);
-
-	return 0;
-}
-
-
 static int dou_dump(void __iomem *base)
 {
 	printf("DOU_IRQ_RAW_STATUS = 0x%x\n", readl(base + DOU_IRQ_RAW_STATUS));
@@ -311,20 +339,18 @@ static int ips_init(void __iomem *base)
 }
 
 
-int d71_init(void __iomem *base)
+int d71_lpu0_layer1_init(void __iomem *base, uintptr_t fb)
 {
-	gcu_init(base + GCU);
-
 	bs_init(base + DOU0_BS);
 
-	lpu_layer_init(base + LPU0_LAYER0, 0x60000000);
+	lpu_layer_init(base + LPU0_LAYER1, fb);
 
 	cu_init(base + CU0);
 	cu_input(base + CU0, 0);
 
 	ips_init(base + DOU0_IPS);
 
-	d71_bind(base + LPU0_LAYER0, 0, base + CU0, 0);
+	d71_bind(base + LPU0_LAYER1, 0, base + CU0, 0);
 	d71_bind(base + CU0, 0, base + DOU0_IPS, 0);
 
 	gcu_flush(base + GCU, 0);
@@ -353,7 +379,7 @@ static int d71_update_pipe(void __iomem *base, struct dpu_pipe * pipe)
 	return ret;
 }
 
-static int d71_update_1st_layer(void __iomem *base)
+static int d71_update_1st_layer(void __iomem *base, uintptr_t new_fb)
 {
 	struct layer_layout_param ls_param[4];
 	int ret;
@@ -362,14 +388,14 @@ static int d71_update_1st_layer(void __iomem *base)
 	memcpy(&ls_param[2], &d71_pipe.layer_group[0].layer_param[2],sizeof(struct layer_layout_param));
 	memcpy(&ls_param[3], &d71_pipe.layer_group[0].layer_param[3],sizeof(struct layer_layout_param));
 
-	ls_param[0].fb    = 0x60160000;  //switch lpu0 layer 0 fb
+	ls_param[0].fb = new_fb;  //switch lpu0 layer 0 fb
 
 	ret = lpu_layers_fb_update(base + LPU0_LAYER0, 0, &ls_param[0], &d71_pipe);
 	ret += gcu_flush(base + GCU, 0);
 	return ret;
 }
 
-static void d71_pipe_case_0_init()
+static void d71_pipe_case_0_init(uintptr_t lpu0_layer0_fb, uintptr_t lpu0_layer1_fb)
 {
 	memset(&d71_pipe, 0, sizeof(struct dpu_pipe));
 	d71_pipe.lpu_index[0]=1;
@@ -377,22 +403,22 @@ static void d71_pipe_case_0_init()
 	d71_pipe.layer_group[0].lpu_layer_index[1]=0; //lpu 0 layer 1 output to cu 0
 	d71_pipe.layer_group[0].lpu_layer_index[2]=-1; //lpu 0 layer 2 not in use
 	d71_pipe.layer_group[0].lpu_layer_index[3]=-1; //lpu 0 layer 3 not in use
-	d71_pipe.layer_group[1].lpu_layer_index[0]=-1; //lpu 0 layer 0 not in use
-	d71_pipe.layer_group[1].lpu_layer_index[1]=-1; //lpu 0 layer 1 not in use
-	d71_pipe.layer_group[1].lpu_layer_index[2]=-1; //lpu 0 layer 2 not in use
-	d71_pipe.layer_group[1].lpu_layer_index[3]=-1; //lpu 0 layer 3 not in use
-	d71_pipe.layer_group[0].layer_param[0].alpha_type = CU_INPUT_CONTROL_PAD;
-	d71_pipe.layer_group[0].layer_param[0].alpha_value = 0xFF;
-	d71_pipe.layer_group[0].layer_param[0].fb = 0x60000000;
+	d71_pipe.layer_group[1].lpu_layer_index[0]=-1; //lpu 1 layer 0 not in use
+	d71_pipe.layer_group[1].lpu_layer_index[1]=-1; //lpu 1 layer 1 not in use
+	d71_pipe.layer_group[1].lpu_layer_index[2]=-1; //lpu 1 layer 2 not in use
+	d71_pipe.layer_group[1].lpu_layer_index[3]=-1; //lpu 1 layer 3 not in use
+	d71_pipe.layer_group[0].layer_param[0].alpha_type = 0;
+	d71_pipe.layer_group[0].layer_param[0].alpha_value = 0x80;
+	d71_pipe.layer_group[0].layer_param[0].fb = lpu0_layer0_fb;
 	d71_pipe.layer_group[0].layer_param[0].format = FORMAT_ARGB_8888;
 	d71_pipe.layer_group[0].layer_param[0].height = 480;
 	d71_pipe.layer_group[0].layer_param[0].width = 640;
 	d71_pipe.layer_group[0].layer_param[0].stride = 640;
 	d71_pipe.layer_group[0].layer_param[0].h_offset = 0;
 	d71_pipe.layer_group[0].layer_param[0].v_offset = 0;
-	d71_pipe.layer_group[0].layer_param[1].alpha_type = CU_INPUT_CONTROL_PAD;
-	d71_pipe.layer_group[0].layer_param[1].alpha_value = 0x88;
-	d71_pipe.layer_group[0].layer_param[1].fb = 0x602C0000;
+	d71_pipe.layer_group[0].layer_param[1].alpha_type = 0;
+	d71_pipe.layer_group[0].layer_param[1].alpha_value = 0xFF;
+	d71_pipe.layer_group[0].layer_param[1].fb = lpu0_layer1_fb;
 	d71_pipe.layer_group[0].layer_param[1].format = FORMAT_ARGB_8888;
 	d71_pipe.layer_group[0].layer_param[1].height = 480;
 	d71_pipe.layer_group[0].layer_param[1].width = 640;
@@ -417,6 +443,24 @@ static void d71_pipe_case_0_init()
 	d71_pipe.dou_blocks[0].vtotal=546;
 }
 
+static void d71_lpu1_layer0_init(void __iomem *base, uintptr_t fb)
+{
+	bs_init(base + DOU1_BS);
+
+	lpu_layer_init(base + LPU1_LAYER0, fb);
+
+	cu_init(base + CU1);
+	cu_input(base + CU1, 0);
+
+	ips_init(base + DOU1_IPS);
+
+	d71_bind(base + LPU1_LAYER0, 0, base + CU1, 0);
+	d71_bind(base + CU1, 0, base + DOU1_IPS, 0);
+
+	gcu_flush(base + GCU, 1);
+
+}
+
 static void d71_disable(void __iomem *base)
 {
 	lpu_layers_disable(base + LPU0_LAYER0);
@@ -425,75 +469,88 @@ static void d71_disable(void __iomem *base)
 	dou_disable(base+DOU0, 0);
 }
 
+static void d71_init(void __iomem *base)
+{
+	gcu_init(base + GCU);
+}
+
 static int cmd_d71(int argc, char **argv)
 {
+	int i = 0;
+
 	if (argc < 2)
 		return -EUSAGE;
 
 	if (argv[1][0] == 'i') {
-		int i;
-		char * pl = (char *)0x60000000;
-		for(i=0; i< 307200; i++)
-		{
-			memset(pl,0xFF,1);
-			pl++;
-			memset(pl,0xFF,1);
-			pl++;
-			memset(pl,0xFF,2);
-			pl++;
-			pl++;
+		if (argc == 3) {
+			d71_addr = strtoul(argv[2], 0, 0);
 		}
-		d71_init((void __iomem *)D71_REG_BASE);
+
+		d71_init((void __iomem *)d71_addr);
+
+	} else if (argv[1][0] == 'w') {
+		if (argc ==4) {
+			i = strtoul(argv[2], 0, 0);
+			lpu_layer_wb = strtoul(argv[3], 0, 0);
+		}
+		d71_wb_layer_init((void __iomem *)d71_addr, lpu_layer_wb, i);
+
+	} else if (argv[1][1] == '0') {
+		if (argc == 3)
+			lpu0_layer1_addr = strtoul(argv[2], 0, 0);
+
+		d71_lpu0_layer1_init((void __iomem *)d71_addr, lpu0_layer1_addr);
+
+	} else if (argv[1][1] == '1') {
+		if (argc == 3)
+			lpu1_layer0_addr = strtoul(argv[2], 0, 0);
+
+		d71_lpu1_layer0_init((void __iomem *)d71_addr, lpu1_layer0_addr);
+
 	} else if (argv[1][0] == 'd') {
-		d71_dump((void __iomem *)D71_REG_BASE);
+		d71_dump((void __iomem *)d71_addr);
+
 	} else if (argv[1][0] == 'p') {
-		int i;
-		char * pl = (char *)0x602C0000;
-		for(i=0; i< 307200; i++)
-		{
-			memset(pl,0,1);
-			pl++;
-			memset(pl,0,1);
-			pl++;
-			memset(pl,0,2);
-			pl++;
-			pl++;
-		}
-		d71_pipe_case_0_init();
-		d71_update_pipe((void __iomem *)D71_REG_BASE,&d71_pipe);
-	} else if (argv[1][0] == 'l') {
-		int i;
-		char * pl = (char *)0x60160000;
-		for(i=0; i< 307200; i++)
-		{
-			memset(pl,0,1);
-			pl++;
-			memset(pl,0xFF,1);
-			pl++;
-			memset(pl,0,2);
-			pl++;
-			pl++;
-		}
-		d71_update_1st_layer((void __iomem *)D71_REG_BASE);
+
+		if (argc == 3)
+			lpu0_layer0_addr = strtoul(argv[2], 0, 0);
+
+		d71_pipe_case_0_init(lpu0_layer0_addr, lpu0_layer1_addr);
+		d71_update_pipe((void __iomem *)d71_addr,&d71_pipe);
+
+	} else if (argv[1][0] == 'u') {
+		if (argc == 3)
+			update_addr = strtoul(argv[2], 0, 0);
+
+		d71_update_1st_layer((void __iomem *)d71_addr, update_addr);
+
 	} else if (argv[1][0] == 's') {
-		d71_disable((void __iomem *)D71_REG_BASE);
+		d71_disable((void __iomem *)d71_addr);
 	} else {
 		return -EUSAGE;
 	}
 
 	return 0;
+
 }
 
-
 MK_CMD(d71, cmd_d71, "Control ARM D71",
-	"d71 init\n"
-	"    - initialize d71 with fb @0x60000000\n"
+	"d71 init [d71_addr]\n"
+	"    - initialize the specific d71 with fb @addr\n"
+	"d71 wb index [lpu_layer_addr]\n"
+	"    - enable write-back function of lpu[index]\n"
+	"d71 l01\n"
+	"    - initialize the lpu0_layer1 of the specific d71 with fb @addr, default addr is 0x60000000\n"
+	"d71 l10 [addr]\n"
+	"    - initialize the lpu1_layer0 of the specific d71 with fb @addr, default addr is 0x60400000\n"
 	"d71 dump\n"
 	"    - dump the register of d71\n"
-	"d71 pipe\n"
-	"    - setup new pipeline with parameters\n"
-	"d71 layer\n"
-	"    - update layer with parameters\n"
+	"d71 pipe [addr]\n"
+	"    - initialize the lpu0_layer0 with fb @addr, default addr is 0x602c0000\n"
+	"d71 update [addr]\n"
+	"    - update lpu0_layer0 with new fb @addr, default addr is 0x60160000\n"
 	"d71 shutdown\n"
 	"    - disable d71 functio\n"
 );
+
+
