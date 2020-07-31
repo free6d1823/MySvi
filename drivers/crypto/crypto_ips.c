@@ -16,13 +16,397 @@
 #include "target/mbedtls/gcm.h"
 #include "target/mbedtls/cipher.h"
 #include <target/irqc.h>
+#include <target/utils.h>
 //#define C_A76
 #define CM4
 //#define IPS_INTR
 #define IPS_POLLING
+
+int ips_vfreg_read_write_test()
+{
+        int ret_value;
+        /*IRQ EN*/
+        ret_value = READ_REG(IPS_VF0_REG_IRQ_EN);
+        if(ret_value != 0x0)
+                printf("IRQ EN read default value fail!");
+
+        WRITE_REG(IPS_VF0_REG_IRQ_EN, 0xff);
+        ret_value = READ_REG(IPS_VF0_REG_IRQ_EN);
+        if(ret_value != 0xff)
+                printf("IRQ EN write & read test fail!");
+        WRITE_REG(IPS_VF0_REG_IRQ_EN, 0x0);
+        /*IRQ RAW*/
+        ret_value = READ_REG(IPS_VF0_REG_IRQ_RAW);
+        if(ret_value != 0x0)
+                printf("IRQ RAW read default value fail!");
+
+        /*IRQ STAT*/
+        ret_value = READ_REG(IPS_VF0_REG_IRQ_STAT);
+        if(ret_value != 0x0)
+                printf("IRQ STAT read default value fail!");
+
+	 /*IRQ CTRL_0*/
+        ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_0);
+        if(ret_value != 0x001E0002)
+                printf("IRQ CTRL_0 read default value fail!");
+
+        WRITE_REG(IPS_VF0_REG_IRQ_CTRL_0, 0x00400040);
+        ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_0);
+        if(ret_value != 0x00400040)
+                printf("IRQ CTRL_0 write & read test fail!");
+        WRITE_REG(IPS_VF0_REG_IRQ_CTRL_0, 0x001E0002);
+        /*IRQ_CTRL_1*/
+        ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_1);
+        if(ret_value != 0x001E0002)
+                printf("IRQ CTRL_1 read default value fail!");
+
+        WRITE_REG(IPS_VF0_REG_IRQ_CTRL_1, 0x001d0001);
+        ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_1);
+        if(ret_value != 0x001d0001)
+                printf("IRQ CTRL_1 write & read test fail!");
+        WRITE_REG(IPS_VF0_REG_IRQ_CTRL_1, 0x001d0001);
+        /*WD_CTRL_0*/
+        ret_value = READ_REG(IPS_VF0_WD_CTRL_0);
+        if(ret_value != 0xffffffff)
+                printf("IRQ WD_CTRL_0 read default fail!");
+
+        WRITE_REG(IPS_VF0_WD_CTRL_0, 0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_WD_CTRL_0);
+        if(ret_value != 0x55aa55aa)
+                printf("IRQ WD_CTRL_0 read & write fail!");
+
+        WRITE_REG(IPS_VF0_WD_CTRL_0, 0xffffffff);
+        /*WD_CTRL_1*/
+         ret_value = READ_REG(IPS_VF0_WD_CTRL_1);
+        if(ret_value != 0xffffffff)
+                printf("IRQ WD_CTRL_1 read default fail!");
+
+        WRITE_REG(IPS_VF0_WD_CTRL_1, 0x55aa55aa);
+
+        ret_value = READ_REG(IPS_VF0_WD_CTRL_1);
+        if(ret_value != 0x55aa55aa)
+                printf("IRQ WD_CTRL_1 read & write fail!");
+
+        WRITE_REG(IPS_VF0_WD_CTRL_1, 0xffffffff);
+        /*C0_IRQ_INFO_1*/
+        ret_value = READ_REG(IPS_VF0_C0_IRQ_INFO_1);
+        if(ret_value != 0x0)
+                printf("C0_IRQ_INFO_1 read default fail!");
+
+	  /*RING_CTRL_0*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_0);
+        if(ret_value !=0)
+                printf("IPS_VF0_REG_RING_CTRL_0 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_0,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_0);
+        if(ret_value != 0x55aa55aa)
+                printf("IPS_VF0_REG_RING_CTRL_0 read & write fail! ");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_0,0x0);
+
+        /*RING_CTRL_1*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_1);
+        if(ret_value !=0)
+                printf("IPS_VF0_REG_RING_CTRL_1 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_1,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_1);
+        if(ret_value != 0x55aa55aa)
+                printf("IPS_VF0_REG_RING_CTRL_1 read & write fail! ");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_1,0x0);
+
+        /*RING CTRL _2*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_2);
+        if(ret_value !=0)
+                printf("IPS_VF0_REG_RING_CTRL_2 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_2,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_2);
+        if(ret_value != 0x55aa55aa)
+                printf("IPS_VF0_REG_RING_CTRL_2 read & write fail! ");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_2,0x0);
+         /*RING CTRL _3*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_3);
+        if(ret_value !=0)
+                printf("IPS_VF0_REG_RING_CTRL_3 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_3,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_3);
+        if(ret_value != 0x55aa55aa)
+                printf("IPS_VF0_REG_RING_CTRL_3 read & write fail! ");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_3,0x0);
+
+	  /*RING CTRL _4*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_4);
+        if(ret_value !=0)
+                printf("IPS_VF0_REG_RING_CTRL_4 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_4,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_4);
+        if(ret_value != 0x55aa55aa)
+                printf("IPS_VF0_REG_RING_CTRL_4 read & write fail! ");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_4,0x0);
+
+         /*RING CTRL _5*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_5);
+        if(ret_value !=0)
+                printf("IPS_VF0_REG_RING_CTRL_5 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_5,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_5);
+        if(ret_value != 0x55aa55aa)
+                printf("IPS_VF0_REG_RING_CTRL_5 read & write fail! ");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_5,0x0);
+
+         /*RING CTRL _6*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_6);
+        if(ret_value !=0)
+                printf("IPS_VF0_REG_RING_CTRL_6 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_6,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_6);
+        if(ret_value != 0x55aa55aa)
+                printf("IPS_VF0_REG_RING_CTRL_6 read & write fail! ");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_6,0x0);
+
+         /*RING CTRL _7*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_7);
+        if(ret_value !=0)
+                printf("IPS_VF0_REG_RING_CTRL_7 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_7,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_7);
+        if(ret_value != 0x55aa55aa)
+                printf("IPS_VF0_REG_RING_CTRL_7 read & write fail! ");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_7,0x0);
+
+         /*RING CTRL _8*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_8);
+        if(ret_value !=0x00200020)
+                printf("IPS_VF0_REG_RING_CTRL_8 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_8,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_8);
+        if(ret_value != 0x55aa55aa)
+                printf("IPS_VF0_REG_RING_CTRL_8 read & write fail! ");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_8,0x00200020);
+
+         /*RING CTRL _9*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_9);
+        if(ret_value !=0x00200020)
+                printf("IPS_VF0_REG_RING_CTRL_9 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_9,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_9);
+        if(ret_value != 0x55aa55aa)
+                printf("IPS_VF0_REG_RING_CTRL_9 read & write fail! ");
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_9,0x00200020);
+
+        /*_C0_MAILBOX_0*/
+        ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_0);
+        if(ret_value != 0)
+                printf("IPS_VF0_REG_C0_MAILBOX_0 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_C0_MAILBOX_0, 0xffff);
+        ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_0);
+        if(ret_value != 0xffff)
+                printf("IPS_VF0_REG_C0_MAILBOX_0 read & write fail!");
+
+        WRITE_REG(IPS_VF0_REG_C0_MAILBOX_0, 0x0);
+
+        /*C0_MAILBOX_1*/
+        ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_1);
+        if(ret_value != 0)
+                printf("IPS_VF0_REG_C0_MAILBOX_1 read default fail!");
+
+        /*C1_MAILBOX_2*/
+        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_2);
+        if(ret_value != 0)
+                printf("IPS_VF0_REG_C1_MAILBOX_2 read default fail!");
+
+         /*C1_MAILBOX_3*/
+        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_3);
+        if(ret_value != 0)
+                printf("IPS_VF0_REG_C1_MAILBOX_3 read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_C1_MAILBOX_3, 0xffff);
+        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_3);
+        if(ret_value != 0xffff)
+                printf("IPS_VF0_REG_C1_MAILBOX_3 read & write fail!");
+
+        WRITE_REG(IPS_VF0_REG_C1_MAILBOX_3, 0x0);
+
+        /*C0_MAILBOX_3*/
+        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_3);
+        if(ret_value != 0)
+                printf("IPS_VF0_REG_C1_MAILBOX_3 read default fail!");
+
+        /*C0_RING_STS*/
+        ret_value = READ_REG(IPS_VF0_REG_C0_RING_STS_0);
+        if(ret_value != 0x0)
+                printf("IPS_VF0_REG_C0_RING_STS_0 read default fail");
+
+        /*c0_RING_STS*/
+        ret_value = READ_REG(IPS_VF0_REG_C0_RING_STS_1);
+        if(ret_value != 0x0a)
+                printf("IPS_VF0_REG_C0_RING_STS_1 read default fail");
+
+        /*C1_RING_STS_0*/
+         ret_value = READ_REG(IPS_VF0_REG_C1_RING_STS_0);
+        if(ret_value != 0x0)
+                printf("IPS_VF0_REG_C1_RING_STS_0 read default fail");
+
+        /*c1_RING_STS*/
+        ret_value = READ_REG(IPS_VF0_REG_C1_RING_STS_1);
+        if(ret_value != 0x0a)
+                printf("IPS_VF0_REG_C1_RING_STS_1 read default fail");
+
+        /*RING_INIT_0*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_INIT_0);
+        if(ret_value != 0x0)
+                printf("IPS_VF0_REG_RING_INIT_0 read default fail");
+
+        WRITE_REG(IPS_VF0_REG_RING_INIT_0, 0x3);
+        ret_value = READ_REG(IPS_VF0_REG_RING_INIT_0);
+        if(ret_value != 0x3)
+                printf("IPS_VF0_REG_RING_INIT_0 read & write fail");
+
+        WRITE_REG(IPS_VF0_REG_RING_INIT_0, 0x0);
+
+	  /*CH_PRIOR*/
+        ret_value = READ_REG(IPS_VF0_REG_CH_PRIOR);
+        if(ret_value != 0)
+                printf("IPS_VF0_REG_CH_PRIOR read default fail");
+
+        WRITE_REG(IPS_VF0_REG_CH_PRIOR, 0x01);
+        ret_value = READ_REG(IPS_VF0_REG_CH_PRIOR);
+        if(ret_value !=0x1)
+                printf("IPS_VF0_REG_CH_PRIOR read & write fail");
+
+        WRITE_REG(IPS_VF0_REG_CH_PRIOR, 0x0);
+
+        /*LOCAL_MSI_EN*/
+        ret_value = READ_REG(IPS_VF0_REG_LOCAL_MSI_EN);
+        if(ret_value != 0x0)
+                printf("IPS_VF0_REG_LOCAL_MSI_EN read default fail");
+
+        WRITE_REG(IPS_VF0_REG_LOCAL_MSI_EN, 0x01);
+        ret_value = READ_REG(IPS_VF0_REG_LOCAL_MSI_EN);
+        if(ret_value != 0x1)
+                printf("IPS_VF0_REG_LOCAL_MSI_EN read $ write fail");
+
+        WRITE_REG(IPS_VF0_REG_LOCAL_MSI_EN, 0x0);
+
+
+        /*LOCAL_MSI_STAT*/
+        ret_value = READ_REG(IPS_VF0_REG_LOCAL_MSI_STAT);
+        if(ret_value != 0x0)
+                printf("IPS_VF0_REG_LOCAL_MSI_STAT read default fail");
+
+
+        WRITE_REG(IPS_VF0_REG_LOCAL_MSI_EN,0x1);
+        ret_value = READ_REG(IPS_VF0_REG_LOCAL_MSI_STAT);
+        if(ret_value != 0x1)
+                printf("IPS_VF0_REG_LOCAL_MSI_STAT read default fail");
+
+
+        WRITE_REG(IPS_VF0_REG_LOCAL_MSI_EN,0x0);
+        ret_value = READ_REG(IPS_VF0_REG_LOCAL_MSI_STAT);
+        if(ret_value != 0x0)
+                printf("IPS_VF0_REG_LOCAL_MSI_STAT read default fail");
+
+        /*SMX_SPARE*/
+        ret_value = READ_REG(IPS_VF0_REG_SMX_SPARE);
+        if(ret_value != 0)
+                printf("IPS_VF0_REG_LOCAL_MSI_STAT read default fail");
+        WRITE_REG(IPS_VF0_REG_SMX_SPARE,0xffffffff);
+        ret_value = READ_REG(IPS_VF0_REG_SMX_SPARE);
+        if(ret_value != 0xffffffff)
+                printf("IPS_VF0_REG_LOCAL_MSI_STAT read & write fail");
+
+        WRITE_REG(IPS_VF0_REG_SMX_SPARE,0x0);
+
+	  /*VF_ALLOC*/
+        ret_value = READ_REG(IPS_VF0_REG_VF_ALLOC);
+        if(ret_value != 0)
+                printf("IPS_VF0_REG_VF_ALLOC read default fail!");
+
+        WRITE_REG(IPS_VF0_REG_VF_ALLOC, 0x1);
+        ret_value = READ_REG(IPS_VF0_REG_VF_ALLOC);
+        if(ret_value != 0x1)
+                printf("IPS_VF0_REG_VF_ALLOC read & write fail!");
+
+        /*VF_FREE*/
+        ret_value = READ_REG(IPS_VF0_REG_VF_FREE);
+        if(ret_value != 0x0)
+                printf("IPS_VF0_REG_VF_FREE VF alloc fail");
+
+
+        WRITE_REG(IPS_VF0_REG_VF_FREE,0x1);
+        ret_value = READ_REG(IPS_VF0_REG_VF_FREE);
+        if(ret_value != 0x01)
+                printf("IPS_VF0_REG_VF_FREE VF free fail");
+
+        /*global ctrl*/
+        /*VF_WEIGHT_0*/
+        ret_value = READ_REG(IPS_VF_REG_WEIGHT_0);
+        if(ret_value != 0x0)
+                printf("IPS_VF_REG_WEIGHT_0 read default fail!");
+        WRITE_REG(IPS_VF_REG_WEIGHT_0,0x1);
+        ret_value = READ_REG(IPS_VF_REG_WEIGHT_0);
+        if(ret_value != 0x01)
+                printf("IPS_VF_REG_WEIGHT_0 read & wirte fail");
+
+        /*VF_WEIGHT_1*/
+        ret_value = READ_REG(IPS_VF_REG_WEIGHT_1);
+        if(ret_value != 0x0)
+                printf("IPS_VF_REG_WEIGHT_1 read default fail!");
+
+        WRITE_REG(IPS_VF_REG_WEIGHT_1,0x04030201);
+        ret_value = READ_REG(IPS_VF_REG_WEIGHT_1);
+        if(ret_value != 0x04030201)
+                printf("IPS_VF_REG_WEIGHT_1 read & write fail");
+
+        WRITE_REG(IPS_VF_REG_WEIGHT_1,0x0);
+        WRITE_REG(IPS_VF_REG_WEIGHT_0,0x0);
+
+	  /*DMA_CTRL*/
+        ret_value = READ_REG(IPS_VF_REG_DMA_CTRL);
+        if(ret_value !=0x0808)
+                printf("IPS_VF_REG_DMA_CTRL read default fail");
+
+        WRITE_REG(IPS_VF_REG_DMA_CTRL, 0x0909);
+        ret_value =  READ_REG(IPS_VF_REG_DMA_CTRL);
+        if(ret_value !=0x0909)
+                printf("IPS_VF_REG_DMA_CTRL read & write fail");
+
+        WRITE_REG(IPS_VF_REG_DMA_CTRL, 0x0808);
+
+	printf("register read & wirte case pass!");
+
+	return 0;
+}
+
+
 int ips_init_clk(void)
 {
 	int ret_value;
+	 #ifdef C_A76
+        WRITE_REG(SFC_CLK_EN, 0x10000);
+
+        WRITE_REG(SFC_RST, 0x0);
+        #endif
+
 	/*initialzie IPS-CORE clock*/
 	WRITE_REG(IPS_TOP_CTRL_CORE_CLK_CTRL, 0x1);
 	ret_value = READ_REG(IPS_TOP_CTRL_CORE_CLK_CTRL);
@@ -248,107 +632,72 @@ int ips_dev_init()
 	return 0;
 
 }
-int ips_key_iv_set()
+
+
+int ips_key_iv_set(unsigned char *aes_key, int aes_keylen, unsigned char *aes_iv, unsigned char *hash_key, int hash_keylen)
 {
-	int i;
-	int ret_value;
-	unsigned int key[8];
-	unsigned int hashkey[0x20]={0x0};
-	unsigned int iv[4];
-	for(i=0; i<8; i++)
-		key[i] = 0xffffffff; //0x44332211;
-	for(i=0; i<4; i++)
-		iv[i] = 0x11111111;
-	for(i=0; i<0x20; i++)
-		hashkey[i] = 0x0; //0x0b0b0b0b; //0x20202020; //0x0b0b0b0b;//0xffffffff;
-	#ifdef C_A76
-	WRITE_REG(IPS_VF0_KEY0, key[0]);
-	WRITE_REG(IPS_VF0_KEY1, key[1]);
-	WRITE_REG(IPS_VF0_KEY2, key[2]);
-	WRITE_REG(IPS_VF0_KEY3, key[3]);
-	WRITE_REG(IPS_VF0_KEY4, key[4]);
-	WRITE_REG(IPS_VF0_KEY5, key[5]);
-	WRITE_REG(IPS_VF0_KEY6, key[6]);
-	WRITE_REG(IPS_VF0_KEY7, key[7]);
+        int i;
+        int ret_value;
+        unsigned int *key;
+        unsigned int *hashkey;
+        unsigned int *iv;
 
-	WRITE_REG(IPS_VF0_IV0, iv[0]);
-	WRITE_REG(IPS_VF0_IV1, iv[1]);
-	WRITE_REG(IPS_VF0_IV2, iv[2]);
-	WRITE_REG(IPS_VF0_IV3, iv[3]);
-	WRITE_REG(IPS_VF0_HASHKEY0, hashkey[0]);
-        WRITE_REG(IPS_VF0_HASHKEY1, hashkey[1]);
-        WRITE_REG(IPS_VF0_HASHKEY2, hashkey[2]);
-        WRITE_REG(IPS_VF0_HASHKEY3, hashkey[3]);
-        WRITE_REG(IPS_VF0_HASHKEY4, hashkey[4]);
-        WRITE_REG(IPS_VF0_HASHKEY5, hashkey[5]);
-        WRITE_REG(IPS_VF0_HASHKEY6, hashkey[6]);
-        WRITE_REG(IPS_VF0_HASHKEY7, hashkey[7]);
-	WRITE_REG(IPS_VF0_HASHKEY8, hashkey[8]);
-        WRITE_REG(IPS_VF0_HASHKEY9, hashkey[9]);
-        WRITE_REG(IPS_VF0_HASHKEY10, hashkey[10]);
-        WRITE_REG(IPS_VF0_HASHKEY11, hashkey[11]);
-        WRITE_REG(IPS_VF0_HASHKEY12, hashkey[12]);
-        WRITE_REG(IPS_VF0_HASHKEY13, hashkey[13]);
-        WRITE_REG(IPS_VF0_HASHKEY14, hashkey[14]);
-        WRITE_REG(IPS_VF0_HASHKEY15, hashkey[15]);
-	WRITE_REG(IPS_VF0_HASHKEY16, hashkey[16]);
-        WRITE_REG(IPS_VF0_HASHKEY17, hashkey[17]);
-        WRITE_REG(IPS_VF0_HASHKEY18, hashkey[18]);
-        WRITE_REG(IPS_VF0_HASHKEY19, hashkey[19]);
-        WRITE_REG(IPS_VF0_HASHKEY20, hashkey[20]);
-        WRITE_REG(IPS_VF0_HASHKEY21, hashkey[21]);
-        WRITE_REG(IPS_VF0_HASHKEY22, hashkey[22]);
-        WRITE_REG(IPS_VF0_HASHKEY23, hashkey[23]);
-	WRITE_REG(IPS_VF0_HASHKEY24, hashkey[24]);
-        WRITE_REG(IPS_VF0_HASHKEY25, hashkey[25]);
-        WRITE_REG(IPS_VF0_HASHKEY26, hashkey[26]);
-        WRITE_REG(IPS_VF0_HASHKEY27, hashkey[27]);
-        WRITE_REG(IPS_VF0_HASHKEY28, hashkey[28]);
-        WRITE_REG(IPS_VF0_HASHKEY29, hashkey[29]);
-        WRITE_REG(IPS_VF0_HASHKEY30, hashkey[30]);
-        WRITE_REG(IPS_VF0_HASHKEY31, hashkey[31]);
-	#endif
-	#ifdef CM4
-	for(i=0; i<8; i++)
-		WRITE_REG((IPS_VF0_KEY + 4*i), key[i]);
-	for(i=0; i<4; i++)
-	{
-		WRITE_REG((IPS_VF0_KEY+0x20 + 4*i),iv[i]);
-	}
-	for(i=0; i<0x20; i++)
-	{
+        key = (unsigned int*)aes_key;
+        iv = (unsigned int*)aes_iv;
+        hashkey = (unsigned int*)hash_key;
 
-		WRITE_REG((IPS_VF0_KEY+0x1000 + 4*i),hashkey[i]);
-	}
-	for(i=0;i<8;i++)
-	{
-		ret_value = READ_REG(IPS_VF0_KEY+4*i);
-		if(ret_value != 0xffffffff) //0x44332211)
-		{
-			printf("key set failed \n");
-			return -1;
-		}
-	}
 
-        for(i=0; i<4; i++)
-	{
-		ret_value = READ_REG(IPS_VF0_KEY+0x20+4*i);
-		if(ret_value != 0x11111111){
-			printf("iv set failed \n");
-			return -1;
-		}
-	}
-	for(i=0; i<0x20; i++)
-	{
-		ret_value = READ_REG(IPS_VF0_KEY+0x1000+4*i);
-		if(ret_value != 0){
-			printf("hashkey set failed \n");
-			return -1;
-		}
-	}
-	#endif
+        if((!aes_keylen) && (!hash_keylen))
+                return -1;
+
+        if(aes_keylen != 0)
+        {
+                for(i=0; i<aes_keylen/4; i++)
+                        writel(key[i], (uintptr_t)(IPS_VF0_KEY + 4*i));
+                for(i=0; i<4; i++)
+                        writel(iv[i], (uintptr_t)(IPS_VF0_KEY+IV_OFFSET + 4*i));
+                  /*read and verify*/
+                for(i=0;i<aes_keylen/4;i++)
+                {
+                        ret_value = readl((uintptr_t)(IPS_VF0_KEY+4*i));
+                        printf("ret_value_key = %x \n", ret_value);
+                         if(ret_value != key[i])
+                        {
+                                printf("key set failed \n");
+                                return -1;
+                        }
+                }
+
+                for(i=0; i<4; i++)
+                {
+                        ret_value = readl((uintptr_t)(IPS_VF0_KEY+IV_OFFSET+4*i));
+                        printf("ret_value_iv = %x \n", ret_value);
+                        if(ret_value != iv[i]){
+                                printf("iv set failed \n");
+                                return -1;
+                        }
+                }
+
+
+        }
+        if(hash_keylen !=0)
+        {
+                for(i=0; i<hash_keylen/4; i++)
+                         writel(hashkey[i],(uintptr_t)(IPS_VF0_KEY+HASHKEY_OFFSET + 4*i));
+
+                for(i=0; i<hash_keylen/4; i++)
+                {
+                        ret_value = readl((uintptr_t)(IPS_VF0_KEY+HASHKEY_OFFSET+4*i));
+                        if(ret_value != hashkey[i]){
+                                printf("hashkey set failed \n");
+                                return -1;
+                        }
+                }
+
+        }
+
+
 	return 0;
-
 }
 int ips_data_setup_sha(unsigned char *src, unsigned char *dst,struct ips_command* pcmd,int hash_alg,int hash_mode, int ende_flag, int proc_len)
 {
@@ -390,9 +739,40 @@ int ips_data_setup_sha(unsigned char *src, unsigned char *dst,struct ips_command
 }
 int ips_data_setup_aes(unsigned char *src, unsigned char *dst,struct ips_command* pcmd, int cipher_alg,int cipher_mode, int ende_flag, int proc_len)
 {
+	int mode;
+        int cbc_submode = 0;
 
-	memset(pcmd,0,0x40);
-	/*setup the actual cmd ring data from alg_ctx  or call back? */
+        switch(cipher_mode)
+        {
+                case 0x10:
+                        mode = 0x01;
+                        cbc_submode = 0x0;
+                break;
+
+                case 0x11:
+                        mode = 0x01;
+                        cbc_submode = 0x1;
+                break;
+
+                case 0x12:
+                        mode = 0x01;
+                        cbc_submode = 0x2;
+                break;
+
+                case 0x13:
+                        mode = 0x01;
+                        cbc_submode = 0x03;
+                break;
+
+                default:
+                        mode = cipher_mode;
+                break;
+
+        }
+
+
+        memset(pcmd,0,0x40);
+        /*setup the actual cmd ring data from alg_ctx  or call back? */
         pcmd->src_pkt_addr_l = (unsigned long)src;
         pcmd->src_pkt_addr_h = 0;
         pcmd->dst_pkt_addr_l = (unsigned long)dst;
@@ -402,34 +782,37 @@ int ips_data_setup_aes(unsigned char *src, unsigned char *dst,struct ips_command
         pcmd->pre_aad_len = 0;
         pcmd->post_aad_len = 0;
         pcmd->proc_len = proc_len;
-	if(cipher_mode == GCM_MODE)
-        	pcmd->icv_offset = 16;
-	else
-		pcmd->icv_offset = 0;
+        if(cipher_mode == GCM_MODE)
+                pcmd->icv_offset = 16;
+        else
+                pcmd->icv_offset = 0;
         pcmd->iv_offset = 0;
         pcmd->iv_enable = 0;
         pcmd->hm_key_size = 0;
-	if((cipher_mode == ECB_MODE)||(cipher_mode == CBC_MODE))
-        		pcmd->key_exp = 1;
-	else
-			pcmd->key_exp = 0;
+        if(ende_flag == 0)
+                 pcmd->key_exp = 1;
+        else
+                 pcmd->key_exp = 0;
+
         pcmd->icv_append = 0;
         pcmd->icv_pt = 0;
         pcmd->icv_enc = 0;
-	pcmd->aad_copy = 0;
+        pcmd->aad_copy = 0;
         pcmd->encrypt = ende_flag; //encrypt
         pcmd->ctx_idx = 0;
         pcmd->ddt_mode = 0;
         pcmd->hash_mode = 0; //raw mode
-        pcmd->cipher_mode = cipher_mode; //NULL ? ECB
+        pcmd->cipher_mode = mode; //NULL ? ECB
         pcmd->hash_alg = 0;
         pcmd->cipher_alg = cipher_alg;
         pcmd->ioc = 0;
         pcmd->icv_len = 0;
-        pcmd->cbc_cs_sel = 0;
+        pcmd->cbc_cs_sel = cbc_submode;
         pcmd->bk_sz_cfb = 0;
-	pcmd->sw_id = 0;
+        pcmd->sw_id = 0;
         return 0;
+
+
 }
 int ips_cmd_create(unsigned char *src, unsigned char *dst, int flag, int alg_flag, int alg_mode, int ende_flag, int proc_len)
 {

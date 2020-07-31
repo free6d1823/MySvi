@@ -50,6 +50,7 @@ SECTIONS
 		__exidx_end = .;
 	}
 
+	. = ALIGN(PAGE_SIZE);
 	__etext = .;
 
 	__sdata = .;

@@ -116,4 +116,11 @@
 #define L2_READ_CONFIGURATION       0x00000208
 #define L2_READ_STATUS              0x00000210
 
+int vc8000d_init(int id);
+int vc8000d_start(int id);
+int vc8000d_features(int id);
+int vc8000d_dump(int id);
+int vc8000d_l2cache(int id);
+int vc8000d_afbc(int id);
+
 #endif /* __VC8000D_H__ */

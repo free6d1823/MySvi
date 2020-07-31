@@ -17,7 +17,7 @@ usage() {
 	echo "       pwrsoc:       power bench image"
  	echo "       se1000:       se1000 image"
  	echo "       virt:         virt image"
- 	echo "       virt32:       virt32 image"
+ 	echo "       r52:       r52 image"
  	echo "       m4:           m4 image"
 	echo "       all:          all of above suits"
 	echo "       clean:        cleanup last builds"
@@ -139,8 +139,8 @@ clean_hvep() {
  	elif [ "x${hvep_target}" = "xvirt" ]; then
 		make O=${OUTDIR}/virt clean
 		rm -f ${SCRIPT}/virt_power_bench
- 	elif [ "x${hvep_target}" = "xvirt32" ]; then
-		make O=${OUTDIR}/virt32 clean
+ 	elif [ "x${hvep_target}" = "xr52" ]; then
+		make O=${OUTDIR}/r52 clean
 		rm -f ${SCRIPT}/r52_power_bench
  	elif [ "x${hvep_target}" = "xm4" ]; then
 		make O=${OUTDIR}/m4 clean
@@ -218,7 +218,7 @@ elif [ "x$HVEPSUIT" == "xall" ]; then
 	build_hvep testos testos${CONSOLE}_defconfig testos yes "${TESTOS_PROGS}" || fatal "Failed to build testos!"
 	#JOBS=$(grep "processor" /proc/cpuinfo|sort -u|wc -l)
 	export ARCH=arm CROSS_COMPILE=arm-none-eabi-
-	build_hvep virt32 virt32_defconfig r52_power_bench yes|| fatal "Failed to build r52!"
+	build_hvep r52 r52_defconfig r52_power_bench yes|| fatal "Failed to build r52!"
 	export PATH=/opt/gcc-arm-none-eabi-8-2019-q3-update/bin:$PATH
 	export ARCH=armv7m CROSS_COMPILE=arm-none-eabi-
 	build_hvep m4 m4_defconfig m4_power_bench yes|| fatal "Failed to build m4!"
@@ -257,10 +257,10 @@ elif [ "x$HVEPSUIT" == "xse1000" ]; then
 elif [ "x$HVEPSUIT" == "xvirt" ]; then
 	mrproper_hvep
 	build_hvep virt virt_defconfig virt_power_bench yes || fatal "Failed to build virt!"
-elif [ "x$HVEPSUIT" == "xvirt32" ]; then
+elif [ "x$HVEPSUIT" == "xr52" ]; then
 	export ARCH=arm CROSS_COMPILE=arm-none-eabi-
 	mrproper_hvep
-	build_hvep virt32 virt32_defconfig r52_power_bench yes|| fatal "Failed to build r52!"
+	build_hvep r52 r52_defconfig r52_power_bench yes|| fatal "Failed to build r52!"
 elif [ "x$HVEPSUIT" == "xm4" ]; then
 	export PATH=/opt/gcc-arm-none-eabi-8-2019-q3-update/bin:$PATH
 	export ARCH=armv7m CROSS_COMPILE=arm-none-eabi-

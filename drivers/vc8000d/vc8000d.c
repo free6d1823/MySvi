@@ -5,7 +5,7 @@
 #include <target/memory.h>
 #include <target/irq.h>
 #include <target/irqc.h>
-
+#include "../gdc/utilities.h"
 /*************************************************
 ** VC8000E IP specific definitions
 **************************************************/
@@ -71,6 +71,14 @@ int vc8000d_init(int id)
 {
 	int i;
 	total_core_number = sizeof(core_array)/sizeof(core_array[0]);
+	puts("Enable clocks and reset:");
+	ENABLE_CLOCK(CLK_VPU_DEC_AXI, VPU_DEC_AXI_DIVIDER);
+	ENABLE_CLOCK(CLK_VPU_DEC_CORE, VPU_DEC_CORE_DIVIDER);
+	ENABLE_CLOCK(CLK_VPU_DEC_APB, VPU_DEC_APB_DIVIDER);
+	RESET_DEVICE(REG_VPU_DEC_AXI_RST_N, 1);
+	RESET_DEVICE(REG_VPU_DEC_CORE_RST_N, 1);
+	RESET_DEVICE(REG_VPU_DEC_APB_RST_N, 1);	
+
 	printf("VC8000D init: %d cores\n", total_core_number);
 
 	for (i=0; i< total_core_number; i++) {

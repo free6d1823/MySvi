@@ -133,7 +133,7 @@ CONFIG_GC520=y
 CONFIG_VC8000D=y
 CONFIG_VC8000E=y
 CONFIG_CDNS_QSPI=y
-CONFIG_GDC=y
+# CONFIG_GDC is not set
 #
 # Advanced kernel features
 #

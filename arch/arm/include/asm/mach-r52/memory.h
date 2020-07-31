@@ -5,6 +5,10 @@
 
 #include <target/compiler.h>
 
+#ifndef __ASSEMBLY__
+extern unsigned int cfgperiphbase;
+#endif
+
 #define R52_ROM_BASE		0x10000000
 
 #define R52_RAM_START		0x60000000
@@ -17,7 +21,7 @@
 
 #define PAGE_SIZE		4096
 
-#define CFGPERIPHBASE		0xAE000000
+#define CFGPERIPHBASE		cfgperiphbase
 
 #define GICD_gic3_BASE		CFGPERIPHBASE
 #define GICR_gic3_BASE		(CFGPERIPHBASE+0x100000)
@@ -26,4 +30,7 @@
 #define UART_BASE(n)		0x0E94A0000
 
 #define CLK_RESET_REG_BASE			0x58100000
+
+#define ARCH_TIMER_FREQUENCY 200000000
+
 #endif /* __CORTEXR52_MEMORY_H_INCLUDE__ */

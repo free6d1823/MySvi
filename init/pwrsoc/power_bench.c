@@ -74,6 +74,9 @@ __weak int soc_early_init()
 {
 	return 0;
 }
+#include "../../drivers/vc8000d/vc8000d.h"
+#include "../../drivers/vc8000e/vc8000e.h"
+#include "../../drivers/gdc/gdc.h"
 
 void entry(void)
 {
@@ -107,6 +110,13 @@ void entry(void)
 	percpu_init();
 	cmd_init();
 	smp_register_cpu();
+puts("VC8000D Test:\n");
+vc8000d_init(0);
+vc8000d_features(0);
+vc8000d_dump(0);
+vc8000d_l2cache(0);
+vc8000d_afbc(0);
+puts("VC8000D test end~\n");
 
 	dsr_loop();
 }

@@ -8,11 +8,22 @@
 #ifndef CRYPTO_IPS
 #define CRYPTO_IPS
 #ifdef M4_IPS
-#define SMP_IPS_BASE	(0x40110000)
+#define SMP_IPS_BASE	(0x40200000)
 #endif
 #ifdef A76_IPS
-#define SMP_IPS_BASE	(0xb4890000)
+#define SMP_IPS_BASE	(0xe3800000)                                    //(0xb4890000)
 #endif
+
+//#define SVI_VCS
+#define SVI_Z1
+/*system clock*/
+#define SYS_CLK_BASE							0x58100000
+#define SFC_CLK_OFFSET							0xd2b04
+#define SFC_RST_OFFSET							0xd3b04
+
+#define SFC_CLK_EN							(SYS_CLK_BASE + SFC_CLK_OFFSET)    //0x581d2b04
+#define SFC_RST								(SYS_CLK_BASE + SFC_RST_OFFSET)    //0x581d3b04
+
 // Base address
 #define	IPS_XPU								(SMP_IPS_BASE + (0x000000))
 #define IPS_VF0_REG							(SMP_IPS_BASE + (0x130000))
@@ -20,7 +31,7 @@
 #define IPS_GLOBAL							(SMP_IPS_BASE + (0x1b0000))
 #define IPS_MSI_CFG							(SMP_IPS_BASE + (0x1c0000))
 #define	IPS_MSI_CTRL							(SMP_IPS_BASE + (0x1d0000))
-#define	IPS_TOP_CTRL							(SMP_IPS_BASE + (0x230000))
+#define	IPS_TOP_CTRL							(SMP_IPS_BASE + (0x230000)) 
 #define IPS_NS_IRQ							(SMP_IPS_BASE + (0x250000))
 #define IPS_SEC_IRQ							(SMP_IPS_BASE + (0x260000))
 #define	IPS_MSA_IRQ							(SMP_IPS_BASE + (0x270000))
@@ -67,6 +78,7 @@
 #define IPS_VF0_REG_CH_PRIOR						(IPS_VF0_REG + 0xa4)
 #define IPS_VF0_REG_LOCAL_MSI_EN					(IPS_VF0_REG + 0xa8)
 #define IPS_VF0_REG_LOCAL_MSI_STAT					(IPS_VF0_REG + 0xac)
+#define IPS_VF0_REG_SMX_SPARE						(IPS_VF0_REG + 0xb0)
 #define IPS_VF0_REG_VF_ALLOC						(IPS_VF0_REG + 0x200)
 #define IPS_VF0_REG_VF_FREE						(IPS_VF0_REG + 0x204)
 //Register address for Global
@@ -89,19 +101,34 @@
 //Register address for MSI_CTRL
 #define IPS_VF_REG_GLB_MSI_OVERRIDE					(IPS_MSI_CTRL + 0x0)
 #define IPS_VF_REG_GLB_MSI_EN						(IPS_MSI_CTRL + 0x4)
-#define IPS_VF_REG_STAT							(IPS_MSI_CTRL + 0x8)
-#if 0
-#define IPS_CMD_BASE							(0x40000)
-#define IPS_STATUS_BASE							(0x41000)
-#define IPS_SRC_BASE							(0x50000)
-#define IPS_DST_BASE							(0x60000)
+#define IPS_VF_REG_GLB_MSI_STAT						(IPS_MSI_CTRL + 0x8)
+
+#ifdef A76_IPS
+#define IPS_CMD_BASE                                                    (0x060000000)
+#define IPS_STATUS_BASE                                                 (0x060003000)
+#define IPS_SRC_BASE                                                    (0x060005000)
+#define IPS_DST_BASE                                                    (0x060008000)
+#define IPS_CMD_RING                                                    (0x06000b000)
+#define MBEDTLS_BUF                                                     (0x06000e000)
+#else
+/*
+#define IPS_CMD_BASE							(0x1fff1000)
+#define IPS_STATUS_BASE							(0x1fff1800)
+#define IPS_SRC_BASE							(0x1fff2000)
+#define IPS_DST_BASE							(0x1fff2800)
+#define IPS_CMD_RING							(0x1fff3000)
+#define MBEDTLS_BUF							(0x6e000)
+*/
+#define IPS_CMD_BASE                                                    (0x70000)
+#define IPS_STATUS_BASE                                                 (0x72000)
+#define IPS_SRC_BASE                                                    (0x73000)
+#define IPS_DST_BASE                                                    (0x74000)
+#define IPS_CMD_RING                                                    (0x75000)
+#define MBEDTLS_BUF                                                     (0x76000)
+
+
 #endif
-#define IPS_CMD_BASE							(0x70000)
-#define IPS_STATUS_BASE							(0x73000)
-#define IPS_SRC_BASE							(0x75000)
-#define IPS_DST_BASE							(0x78000)
-#define IPS_CMD_RING							(0x7b000)
-#define MBEDTLS_BUF							(0x7e000)
+
 #define IPS_VF0_KEY0							(IPS_VF0_KEY + 0X0)
 #define IPS_VF0_KEY1							(IPS_VF0_KEY + 0X4)
 #define IPS_VF0_KEY2							(IPS_VF0_KEY + 0X8)
@@ -156,7 +183,10 @@
 #define AES_192								2
 #define AES_256								3
 #define ECB_MODE							0
-#define CBC_MODE							1
+#define CBC_MODE							0x10
+#define CBC_CS1_MODE							0x11
+#define CBC_CS2_MODE							0x12
+#define CBC_CS3_MODE							0x13
 #define CTR_MODE							2
 #define OFB_MODE							3
 #define CFB_MODE							4
@@ -171,7 +201,9 @@
 #define HASH_RAW_MODE							0
 #define HASH_HMAC_MODE							1
 #define INIT_VALUE							0xff
-#define INIT_IV								0x11
+#define INIT_IV								0x0 //0x11
+#define IV_OFFSET							0x20
+#define HASHKEY_OFFSET							0x1000
 #define WRITE_REG(addr, value) (*(volatile unsigned int *)(addr) = value)
 #define READ_REG(addr) (*(volatile unsigned int *)(addr))
 struct ips_command {
@@ -230,6 +262,18 @@ extern int ips_data_setup_aes(unsigned char *src, unsigned char *dst,struct ips_
 extern int ips_cmd_create(unsigned char *src, unsigned char *dst, int flag, int alg_flag, int alg_mode, int ende_flag, int proc_len);
 extern int ips_status_polling();
 extern int str_cmp(unsigned char *str1, unsigned  char *str2, int len);
-static int se_ips_sha();
+#ifdef SVI_VCS
+int se_ips_sharaw();
+int se_ips_shahmac();
+int se_ips_aes128();
+int se_ips_general();
+int se_ips_aes();
+#endif
+
+#ifdef SVI_Z1
+
 static int se_ips_aes(int argc, char *argv[]);
+#endif
+//static int se_ips_general(int argc, char *argv[]);
+extern int ips_vfreg_read_write_test();
 #endif

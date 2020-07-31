@@ -4,7 +4,7 @@
 
 2. compile:
 	export ARCH=arm CROSS_COMPILE=arm-none-eabi-
-	make virt32_defconfig
+	make r52_defconfig
 	make clean;make
 
 3. add r52rom.elf and hevp-arm into initial_image of SAF_SS/SAFE_CORE

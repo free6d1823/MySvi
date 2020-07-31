@@ -69,4 +69,9 @@
 #define REG_COMMAND         0x014
 #define REG_STATUS          0x018
 
+int vc8000e_init(int id);
+int vc8000e_start(int id);
+int vc8000e_dump(int id);
+int vc8000e_afbc(int id);
+
 #endif /* __VC8000E_H__ */

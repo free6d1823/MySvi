@@ -1,1 +1,1 @@
-obj-y := mach.o timer.o
+obj-y := board.o timer.o

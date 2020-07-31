@@ -19,8 +19,6 @@ void tsc_hw_ctrl_init(void);
 void gpt_hw_ctrl_init(void);
 void gpt_hw_irq_init(void);
 
-#define ARCH_TIMER_FREQUENCY 200000000
-
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ARMV7M_SYSOP_H_INCLUDE__ */

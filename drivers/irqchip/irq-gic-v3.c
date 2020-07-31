@@ -323,7 +323,11 @@ static inline void gicv3_configure_irq(irq_t irq, uint8_t priority, uint8_t trig
 	uint64_t affinity = 0xff;
 
 	if (irq < IRQ_SPI_BASE) {
+		#ifdef CONFIG_CPU_CORTEX_R52
+		gicr_configure_group(cpu, irq, GIC_GROUP1NS);
+		#else
 		gicr_configure_group(cpu, irq, GIC_GROUP0);
+		#endif
 		gicr_configure_irq(cpu, irq, priority, trigger);
 	} else {
 		#ifdef CONFIG_CPU_CORTEX_R52

@@ -1,5 +1,6 @@
 #include <target/assembler.h>
 #include <target/memory.h>
+#include <asm/reg.h>
 
 #define Mode_USR 0x10
 #define Mode_FIQ 0x11
@@ -30,6 +31,8 @@ Start:
 //----------------------------------------------------------------
 // EL2 Exception Vector Table
 //----------------------------------------------------------------
+// Note: LDR PC instructions are used here, though branch (B) instructions
+// could also be used, unless the exception handlers are >32MB away.
 
 EL2_Vectors:
         LDR PC, EL2_Reset_Addr
@@ -77,7 +80,6 @@ EL2_IRQ_Handler:
 .type EL2_FIQ_Handler, "function"
 EL2_FIQ_Handler:
         B   EL2_FIQ_Handler
-
 
 //----------------------------------------------------------------
 // EL1 Exception Vector Table
@@ -132,7 +134,6 @@ EL1_IRQ_Handler:
 EL1_FIQ_Handler:
         B   EL1_FIQ_Handler
 
-
 //----------------------------------------------------------------
 // EL2 Reset Handler
 //----------------------------------------------------------------
@@ -162,6 +163,14 @@ EL2_Reset_Handler:
     // Change EL1 exception base address
         LDR r0, =EL1_Vectors
         MCR p15, 0, r0, c12, c0, 0      // Write to VBAR
+
+    // set the CNTFRQ to ARCH_TIMER_FREQUENCY
+        LDR r0, =ARCH_TIMER_FREQUENCY
+        MCR 15, 0, r0, cr14, cr0, 0
+
+    //set the CNTHCTL,to enable PL1CEN and PL1PCTEN
+        MOV r0, #CNTHCTL_PL1PCTEN | CNTHCTL_PL1PCEN
+        MCR 15, 4, r0, cr14, cr1, 0
 
     // Go to SVC mode
         MRS r0, cpsr
@@ -271,25 +280,26 @@ loop_wfi:
 
 
 cpu0:
-	.global     cpu_init
-	.global     main
+        .global     cpu_init
+        .global     main
 
+#ifndef CONFIG_BSS_IN_DATA
 // clear bss section
+        LDR R0, =__bss_start
+        LDR R1, =__bss_end
 
-	LDR	R0, =__bss_start
-	LDR	R1, =__bss_end
-
-	LDR R8, =0
-	LDR R9, =0
-	LDR R10, =0
-	LDR R11, =0
+        LDR R8, =0
+        LDR R9, =0
+        LDR R10, =0
+        LDR R11, =0
 
 bss_loop:
 .rept (BSS_ALIGN / 16)
-	STMIA	R0!, {R8-R11}
+        STMIA R0!, {R8-R11}
 .endr
-	CMP	R0, R1
-	BLT	bss_loop
+        CMP R0, R1
+        BLT bss_loop
+#endif
 
-	BL      cpu_init
-	B       main
+        BL  cpu_init
+        B   main

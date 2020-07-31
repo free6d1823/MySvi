@@ -8,16 +8,6 @@
 
 unsigned long cpus_boot_cpu = 0;
 
-ktime_t tsc_hw_read_counter(void)
-{
-	return 0;
-}
-
-void gpt_hw_oneshot_timeout(ktime_t match_val)
-{
-
-}
-
 struct stack {
 	u32 irq[3];
 	u32 abt[3];

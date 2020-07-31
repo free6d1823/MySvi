@@ -14,7 +14,7 @@
 #include "arm/app/gdc_config_seq_planar_rgb444.h"
 #include "arm/app/gdc_config_seq_semiplanar_yuv420.h"
 #endif
-
+#include "utilities.h"
 /*************************************************
 ** VC8000E IP specific definitions
 **************************************************/
@@ -184,7 +184,7 @@ static uint32_t gdc_load_settings_to_memory( uint32_t * config_mem_start, uint32
 	return config_size * 4;
 }
 
-static int gdc_test(int id)
+int gdc_test(int id)
 {
 	gdc_settings_t gdc_settings = {0};
 	system_interrupts_disable(id);
@@ -322,6 +322,15 @@ int gdc_dump_features(int id)
 int gdc_init()
 {
 	int i;
+
+	puts("Enable clocks and reset:");
+	ENABLE_CLOCK(CLK_GDC_ENC_AXI, VPU_ENC_AXI_DIVIDER);
+	ENABLE_CLOCK(CLK_VPU_ENC_CORE, VPU_ENC_CORE_DIVIDER);
+	ENABLE_CLOCK(CLK_VPU_ENC_APB, VPU_ENC_APB_DIVIDER);
+	RESET_DEVICE(REG_VPU_ENC_AXI_RST_N, 1);
+	RESET_DEVICE(REG_VPU_ENC_CORE_RST_N, 1);
+	RESET_DEVICE(REG_VPU_ENC_APB_RST_N, 1);	
+	
 	total_core_number = sizeof(core_array)/sizeof(core_array[0]);
 	printf("GDC init: Support %d cores\n", total_core_number);
 

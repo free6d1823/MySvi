@@ -1,1 +1,1 @@
-obj-y := mach.o
+obj-y := board.o
