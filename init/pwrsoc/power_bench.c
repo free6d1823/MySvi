@@ -16,6 +16,7 @@
 #include <target/bench.h>
 #include <target/heap.h>
 #include <target/console.h>
+#include <target/ddr.h>
 
 #ifdef CONFIG_CPU_MASK
 #define BENCH_CPU_MASK	CONFIG_CPU_MASK
@@ -74,6 +75,15 @@ __weak int soc_early_init()
 {
 	return 0;
 }
+#include "../drivers/gdc/gdc.h"
+
+int do_mem_display(int argc, char *argv[]);
+int boot_jump_linux(int argc, char *argv[]);
+
+char *mem_dump1[] = {"md","b", "0x60200000", "16"};
+char *mem_dump2[] = {"md","b", "0x60280000", "16"};
+char *mem_dump3[] = {"md","b", "0x64000000", "16"};
+char *kernel_cmd[] = {"kernel", "0x60280000", "0x60200000"};
 
 void entry(void)
 {
@@ -83,11 +93,17 @@ void entry(void)
 	puts("\nHello SVI @C");
 	printf("%d\n", smp_processor_id());
 
+	ddr_init();
 	mmu_init();
 	mem_info();
 	dsr_init();
 	tick_init();
 	irq_init();
+
+	do_mem_display(4, mem_dump1);
+//if LINUX 
+//	boot_jump_linux(3, kernel_cmd);
+	
 	timer_init();
 	perf_init();
 	//arch_early_init();
@@ -107,6 +123,8 @@ void entry(void)
 	percpu_init();
 	cmd_init();
 	smp_register_cpu();
+//if GDC svi test
+	gdc_init();
 
 	dsr_loop();
 }

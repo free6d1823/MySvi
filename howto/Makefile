@@ -32,3 +32,6 @@ r52rom: r52rom.S Makefile
 
 vcs:
 	./bin4vcs.sh ../arch/arm64/boot/hvep.bin
+
+m4vcs:
+	./bin4vcs.sh ../arch/arm64/boot/hvep.bin ../arch/armv7m/boot/hvep.bin

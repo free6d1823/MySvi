@@ -95,21 +95,20 @@
 			compatible = "arm,cortex-a72";
 			device_type = "cpu";
 		};
-
+*/
 		cpu@2 {
 			reg = <0x200>;
 			enable-method = "psci";
 			compatible = "arm,cortex-a72";
 			device_type = "cpu";
 		};
-
+/*
 		cpu@3 {
 			reg = <0x300>;
 			enable-method = "psci";
 			compatible = "arm,cortex-a72";
 			device_type = "cpu";
 		};
-*/
 		cpu@4 {
 			reg = <0x400>;
 			enable-method = "psci";
@@ -123,7 +122,6 @@
 			compatible = "arm,cortex-a72";
 			device_type = "cpu";
 		};
-/*
 		cpu@6 {
 			reg = <0x600>;
 			enable-method = "psci";
@@ -158,5 +156,6 @@
 		linux,initrd-start = <0x64000000>;
 		linux,initrd-end = <0x6427d7e0>;
 		stdout-path = "/uart@e9490000";
+		bootargs = "console=ttyS0,115200n8 earlycon=ns16550a,mmio32,0xe9490000";
 	};
 };

@@ -1,6 +1,10 @@
 # MySvi
 SVI project
-Environment Setting
+
+#History
+2020/9/10 Add GDC test and fix DDR
+
+#Environment Setting
 export PATH=/opt/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin:$PATH
 
 GLIBC="/opt/glibc-2.31/lib"
@@ -19,7 +23,7 @@ arch/arm64/
 drivers/Kconfig add
   source drivers/<device_name>/Kconfig
 driver/Makefile add
-  obj-$(CONFIG_<device_name> += <device_name>/
+  obj-$(CONFIG_<device_name>) += <device_name>/
   
 drivers/<device_name>
   Kconfig				#add Menuconfig item

@@ -6,13 +6,27 @@ if DDR
 choice
 	prompt "select ddr controller"
 	default DDR_MEMC_SNPS
-	
+
 config DDR_MEMC_SNPS
 	bool "snps memc & phy support"
-	
+
 config DDR_INIT_DEFAULT
 	bool "Defaultly init the DDR"
 	select QCOM_DDRSS
+endchoice
+
+choice
+	prompt "select platform"
+	default EMU_ZEBU
+
+config EMU_ZEBU
+	bool "ZEBU"
+
+config EMU_PXP
+	bool "PXP"
+
+config SIMU_VCS
+	bool "VCS"
 endchoice
 
 if DDR_MEMC_SNPS

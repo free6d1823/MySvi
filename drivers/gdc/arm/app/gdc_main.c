@@ -30,23 +30,7 @@
 #include "acamera_fpga.h"
 #endif
 
-
-//gdc configuration sequences
-#include "gdc_config_seq_semiplanar_yuv420.h"
-#include "gdc_config_seq_plane_y.h"
-#include "gdc_config_seq_planar_yuv420.h"
-#include "gdc_config_seq_planar_rgb444.h"
-
-//test cases available
-enum test_cases{
-	test_yuv420_semiplanar=0,
-	test_y_plane,
-	test_yuv420_planar,
-	test_rgb_444_planar,
-	test_sequential_planes,
-	max_gdc_test_cases
-};
-
+#define TEST_CASE 1
 struct _gdc_test_param{
 	const unsigned char * gdc_sequence;
 	uint32_t gdc_sequence_size;
@@ -57,59 +41,44 @@ struct _gdc_test_param{
 	uint8_t  div_height; //use in dividing UV dimensions; actually a shift right
 };
 
-//settings for each test case
-struct _gdc_test_param gdc_test_param[max_gdc_test_cases]={
-	{//test_yuv420_semiplanar
-		.gdc_sequence=semiplanar_yuv420_1920x1080_seq, //gdc_sequence
-		.gdc_sequence_size=sizeof(semiplanar_yuv420_1920x1080_seq),
-		.total_planes=2, 		//total_planes
-		.input_addresses={0x1000000, 0x2000000},//input_addresses
-		.sequential_mode=0, 		//plane_sequential_processing
-		.div_width=0, 		//div_width
-		.div_height=1 		//div_height
-
-	},
-	{//test_y_plane
-		.gdc_sequence=y_plane_1920x1080_seq, //gdc_sequence
-		.gdc_sequence_size=sizeof(y_plane_1920x1080_seq),
-		.total_planes=1, 		//total_planes
-		.input_addresses={0x1000000},//input_addresses
+//gdc configuration sequences
+#if (TEST_CASE==1)
+#include "gdc_rgb444_256x256_seq.h"
+struct _gdc_test_param gdc_test_param = {
+		.gdc_sequence=rgb444_256x256_seq, //gdc_sequence
+		.gdc_sequence_size=sizeof(rgb444_256x256_seq),
+		.total_planes=3, 		//total_planes
+		.input_addresses={0x1000000, 0x2000000,0x3000000},//input_addresses
 		.sequential_mode=0, 		//plane_sequential_processing
 		.div_width=0, 		//div_width
 		.div_height=0 		//div_height
-
-	},
-	{//test_yuv420_planar
-		.gdc_sequence=planar_yuv420_1920x1080_seq, //gdc_sequence
-		.gdc_sequence_size=sizeof(planar_yuv420_1920x1080_seq),
+};
+#elif (TEST_CASE==2)
+#include "gdc_yuv420plan_256x256_seq.h"
+struct _gdc_test_param gdc_test_param = {
+		.gdc_sequence=yuv420plan_256x256_seq, //gdc_sequence
+		.gdc_sequence_size=sizeof(yuv420plan_256x256_seq),
 		.total_planes=3, 		//total_planes
 		.input_addresses={0x1000000, 0x2000000,0x3000000},//input_addresses
 		.sequential_mode=0, 		//plane_sequential_processing
 		.div_width=1, 		//div_width
 		.div_height=1 		//div_height
 
-	},
-	{//test_rgb_444_planar
-		.gdc_sequence=planar_rgb444_1920x1080_seq, //gdc_sequence
-		.gdc_sequence_size=sizeof(planar_rgb444_1920x1080_seq),
-		.total_planes=3, 		//total_planes
-		.input_addresses={0x1000000, 0x2000000,0x3000000},//input_addresses
+};
+#else
+#include "gdc_yuv420semi_256x256_seq.h"
+struct _gdc_test_param gdc_test_param = {
+		.gdc_sequence=yuv420semi_256x256_seq, //gdc_sequence
+		.gdc_sequence_size=sizeof(yuv420semi_256x256_seq),
+		.total_planes=2, 		//total_planes
+		.input_addresses={0x1000000, 0x2000000},//input_addresses
 		.sequential_mode=0, 		//plane_sequential_processing
 		.div_width=0, 		//div_width
-		.div_height=0 		//div_height
+		.div_height=1 		//div_height
 
-	},
-	{//test_sequential_planes
-		.gdc_sequence=y_plane_1920x1080_seq, //gdc_sequence is same as the single plane Y sequence
-		.gdc_sequence_size=sizeof(y_plane_1920x1080_seq),
-		.total_planes=3, 		//total_planes
-		.input_addresses={0x1000000, 0x2000000,0x3000000},//input_addresses
-		.sequential_mode=1, 		//plane_sequential_processing
-		.div_width=0, 		//div_width
-		.div_height=0 		//div_height
-
-	}
 };
+#endif
+
 
 //This is a function callback provided to GDC to update frame buffer addresses and offsets
 static void get_frame_buffer_callback(  uint32_t total_input, uint32_t * out_addr, uint32_t * out_lineoffset )
@@ -132,22 +101,22 @@ static void interrupt_handler( void *param, uint32_t mask )
         //gdc will save the new frame reader settings
         //will update the frame reader settings via callback
 
-        if ( acamera_gdc_get_frame( gdc_settings,gdc_test_param[GDC_TEST_RUN].total_planes ) != 0 ) {
+        if ( acamera_gdc_get_frame( gdc_settings,gdc_test_param.total_planes ) != 0 ) {
         	return;
         }
 
 #if HAS_FPGA_WRAPPER
         //get gdc buffer input from fpga writer output
-        uint32_t in_addr[gdc_test_param[GDC_TEST_RUN].total_planes];
-        uint32_t in_lineoffset[gdc_test_param[GDC_TEST_RUN].total_planes];
-        if(acamera_fpga_get_frame_writer( gdc_test_param[GDC_TEST_RUN].total_planes,in_addr,in_lineoffset )!=0){
+        uint32_t in_addr[gdc_test_param.total_planes];
+        uint32_t in_lineoffset[gdc_test_param.total_planes];
+        if(acamera_fpga_get_frame_writer( gdc_test_param.total_planes,in_addr,in_lineoffset )!=0){
 			LOG( LOG_CRIT, "Cannot get frame_writer_addresses" );
-		}else if( acamera_gdc_process( gdc_settings, gdc_test_param[GDC_TEST_RUN].total_planes,in_addr ) != 0 ) {
+		}else if( acamera_gdc_process( gdc_settings, gdc_test_param.total_planes,in_addr ) != 0 ) {
 			LOG( LOG_CRIT, "GDC missed an interrupt" );
 		}
 
 #else
-        if ( acamera_gdc_process( gdc_settings,gdc_test_param[GDC_TEST_RUN].total_planes, gdc_test_param[GDC_TEST_RUN].input_addresses) != 0 ) {
+        if ( acamera_gdc_process( gdc_settings,gdc_test_param.total_planes, gdc_test_param.input_addresses) != 0 ) {
 			LOG( LOG_CRIT, "GDC missed an interrupt" );
 		}
 #endif
@@ -171,7 +140,7 @@ uint32_t gdc_load_settings_to_memory( uint32_t * config_mem_start, uint32_t *con
 }
 
 // The basic example of usage gdc is given below.
-int gdc_fw_init(void )
+int gdc_fw_init( void )
 {
 
     static gdc_settings_t gdc_settings;
@@ -185,7 +154,7 @@ int gdc_fw_init(void )
     //configure gdc config, buffer address and resolution
     gdc_settings.base_gdc = 0;
     gdc_settings.buffer_addr = 0x8000000;
-    gdc_settings.buffer_size = 1920*1080*gdc_test_param[GDC_TEST_RUN].total_planes;
+    gdc_settings.buffer_size = 256*256*gdc_test_param.total_planes;
     gdc_settings.get_frame_buffer = get_frame_buffer_callback;
     gdc_settings.current_addr = gdc_settings.buffer_addr;
     gdc_settings.seq_planes_pos = 0;
@@ -194,15 +163,15 @@ int gdc_fw_init(void )
 
     //set the gdc config
     gdc_settings.gdc_config.config_addr = 0x4000;
-    gdc_settings.gdc_config.config_size = gdc_test_param[GDC_TEST_RUN].gdc_sequence_size / 4; //size of configuration in 4bytes
-    gdc_settings.gdc_config.output_width = 1920;
-    gdc_settings.gdc_config.output_height = 1080;
-    gdc_settings.gdc_config.total_planes = gdc_test_param[GDC_TEST_RUN].total_planes;
-    gdc_settings.gdc_config.sequential_mode=gdc_test_param[GDC_TEST_RUN].sequential_mode;
-    gdc_settings.gdc_config.div_width = gdc_test_param[GDC_TEST_RUN].div_width;
-    gdc_settings.gdc_config.div_height = gdc_test_param[GDC_TEST_RUN].div_height;
+    gdc_settings.gdc_config.config_size = gdc_test_param.gdc_sequence_size / 4; //size of configuration in 4bytes
+    gdc_settings.gdc_config.output_width = 256;
+    gdc_settings.gdc_config.output_height = 256;
+    gdc_settings.gdc_config.total_planes = gdc_test_param.total_planes;
+    gdc_settings.gdc_config.sequential_mode=gdc_test_param.sequential_mode;
+    gdc_settings.gdc_config.div_width = gdc_test_param.div_width;
+    gdc_settings.gdc_config.div_height = gdc_test_param.div_height;
 
-    uint32_t memory_used = gdc_load_settings_to_memory( (uint32_t *)((uintptr_t)gdc_settings.ddr_mem + gdc_settings.gdc_config.config_addr) , (uint32_t *)gdc_test_param[GDC_TEST_RUN].gdc_sequence, gdc_settings.gdc_config.config_size );
+    uint32_t memory_used = gdc_load_settings_to_memory( (uint32_t *)((uintptr_t)gdc_settings.ddr_mem + gdc_settings.gdc_config.config_addr) , (uint32_t *)gdc_test_param.gdc_sequence, gdc_settings.gdc_config.config_size );
     if ( memory_used != gdc_settings.gdc_config.config_size * 4 ) {
         //memory config for gdc ifnitialization failed
         LOG( LOG_CRIT, "memory config for gdc initialization 1 failed" );
@@ -214,7 +183,7 @@ int gdc_fw_init(void )
     //fpga initialization with resolution and intended buffers for dma writer output
     //YUV 420 demo
     uint32_t in_lineoffset[]={gdc_settings.gdc_config.output_width,gdc_settings.gdc_config.output_width};
-    if ( acamera_fpga_init( gdc_settings.gdc_config.output_width,gdc_settings.gdc_config.output_height,gdc_settings.gdc_config.total_planes,gdc_test_param[GDC_TEST_RUN].input_addresses,in_lineoffset) != 0 ) {
+    if ( acamera_fpga_init( gdc_settings.gdc_config.output_width,gdc_settings.gdc_config.output_height,gdc_settings.gdc_config.total_planes,gdc_test_param.input_addresses,in_lineoffset) != 0 ) {
 		LOG( LOG_ERR, "Wrong initialisation parameters for fpga reader block" );
 		return -1;
 	}
@@ -240,7 +209,7 @@ int gdc_fw_init(void )
 
     //start gdc process
 
-    acamera_gdc_process( &gdc_settings,gdc_test_param[GDC_TEST_RUN].total_planes, gdc_test_param[GDC_TEST_RUN].input_addresses);
+    acamera_gdc_process( &gdc_settings,gdc_test_param.total_planes, gdc_test_param.input_addresses);
 
     return 0;
 }

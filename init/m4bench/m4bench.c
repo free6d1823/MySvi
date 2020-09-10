@@ -17,8 +17,18 @@ static void mem_info(void)
 			__bss_start, __bss_end, (__bss_end - __bss_start) >> 10);
 }
 
+
+/* soc_early_init will be defined in board.c if any */
+__weak int soc_early_init()
+{
+	return 0;
+}
+
+
 int main(void)
 {
+	soc_early_init();
+
 	console_early_init();
 	puts("\nHello SVI\n");
 	mem_info();
