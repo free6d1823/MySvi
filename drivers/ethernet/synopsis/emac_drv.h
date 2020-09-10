@@ -644,8 +644,8 @@ enum packets_types {
 #define MTL_RX_ALGORITHM_WSP	0x5
 
 /* RX/TX Queue Mode */
-#define MTL_QUEUE_AVB		0x0
-#define MTL_QUEUE_DCB		0x1
+#define MTL_QUEUE_AVB		0x1
+#define MTL_QUEUE_DCB_GENERIC		0x0
 
 #define MTL_RXQ_DMA_MAP0		0x00000c30 /* queue 0 to 3 */
 #define MTL_RXQ_DMA_MAP1		0x00000c34 /* queue 4 to 7 */

@@ -59,6 +59,38 @@
 #define ESR_ELx_EC_MASK     (0x3FUL << ESR_ELx_EC_SHIFT)
 #define ESR_ELx_EC(esr)     (((esr) & ESR_ELx_EC_MASK) >> ESR_ELx_EC_SHIFT)
 
+/* Asynchronous Error Type */
+#define ESR_ELx_IDS_SHIFT	(24)
+#define ESR_ELx_IDS		(UL(1) << ESR_ELx_IDS_SHIFT)
+#define ESR_ELx_AET_SHIFT	(10)
+#define ESR_ELx_AET		(UL(0x7) << ESR_ELx_AET_SHIFT)
+
+#define ESR_ELx_AET_UC		(UL(0) << ESR_ELx_AET_SHIFT)
+#define ESR_ELx_AET_UEU		(UL(1) << ESR_ELx_AET_SHIFT)
+#define ESR_ELx_AET_UEO		(UL(2) << ESR_ELx_AET_SHIFT)
+#define ESR_ELx_AET_UER		(UL(3) << ESR_ELx_AET_SHIFT)
+#define ESR_ELx_AET_CE		(UL(6) << ESR_ELx_AET_SHIFT)
+
+/* Shared ISS field definitions for Data/Instruction aborts */
+#define ESR_ELx_SET_SHIFT	(11)
+#define ESR_ELx_SET_MASK	(UL(3) << ESR_ELx_SET_SHIFT)
+#define ESR_ELx_FnV_SHIFT	(10)
+#define ESR_ELx_FnV		(UL(1) << ESR_ELx_FnV_SHIFT)
+#define ESR_ELx_EA_SHIFT	(9)
+#define ESR_ELx_EA		(UL(1) << ESR_ELx_EA_SHIFT)
+#define ESR_ELx_S1PTW_SHIFT	(7)
+#define ESR_ELx_S1PTW		(UL(1) << ESR_ELx_S1PTW_SHIFT)
+
+/* Shared ISS fault status code(IFSC/DFSC) for Data/Instruction aborts */
+#define ESR_ELx_FSC		(0x3F)
+#define ESR_ELx_FSC_TYPE	(0x3C)
+#define ESR_ELx_FSC_EXTABT	(0x10)
+#define ESR_ELx_FSC_SERROR	(0x11)
+#define ESR_ELx_FSC_ACCESS	(0x08)
+#define ESR_ELx_FSC_FAULT	(0x04)
+#define ESR_ELx_FSC_PERM	(0x0C)
+
+
 static const char *esr_class_str[ESR_ELx_EC_MAX + 1] = {
 //  [0 ... ESR_ELx_EC_MAX]      = "UNRECOGNIZED EC",
     [ESR_ELx_EC_UNKNOWN]        = "Unknown/Uncategorized",
@@ -150,7 +182,7 @@ uint64_t get_midr(void)
 void bad_mode(struct pt_regs *regs, unsigned int esr, int reason)
 {
     unsigned long long midr = get_midr();
-    unsigned int ec;
+    unsigned int ec, aet;
 
     ec = ESR_ELx_EC(esr);
 
@@ -163,8 +195,30 @@ void bad_mode(struct pt_regs *regs, unsigned int esr, int reason)
         handler[reason], smp_processor_id(), esr, esr_get_class_string(esr));
 
     if (ec == ESR_ELx_EC_DABT_CUR || ec == ESR_ELx_EC_IABT_CUR
-			|| ec == ESR_ELx_EC_PC_ALIGN)
+            || ec == ESR_ELx_EC_PC_ALIGN) {
         printf("ABT:  %08lx\n", read_sysreg(far_el3));
+    } else if (ec == ESR_ELx_EC_SERROR && !(esr & ESR_ELx_IDS)
+            && (esr & ESR_ELx_FSC) == ESR_ELx_FSC_SERROR) {
+        aet = esr & ESR_ELx_AET;
+
+        switch (aet) {
+        case ESR_ELx_AET_CE:    /* corrected error */
+            puts("Corrected error (CE)\n");
+            return;
+        case ESR_ELx_AET_UEO:   /* restartable, not yet consumed */
+            puts("Restartable error (UEO)\n");
+            return;
+        case ESR_ELx_AET_UEU:   /* Uncorrected Unrecoverable */
+            puts("Unrecoverable error (UEU)\n");
+            break;
+        case ESR_ELx_AET_UER:   /* Uncorrected Recoverable */
+            puts("Recoverable error (UER)\n");
+            break;
+        case ESR_ELx_AET_UC:    /* Uncontainable or Uncategorized error */
+            puts("Uncontainable error (UC)\n");
+            break;
+        }
+    }
 
     show_regs(regs);
 

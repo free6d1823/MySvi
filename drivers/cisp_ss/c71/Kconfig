@@ -1,0 +1,2 @@
+config C71
+	bool "C71 driver"

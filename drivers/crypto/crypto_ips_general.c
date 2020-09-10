@@ -16,32 +16,30 @@
 #include "target/mbedtls/gcm.h"
 #include "target/mbedtls/cipher.h"
 //#define DEBUG_PRINT
-#ifdef SVI_Z1
-static int se_ips_general(int argc, char *argv[])
-#endif
-#ifdef SVI_VCS
-int se_ips_general()
-#endif
+
+ int se_ips_general()
 {
 	int ret;
 	int i;
-
 	ret = ips_init_clk();
 	if(!ret)
 		printf("ips module clock case pass! \n");
+	else
+		return -1;
 	ret = ips_module_reset();
 	if(!ret)
 		printf("ips module reset case pass! \n");
-        /*************************sha1 alg***********************************************/
-	ret = strcmp(argv[1],"basic_reg");
-	if(!ret){
-		   ips_vfreg_read_write_test();
+	else
+		return -1;
+	for(i=0; i<4; i++){
+		ret = ips_vfreg_read_write_test(i);
+		if(ret == -1)
+		{
+			printf("vf%d read&write case failed!\n",i);
+			break;
 		}
-	return 0;
+		else
+			printf("vf%d read&write case pass!\n",i);
+	}
+	return ret;
 }
-#ifdef SVI_Z1
-MK_CMD(ips, se_ips_general, "Test crypto_acc general function",
-	"ips general  mode\n"
-	"	- basic_reg test ips general register read and write!\n"
-);
-#endif

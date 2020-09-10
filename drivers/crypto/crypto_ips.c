@@ -5,408 +5,554 @@
 #include "target/crypto_ips.h"
 #include "target/cmdline.h"
 #include "target/heap.h"
-#include "target/mbedtls/config.h"
-#include "target/mbedtls/platform.h"
-#include "target/mbedtls/aes.h"
-#include "target/mbedtls/md.h"
-#include "target/mbedtls/platform_util.h"
-#include "target/mbedtls/sha1.h"
-#include "target/mbedtls/sha256.h"
-#include "target/mbedtls/sha512.h"
-#include "target/mbedtls/gcm.h"
-#include "target/mbedtls/cipher.h"
 #include <target/irqc.h>
 #include <target/utils.h>
 //#define C_A76
 #define CM4
 //#define IPS_INTR
 #define IPS_POLLING
+int glb_de_flag = 0;
 
-int ips_vfreg_read_write_test()
+int ips_vfreg_read_write_test(int vf_no)
 {
-        int ret_value;
-        /*IRQ EN*/
-        ret_value = READ_REG(IPS_VF0_REG_IRQ_EN);
-        if(ret_value != 0x0)
-                printf("IRQ EN read default value fail!");
+	int ret_value;
+	int addr_offset = vf_no*0x20000;
+	/*IRQ EN*/
+	ret_value = READ_REG(IPS_VF0_REG_IRQ_EN + addr_offset);
+	if(ret_value != 0x0){
+		printf("IRQ EN read default value fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_IRQ_EN, 0xff);
-        ret_value = READ_REG(IPS_VF0_REG_IRQ_EN);
-        if(ret_value != 0xff)
+	WRITE_REG(IPS_VF0_REG_IRQ_EN + addr_offset, 0xff);
+	ret_value = READ_REG(IPS_VF0_REG_IRQ_EN+addr_offset);
+        if(ret_value != 0xff){
                 printf("IRQ EN write & read test fail!");
-        WRITE_REG(IPS_VF0_REG_IRQ_EN, 0x0);
-        /*IRQ RAW*/
-        ret_value = READ_REG(IPS_VF0_REG_IRQ_RAW);
-        if(ret_value != 0x0)
+		return -1;
+	}
+ 	WRITE_REG(IPS_VF0_REG_IRQ_EN+addr_offset, 0x0);
+	/*IRQ RAW*/
+	ret_value = READ_REG(IPS_VF0_REG_IRQ_RAW+addr_offset);
+        if(ret_value != 0x0){
                 printf("IRQ RAW read default value fail!");
-
-        /*IRQ STAT*/
-        ret_value = READ_REG(IPS_VF0_REG_IRQ_STAT);
-        if(ret_value != 0x0)
+		return -1;
+	}
+	/*IRQ STAT*/
+	ret_value = READ_REG(IPS_VF0_REG_IRQ_STAT+addr_offset);
+        if(ret_value != 0x0){
                 printf("IRQ STAT read default value fail!");
+		return -1;
+	}
 
-	 /*IRQ CTRL_0*/
-        ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_0);
-        if(ret_value != 0x001E0002)
+	/*IRQ CTRL_0*/
+	ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_0+addr_offset);
+        if(ret_value != 0x001E0002){
                 printf("IRQ CTRL_0 read default value fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_IRQ_CTRL_0, 0x00400040);
-        ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_0);
-        if(ret_value != 0x00400040)
+        WRITE_REG(IPS_VF0_REG_IRQ_CTRL_0+addr_offset, 0x00400040);
+        ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_0+addr_offset);
+        if(ret_value != 0x00400040){
                 printf("IRQ CTRL_0 write & read test fail!");
-        WRITE_REG(IPS_VF0_REG_IRQ_CTRL_0, 0x001E0002);
-        /*IRQ_CTRL_1*/
-        ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_1);
-        if(ret_value != 0x001E0002)
+		return -1;
+	}
+	WRITE_REG(IPS_VF0_REG_IRQ_CTRL_0+addr_offset, 0x001E0002);
+	/*IRQ_CTRL_1*/
+	ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_1+addr_offset);
+        if(ret_value != 0x001E0002){
                 printf("IRQ CTRL_1 read default value fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_IRQ_CTRL_1, 0x001d0001);
-        ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_1);
-        if(ret_value != 0x001d0001)
+        WRITE_REG(IPS_VF0_REG_IRQ_CTRL_1+addr_offset, 0x001d0001);
+        ret_value = READ_REG(IPS_VF0_REG_IRQ_CTRL_1+addr_offset);
+        if(ret_value != 0x001d0001){
                 printf("IRQ CTRL_1 write & read test fail!");
-        WRITE_REG(IPS_VF0_REG_IRQ_CTRL_1, 0x001d0001);
-        /*WD_CTRL_0*/
-        ret_value = READ_REG(IPS_VF0_WD_CTRL_0);
-        if(ret_value != 0xffffffff)
-                printf("IRQ WD_CTRL_0 read default fail!");
+		return -1;
+	}
+        WRITE_REG(IPS_VF0_REG_IRQ_CTRL_1+addr_offset, 0x001d0001);
+	/*WD_CTRL_0*/
+	ret_value = READ_REG(IPS_VF0_WD_CTRL_0+addr_offset);
+	if(ret_value != 0xffffffff){
+		printf("IRQ WD_CTRL_0 read default fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_WD_CTRL_0, 0x55aa55aa);
-        ret_value = READ_REG(IPS_VF0_WD_CTRL_0);
-        if(ret_value != 0x55aa55aa)
-                printf("IRQ WD_CTRL_0 read & write fail!");
+	WRITE_REG(IPS_VF0_WD_CTRL_0+addr_offset, 0x55aa55aa);
+	ret_value = READ_REG(IPS_VF0_WD_CTRL_0+addr_offset);
+	if(ret_value != 0x55aa55aa){
+		printf("IRQ WD_CTRL_0 read & write fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_WD_CTRL_0, 0xffffffff);
-        /*WD_CTRL_1*/
-         ret_value = READ_REG(IPS_VF0_WD_CTRL_1);
-        if(ret_value != 0xffffffff)
+	WRITE_REG(IPS_VF0_WD_CTRL_0+addr_offset, 0xffffffff);
+	/*WD_CTRL_1*/
+	 ret_value = READ_REG(IPS_VF0_WD_CTRL_1+addr_offset);
+        if(ret_value != 0xffffffff){
                 printf("IRQ WD_CTRL_1 read default fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_WD_CTRL_1, 0x55aa55aa);
+        WRITE_REG(IPS_VF0_WD_CTRL_1+addr_offset, 0x55aa55aa);
 
-        ret_value = READ_REG(IPS_VF0_WD_CTRL_1);
-        if(ret_value != 0x55aa55aa)
+	ret_value = READ_REG(IPS_VF0_WD_CTRL_1+addr_offset);
+	if(ret_value != 0x55aa55aa){
                 printf("IRQ WD_CTRL_1 read & write fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_WD_CTRL_1, 0xffffffff);
-        /*C0_IRQ_INFO_1*/
-        ret_value = READ_REG(IPS_VF0_C0_IRQ_INFO_1);
-        if(ret_value != 0x0)
-                printf("C0_IRQ_INFO_1 read default fail!");
+        WRITE_REG(IPS_VF0_WD_CTRL_1+addr_offset, 0xffffffff);
+	/*C0_IRQ_INFO_1*/
+	ret_value = READ_REG(IPS_VF0_C0_IRQ_INFO_1+addr_offset);
+	if(ret_value != 0x0){
+		printf("C0_IRQ_INFO_1 read default fail!");
+		return -1;
+	}
+	/*C1_IRQ_INFO_1*/
+	ret_value = READ_REG(IPS_VF0_C1_IRQ_INFO_1+addr_offset);
+        if(ret_value != 0x0){
+                printf("C1_IRQ_INFO_1 read default fail!");
+		return -1;
+	}
+	/*RING_CTRL_0*/
+	ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_0+addr_offset);
+	if(ret_value !=0){
+		printf("IPS_VF0_REG_RING_CTRL_0 read default fail!");
+		return -1;
+	}
 
-	  /*RING_CTRL_0*/
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_0);
-        if(ret_value !=0)
-                printf("IPS_VF0_REG_RING_CTRL_0 read default fail!");
+	WRITE_REG(IPS_VF0_REG_RING_CTRL_0+addr_offset,0x55aa55aa);
+	ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_0+addr_offset);
+	if(ret_value != 0x55aa55aa){
+		printf("IPS_VF0_REG_RING_CTRL_0 read & write fail! ");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_0,0x55aa55aa);
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_0);
-        if(ret_value != 0x55aa55aa)
-                printf("IPS_VF0_REG_RING_CTRL_0 read & write fail! ");
+	WRITE_REG(IPS_VF0_REG_RING_CTRL_0+addr_offset,0x0);
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_0,0x0);
-
-        /*RING_CTRL_1*/
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_1);
-        if(ret_value !=0)
+	/*RING_CTRL_1*/
+	ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_1+addr_offset);
+        if(ret_value !=0){
                 printf("IPS_VF0_REG_RING_CTRL_1 read default fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_1,0x55aa55aa);
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_1);
-        if(ret_value != 0x55aa55aa)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_1+addr_offset,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_1+addr_offset);
+        if(ret_value != 0x55aa55aa){
                 printf("IPS_VF0_REG_RING_CTRL_1 read & write fail! ");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_1,0x0);
-
-        /*RING CTRL _2*/
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_2);
-        if(ret_value !=0)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_1+addr_offset,0x0);
+	/*RING CTRL _2*/
+	ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_2+addr_offset);
+        if(ret_value !=0){
                 printf("IPS_VF0_REG_RING_CTRL_2 read default fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_2,0x55aa55aa);
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_2);
-        if(ret_value != 0x55aa55aa)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_2+addr_offset,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_2+addr_offset);
+        if(ret_value != 0x55aa55aa){
                 printf("IPS_VF0_REG_RING_CTRL_2 read & write fail! ");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_2,0x0);
-         /*RING CTRL _3*/
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_3);
-        if(ret_value !=0)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_2+addr_offset,0x0);
+	 /*RING CTRL _3*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_3+addr_offset);
+        if(ret_value !=0){
                 printf("IPS_VF0_REG_RING_CTRL_3 read default fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_3,0x55aa55aa);
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_3);
-        if(ret_value != 0x55aa55aa)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_3+addr_offset,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_3+addr_offset);
+        if(ret_value != 0x55aa55aa){
                 printf("IPS_VF0_REG_RING_CTRL_3 read & write fail! ");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_3,0x0);
-
-	  /*RING CTRL _4*/
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_4);
-        if(ret_value !=0)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_3+addr_offset,0x0);
+	 /*RING CTRL _4*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_4+addr_offset);
+        if(ret_value !=0){
                 printf("IPS_VF0_REG_RING_CTRL_4 read default fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_4,0x55aa55aa);
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_4);
-        if(ret_value != 0x55aa55aa)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_4+addr_offset,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_4+addr_offset);
+        if(ret_value != 0x55aa55aa){
                 printf("IPS_VF0_REG_RING_CTRL_4 read & write fail! ");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_4,0x0);
-
-         /*RING CTRL _5*/
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_5);
-        if(ret_value !=0)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_4+addr_offset,0x0);
+	 /*RING CTRL _5*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_5+addr_offset);
+        if(ret_value !=0){
                 printf("IPS_VF0_REG_RING_CTRL_5 read default fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_5,0x55aa55aa);
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_5);
-        if(ret_value != 0x55aa55aa)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_5+addr_offset,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_5+addr_offset);
+        if(ret_value != 0x55aa55aa){
                 printf("IPS_VF0_REG_RING_CTRL_5 read & write fail! ");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_5,0x0);
-
-         /*RING CTRL _6*/
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_6);
-        if(ret_value !=0)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_5+addr_offset,0x0);
+	 /*RING CTRL _6*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_6+addr_offset);
+        if(ret_value !=0){
                 printf("IPS_VF0_REG_RING_CTRL_6 read default fail!");
+		return -1;
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_6,0x55aa55aa);
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_6);
-        if(ret_value != 0x55aa55aa)
+	}
+
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_6+addr_offset,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_6+addr_offset);
+        if(ret_value != 0x55aa55aa){
                 printf("IPS_VF0_REG_RING_CTRL_6 read & write fail! ");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_6,0x0);
-
-         /*RING CTRL _7*/
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_7);
-        if(ret_value !=0)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_6+addr_offset,0x0);
+	 /*RING CTRL _7*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_7+addr_offset);
+        if(ret_value !=0){
                 printf("IPS_VF0_REG_RING_CTRL_7 read default fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_7,0x55aa55aa);
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_7);
-        if(ret_value != 0x55aa55aa)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_7+addr_offset,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_7+addr_offset);
+        if(ret_value != 0x55aa55aa){
                 printf("IPS_VF0_REG_RING_CTRL_7 read & write fail! ");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_7,0x0);
-
-         /*RING CTRL _8*/
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_8);
-        if(ret_value !=0x00200020)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_7+addr_offset,0x0);
+	 /*RING CTRL _8*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_8+addr_offset);
+        if(ret_value !=0x00200020){
                 printf("IPS_VF0_REG_RING_CTRL_8 read default fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_8,0x55aa55aa);
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_8);
-        if(ret_value != 0x55aa55aa)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_8+addr_offset,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_8+addr_offset);
+        if(ret_value != 0x55aa55aa){
                 printf("IPS_VF0_REG_RING_CTRL_8 read & write fail! ");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_8,0x00200020);
-
-         /*RING CTRL _9*/
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_9);
-        if(ret_value !=0x00200020)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_8+addr_offset,0x00200020);
+	 /*RING CTRL _9*/
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_9+addr_offset);
+        if(ret_value !=0x00200020){
                 printf("IPS_VF0_REG_RING_CTRL_9 read default fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_9,0x55aa55aa);
-        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_9);
-        if(ret_value != 0x55aa55aa)
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_9+addr_offset,0x55aa55aa);
+        ret_value = READ_REG(IPS_VF0_REG_RING_CTRL_9+addr_offset);
+        if(ret_value != 0x55aa55aa){
                 printf("IPS_VF0_REG_RING_CTRL_9 read & write fail! ");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_RING_CTRL_9,0x00200020);
+        WRITE_REG(IPS_VF0_REG_RING_CTRL_9+addr_offset,0x00200020);
+	/*_C0_MAILBOX_0*/
+	ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_0+addr_offset);
+	if(ret_value != 0){
+		printf("IPS_VF0_REG_C0_MAILBOX_0 read default fail!");
+		return -1;
+	}
 
-        /*_C0_MAILBOX_0*/
-        ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_0);
-        if(ret_value != 0)
-                printf("IPS_VF0_REG_C0_MAILBOX_0 read default fail!");
+	WRITE_REG(IPS_VF0_REG_C0_MAILBOX_0+addr_offset, 0xffff);
+	ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_0+addr_offset);
+	if(ret_value != 0xffff){
+		printf("IPS_VF0_REG_C0_MAILBOX_0 read & write fail!");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_C0_MAILBOX_0, 0xffff);
-        ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_0);
-        if(ret_value != 0xffff)
-                printf("IPS_VF0_REG_C0_MAILBOX_0 read & write fail!");
-
-        WRITE_REG(IPS_VF0_REG_C0_MAILBOX_0, 0x0);
-
-        /*C0_MAILBOX_1*/
-        ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_1);
-        if(ret_value != 0)
+	WRITE_REG(IPS_VF0_REG_C0_MAILBOX_0+addr_offset, 0x0);
+	/*C0_MAILBOX_1*/
+	ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_1+addr_offset);
+        if(ret_value != 0){
                 printf("IPS_VF0_REG_C0_MAILBOX_1 read default fail!");
-
-        /*C1_MAILBOX_2*/
-        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_2);
-        if(ret_value != 0)
-                printf("IPS_VF0_REG_C1_MAILBOX_2 read default fail!");
-
-         /*C1_MAILBOX_3*/
-        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_3);
-        if(ret_value != 0)
-                printf("IPS_VF0_REG_C1_MAILBOX_3 read default fail!");
-
-        WRITE_REG(IPS_VF0_REG_C1_MAILBOX_3, 0xffff);
-        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_3);
-        if(ret_value != 0xffff)
-                printf("IPS_VF0_REG_C1_MAILBOX_3 read & write fail!");
-
-        WRITE_REG(IPS_VF0_REG_C1_MAILBOX_3, 0x0);
-
+		return -1;
+	}
+	 /*C0_MAILBOX_2*/
+        ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_2+addr_offset);
+        if(ret_value != 0){
+                printf("IPS_VF0_REG_C0_MAILBOX_2 read default fail!");
+		return -1;
+	}
         /*C0_MAILBOX_3*/
-        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_3);
-        if(ret_value != 0)
+        ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_3+addr_offset);
+        if(ret_value != 0){
+                printf("IPS_VF0_REG_C0_MAILBOX_3 read default fail!");
+		return -1;
+	}
+	WRITE_REG(IPS_VF0_REG_C0_MAILBOX_3+addr_offset, 0xffff);
+        ret_value = READ_REG(IPS_VF0_REG_C0_MAILBOX_3+addr_offset);
+        if(ret_value != 0xffff){
+                printf("IPS_VF0_REG_C0_MAILBOX_3 read & write fail!");
+		return -1;
+	}
+        WRITE_REG(IPS_VF0_REG_C0_MAILBOX_3+addr_offset, 0x0);
+	 /*C1_MAILBOX_0*/
+        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_0+addr_offset);
+        if(ret_value != 0){
+                printf("IPS_VF0_REG_C1_MAILBOX_0 read default fail!");
+		return -1;
+	}
+
+        WRITE_REG(IPS_VF0_REG_C1_MAILBOX_0+addr_offset, 0xffff);
+        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_0+addr_offset);
+        if(ret_value != 0xffff){
+                printf("IPS_VF0_REG_C1_MAILBOX_0 read & write fail!");
+		return -1;
+	}
+
+        WRITE_REG(IPS_VF0_REG_C1_MAILBOX_0+addr_offset, 0x0);
+        /*C1_MAILBOX_1*/
+        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_1+addr_offset);
+        if(ret_value != 0){
+                printf("IPS_VF0_REG_C1_MAILBOX_1 read default fail!");
+		return -1;
+	}
+  	/*C1_MAILBOX_2*/
+        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_2+addr_offset);
+        if(ret_value != 0){
+                printf("IPS_VF0_REG_C1_MAILBOX_2 read default fail!");
+		return -1;
+	}
+         /*C1_MAILBOX_3*/
+        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_3+addr_offset);
+        if(ret_value != 0){
                 printf("IPS_VF0_REG_C1_MAILBOX_3 read default fail!");
+		return -1;
+	}
 
-        /*C0_RING_STS*/
-        ret_value = READ_REG(IPS_VF0_REG_C0_RING_STS_0);
-        if(ret_value != 0x0)
-                printf("IPS_VF0_REG_C0_RING_STS_0 read default fail");
+        WRITE_REG(IPS_VF0_REG_C1_MAILBOX_3+addr_offset, 0xffff);
+        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_3+addr_offset);
+        if(ret_value != 0xffff){
+                printf("IPS_VF0_REG_C1_MAILBOX_3 read & write fail!");
+		return -1;
 
-        /*c0_RING_STS*/
-        ret_value = READ_REG(IPS_VF0_REG_C0_RING_STS_1);
-        if(ret_value != 0x0a)
-                printf("IPS_VF0_REG_C0_RING_STS_1 read default fail");
+	}
 
-        /*C1_RING_STS_0*/
-         ret_value = READ_REG(IPS_VF0_REG_C1_RING_STS_0);
-        if(ret_value != 0x0)
+        WRITE_REG(IPS_VF0_REG_C1_MAILBOX_3+addr_offset, 0x0);
+        /*C0_MAILBOX_3*/
+        ret_value = READ_REG(IPS_VF0_REG_C1_MAILBOX_3+addr_offset);
+        if(ret_value != 0){
+                printf("IPS_VF0_REG_C1_MAILBOX_3 read default fail!");
+		return -1;
+	}
+	/*C0_RING_STS*/
+	ret_value = READ_REG(IPS_VF0_REG_C0_RING_STS_0+addr_offset);
+	if(ret_value != 0x0){
+		printf("IPS_VF0_REG_C0_RING_STS_0 read default fail");
+		return -1;
+	}
+	/*c0_RING_STS*/
+	ret_value = READ_REG(IPS_VF0_REG_C0_RING_STS_1+addr_offset);
+	if(ret_value != 0x0a){
+		printf("IPS_VF0_REG_C0_RING_STS_1 read default fail");
+		return -1;
+	}
+	/*C1_RING_STS_0*/
+	 ret_value = READ_REG(IPS_VF0_REG_C1_RING_STS_0+addr_offset);
+        if(ret_value != 0x0){
                 printf("IPS_VF0_REG_C1_RING_STS_0 read default fail");
-
+		return -1;
+	}
         /*c1_RING_STS*/
-        ret_value = READ_REG(IPS_VF0_REG_C1_RING_STS_1);
-        if(ret_value != 0x0a)
+        ret_value = READ_REG(IPS_VF0_REG_C1_RING_STS_1+addr_offset);
+        if(ret_value != 0x0a){
                 printf("IPS_VF0_REG_C1_RING_STS_1 read default fail");
+		return -1;
+	}
+	/*RING_INIT_0*/
+	ret_value = READ_REG(IPS_VF0_REG_RING_INIT_0+addr_offset);
+	if(ret_value != 0x0){
+		printf("IPS_VF0_REG_RING_INIT_0 read default fail");
+		return -1;
+	}
 
-        /*RING_INIT_0*/
-        ret_value = READ_REG(IPS_VF0_REG_RING_INIT_0);
-        if(ret_value != 0x0)
-                printf("IPS_VF0_REG_RING_INIT_0 read default fail");
-
-        WRITE_REG(IPS_VF0_REG_RING_INIT_0, 0x3);
-        ret_value = READ_REG(IPS_VF0_REG_RING_INIT_0);
-        if(ret_value != 0x3)
-                printf("IPS_VF0_REG_RING_INIT_0 read & write fail");
-
-        WRITE_REG(IPS_VF0_REG_RING_INIT_0, 0x0);
-
-	  /*CH_PRIOR*/
-        ret_value = READ_REG(IPS_VF0_REG_CH_PRIOR);
-        if(ret_value != 0)
-                printf("IPS_VF0_REG_CH_PRIOR read default fail");
-
-        WRITE_REG(IPS_VF0_REG_CH_PRIOR, 0x01);
-        ret_value = READ_REG(IPS_VF0_REG_CH_PRIOR);
-        if(ret_value !=0x1)
-                printf("IPS_VF0_REG_CH_PRIOR read & write fail");
-
-        WRITE_REG(IPS_VF0_REG_CH_PRIOR, 0x0);
-
-        /*LOCAL_MSI_EN*/
-        ret_value = READ_REG(IPS_VF0_REG_LOCAL_MSI_EN);
-        if(ret_value != 0x0)
-                printf("IPS_VF0_REG_LOCAL_MSI_EN read default fail");
-
-        WRITE_REG(IPS_VF0_REG_LOCAL_MSI_EN, 0x01);
-        ret_value = READ_REG(IPS_VF0_REG_LOCAL_MSI_EN);
-        if(ret_value != 0x1)
-                printf("IPS_VF0_REG_LOCAL_MSI_EN read $ write fail");
-
-        WRITE_REG(IPS_VF0_REG_LOCAL_MSI_EN, 0x0);
+	WRITE_REG(IPS_VF0_REG_RING_INIT_0+addr_offset, 0x3);
+	ret_value = READ_REG(IPS_VF0_REG_RING_INIT_0+addr_offset);
+	if(ret_value != 0x3){
+		printf("IPS_VF0_REG_RING_INIT_0 read & write fail");
+		return -1;
+	}
 
 
-        /*LOCAL_MSI_STAT*/
-        ret_value = READ_REG(IPS_VF0_REG_LOCAL_MSI_STAT);
-        if(ret_value != 0x0)
-                printf("IPS_VF0_REG_LOCAL_MSI_STAT read default fail");
+	WRITE_REG(IPS_VF0_REG_RING_INIT_0+addr_offset, 0x0);
 
+	/*CH_PRIOR*/
+	ret_value = READ_REG(IPS_VF0_REG_CH_PRIOR+addr_offset);
+	if(ret_value != 0){
+		printf("IPS_VF0_REG_CH_PRIOR read default fail");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_LOCAL_MSI_EN,0x1);
-        ret_value = READ_REG(IPS_VF0_REG_LOCAL_MSI_STAT);
-        if(ret_value != 0x1)
-                printf("IPS_VF0_REG_LOCAL_MSI_STAT read default fail");
+	WRITE_REG(IPS_VF0_REG_CH_PRIOR+addr_offset, 0x01);
+	ret_value = READ_REG(IPS_VF0_REG_CH_PRIOR+addr_offset);
+	if(ret_value !=0x1){
+		printf("IPS_VF0_REG_CH_PRIOR read & write fail");
+		return -1;
+	}
+	WRITE_REG(IPS_VF0_REG_CH_PRIOR+addr_offset, 0x0);
 
+	/*SMX_SPARE*/
+	ret_value = READ_REG(IPS_VF0_REG_SMX_SPARE+addr_offset);
+	if(ret_value != 0){
+		printf("IPS_VF0_REG_LOCAL_MSI_STAT read default fail");
+		return -1;
+	}
+	WRITE_REG(IPS_VF0_REG_SMX_SPARE+addr_offset,0xffffffff);
+	ret_value = READ_REG(IPS_VF0_REG_SMX_SPARE+addr_offset);
+	if(ret_value != 0xffffffff){
+		printf("IPS_VF0_REG_LOCAL_MSI_STAT read & write fail");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_LOCAL_MSI_EN,0x0);
-        ret_value = READ_REG(IPS_VF0_REG_LOCAL_MSI_STAT);
-        if(ret_value != 0x0)
-                printf("IPS_VF0_REG_LOCAL_MSI_STAT read default fail");
+	WRITE_REG(IPS_VF0_REG_SMX_SPARE+addr_offset,0x0);
+	/*VF_ALLOC*/
+	ret_value = READ_REG(IPS_VF0_REG_VF_ALLOC+addr_offset);
+	if(ret_value != 0){
+		printf("IPS_VF0_REG_VF_ALLOC read default fail!");
+		return -1;
+	}
 
-        /*SMX_SPARE*/
-        ret_value = READ_REG(IPS_VF0_REG_SMX_SPARE);
-        if(ret_value != 0)
-                printf("IPS_VF0_REG_LOCAL_MSI_STAT read default fail");
-        WRITE_REG(IPS_VF0_REG_SMX_SPARE,0xffffffff);
-        ret_value = READ_REG(IPS_VF0_REG_SMX_SPARE);
-        if(ret_value != 0xffffffff)
-                printf("IPS_VF0_REG_LOCAL_MSI_STAT read & write fail");
+	WRITE_REG(IPS_VF0_REG_VF_ALLOC+addr_offset, 0x1);
+	ret_value = READ_REG(IPS_VF0_REG_VF_ALLOC+addr_offset);
+	if(ret_value != 0x1){
+		printf("IPS_VF0_REG_VF_ALLOC read & write fail!");
+		return -1;
+	}
+	/*VF_FREE*/
+	ret_value = READ_REG(IPS_VF0_REG_VF_FREE+addr_offset);
+	if(ret_value != 0x0){
+		printf("IPS_VF0_REG_VF_FREE VF alloc fail");
+		return -1;
 
-        WRITE_REG(IPS_VF0_REG_SMX_SPARE,0x0);
+	}
 
-	  /*VF_ALLOC*/
-        ret_value = READ_REG(IPS_VF0_REG_VF_ALLOC);
-        if(ret_value != 0)
-                printf("IPS_VF0_REG_VF_ALLOC read default fail!");
+	WRITE_REG(IPS_VF0_REG_VF_FREE+addr_offset,0x1);
+	ret_value = READ_REG(IPS_VF0_REG_VF_FREE+addr_offset);
+	if(ret_value != 0x01){
+		printf("IPS_VF0_REG_VF_FREE VF free fail");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_VF_ALLOC, 0x1);
-        ret_value = READ_REG(IPS_VF0_REG_VF_ALLOC);
-        if(ret_value != 0x1)
-                printf("IPS_VF0_REG_VF_ALLOC read & write fail!");
+	if(vf_no ==0)
+	{
+	/*global ctrl*/
+	/*VF_WEIGHT_0*/
+	ret_value = READ_REG(IPS_VF_REG_WEIGHT_0);
+	if(ret_value != 0x0){
+		printf("IPS_VF_REG_WEIGHT_0 read default fail!");
+		return -1;
+	}
+	WRITE_REG(IPS_VF_REG_WEIGHT_0,0x1);
+	ret_value = READ_REG(IPS_VF_REG_WEIGHT_0);
+	if(ret_value != 0x01){
+		printf("IPS_VF_REG_WEIGHT_0 read & wirte fail");
+		return -1;
+	}
 
-        /*VF_FREE*/
-        ret_value = READ_REG(IPS_VF0_REG_VF_FREE);
-        if(ret_value != 0x0)
-                printf("IPS_VF0_REG_VF_FREE VF alloc fail");
+	/*VF_WEIGHT_1*/
+	ret_value = READ_REG(IPS_VF_REG_WEIGHT_1);
+	if(ret_value != 0x0){
+		printf("IPS_VF_REG_WEIGHT_1 read default fail!");
+		return -1;
+	}
 
+	WRITE_REG(IPS_VF_REG_WEIGHT_1,0x04030201);
+	ret_value = READ_REG(IPS_VF_REG_WEIGHT_1);
+	if(ret_value != 0x04030201){
+		printf("IPS_VF_REG_WEIGHT_1 read & write fail");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF0_REG_VF_FREE,0x1);
-        ret_value = READ_REG(IPS_VF0_REG_VF_FREE);
-        if(ret_value != 0x01)
-                printf("IPS_VF0_REG_VF_FREE VF free fail");
+	WRITE_REG(IPS_VF_REG_WEIGHT_1,0x0);
+	WRITE_REG(IPS_VF_REG_WEIGHT_0,0x0);
+	/*DMA_CTRL*/
+	ret_value = READ_REG(IPS_VF_REG_DMA_CTRL);
+	if(ret_value !=0x0808){
+		printf("IPS_VF_REG_DMA_CTRL read default fail");
+		return -1;
+	}
 
-        /*global ctrl*/
-        /*VF_WEIGHT_0*/
-        ret_value = READ_REG(IPS_VF_REG_WEIGHT_0);
-        if(ret_value != 0x0)
-                printf("IPS_VF_REG_WEIGHT_0 read default fail!");
-        WRITE_REG(IPS_VF_REG_WEIGHT_0,0x1);
-        ret_value = READ_REG(IPS_VF_REG_WEIGHT_0);
-        if(ret_value != 0x01)
-                printf("IPS_VF_REG_WEIGHT_0 read & wirte fail");
-
-        /*VF_WEIGHT_1*/
-        ret_value = READ_REG(IPS_VF_REG_WEIGHT_1);
-        if(ret_value != 0x0)
-                printf("IPS_VF_REG_WEIGHT_1 read default fail!");
-
-        WRITE_REG(IPS_VF_REG_WEIGHT_1,0x04030201);
-        ret_value = READ_REG(IPS_VF_REG_WEIGHT_1);
-        if(ret_value != 0x04030201)
-                printf("IPS_VF_REG_WEIGHT_1 read & write fail");
-
-        WRITE_REG(IPS_VF_REG_WEIGHT_1,0x0);
-        WRITE_REG(IPS_VF_REG_WEIGHT_0,0x0);
-
-	  /*DMA_CTRL*/
-        ret_value = READ_REG(IPS_VF_REG_DMA_CTRL);
-        if(ret_value !=0x0808)
-                printf("IPS_VF_REG_DMA_CTRL read default fail");
-
-        WRITE_REG(IPS_VF_REG_DMA_CTRL, 0x0909);
-        ret_value =  READ_REG(IPS_VF_REG_DMA_CTRL);
-        if(ret_value !=0x0909)
+	WRITE_REG(IPS_VF_REG_DMA_CTRL, 0x0909);
+	ret_value =  READ_REG(IPS_VF_REG_DMA_CTRL);
+        if(ret_value !=0x0909){
                 printf("IPS_VF_REG_DMA_CTRL read & write fail");
+		return -1;
+	}
 
-        WRITE_REG(IPS_VF_REG_DMA_CTRL, 0x0808);
+	WRITE_REG(IPS_VF_REG_DMA_CTRL, 0x0808);
+	}/*if(ch_no ==0)*/
 
-	printf("register read & wirte case pass!");
-
+	printf("register read & wirte case pass!\n");
 	return 0;
 }
+
+/**************watch dog timer******************************/
+int set_threshold(int ch_no)
+{
+	if(!ch_no)
+		WRITE_REG(IPS_VF0_WD_CTRL_0, 0x100);
+	if(ch_no)
+		WRITE_REG(IPS_VF0_WD_CTRL_1, 0x100000);
+	return 0;
+}
+
+int wd_enable(int ch_no)
+{
+	if(!ch_no)
+		WRITE_REG(IPS_VF0_REG_IRQ_EN, READ_REG(IPS_VF0_REG_IRQ_EN)|0X100);
+	if(ch_no)
+		WRITE_REG(IPS_VF0_REG_IRQ_EN, READ_REG(IPS_VF0_REG_IRQ_EN)|0X200);
+	return 0;
+}
+
+int wd_disable(int ch_no)
+{
+	if(!ch_no)
+		WRITE_REG(IPS_VF0_REG_IRQ_EN, READ_REG(IPS_VF0_REG_IRQ_EN)&0xfffffeff);
+	if(ch_no)
+		WRITE_REG(IPS_VF0_REG_IRQ_EN, READ_REG(IPS_VF0_REG_IRQ_EN)&0xfffffdff);
+	return 0;
+}
+
+int wd_reset(int ch_no)
+{
+	set_threshold(ch_no);
+	return 0;
+}
+
+/***************watch dog timer*****************************/
+
 
 
 int ips_init_clk(void)
 {
 	int ret_value;
-	 #ifdef C_A76
-        WRITE_REG(SFC_CLK_EN, 0x10000);
+	#ifdef C_A76
+	WRITE_REG(SFC_CLK_EN, 0x10000);
 
-        WRITE_REG(SFC_RST, 0x0);
-        #endif
-
+	WRITE_REG(SFC_RST, 0x0);
+	#endif
 	/*initialzie IPS-CORE clock*/
 	WRITE_REG(IPS_TOP_CTRL_CORE_CLK_CTRL, 0x1);
 	ret_value = READ_REG(IPS_TOP_CTRL_CORE_CLK_CTRL);
@@ -493,7 +639,10 @@ void ips_irq_process()
 	int end;
 	int num;
 	unsigned int ret_value;
-	struct status_ring *ring;
+	int status_base;
+
+	status_base = READ_REG(IPS_VF0_REG_RING_CTRL_4);
+	struct status_ring *ring =(struct status_ring*)IPS_STATUS_BASE;
 	ret_value = READ_REG(IPS_VF0_REG_IRQ_RAW);
 	while(!ret_value)
 		ret_value = READ_REG(IPS_VF0_REG_IRQ_RAW);
@@ -520,7 +669,7 @@ void ips_irq_process()
 		return;
 	}
 	if(ret_value&0x10){
-		printf("status dispose! \n");
+		printf("intr status dispose! \n");
 		begin = READ_REG(IPS_VF0_REG_C0_MAILBOX_2);
 		end = READ_REG(IPS_VF0_REG_C0_MAILBOX_3);
 		num = begin%MAX_CMD - end%MAX_CMD;
@@ -530,10 +679,10 @@ void ips_irq_process()
 			printf("status ring is empty");
 			return;
 		}
-		/*printf("begin = %d \n", begin);
-		printf("end = %d \n", end);
-		printf("num = %d \n", num);
-		*/
+		//printf("begin = %d \n", begin);
+		//printf("end = %d \n", end);
+		//printf("num = %d \n", num);
+		//memcpy((void*)ring, (void*)(status_base + 8*end),8 );
 		ring = (struct status_ring*)(READ_REG(IPS_VF0_REG_RING_CTRL_4) + end);
 		//printf("ring ret_code = %x \n", ring->ret_code);
 		//printf("ring sw_id value =%x \n", ring->sw_id);
@@ -541,7 +690,9 @@ void ips_irq_process()
 		WRITE_REG(IPS_VF0_REG_C0_MAILBOX_3, begin);
 
 		WRITE_REG(IPS_VF0_REG_IRQ_CLR, 0x10);
-
+		//printf("dispose complete!\n");
+		//while(!READ_REG(IPS_VF0_REG_RING_INIT_1))
+		//		;
 	}
 
 
@@ -578,7 +729,6 @@ int ips_dev_init()
 	unsigned int cmd_base;
 	unsigned int status_base;
 	cmd_base = IPS_CMD_BASE;
-	//printf("cmd_base = %x \n", cmd_base);
 	status_base = IPS_STATUS_BASE;
 	/*set cmd and status base addr*/
 	WRITE_REG(IPS_VF0_REG_RING_CTRL_0,cmd_base);   //low
@@ -629,77 +779,77 @@ int ips_dev_init()
 		return -1;
 	}
 
+	/*set threshold for WD*/
+	//set_threshold(0);
+
 	return 0;
 
 }
-
-
 int ips_key_iv_set(unsigned char *aes_key, int aes_keylen, unsigned char *aes_iv, unsigned char *hash_key, int hash_keylen)
 {
-        int i;
-        int ret_value;
-        unsigned int *key;
-        unsigned int *hashkey;
-        unsigned int *iv;
+	int i;
+	int ret_value;
+	unsigned int *key;
+	unsigned int *hashkey;
+	unsigned int *iv;
 
-        key = (unsigned int*)aes_key;
-        iv = (unsigned int*)aes_iv;
-        hashkey = (unsigned int*)hash_key;
-
-
-        if((!aes_keylen) && (!hash_keylen))
-                return -1;
-
-        if(aes_keylen != 0)
-        {
-                for(i=0; i<aes_keylen/4; i++)
-                        writel(key[i], (uintptr_t)(IPS_VF0_KEY + 4*i));
-                for(i=0; i<4; i++)
-                        writel(iv[i], (uintptr_t)(IPS_VF0_KEY+IV_OFFSET + 4*i));
-                  /*read and verify*/
-                for(i=0;i<aes_keylen/4;i++)
-                {
-                        ret_value = readl((uintptr_t)(IPS_VF0_KEY+4*i));
-                        printf("ret_value_key = %x \n", ret_value);
-                         if(ret_value != key[i])
-                        {
-                                printf("key set failed \n");
-                                return -1;
-                        }
-                }
-
-                for(i=0; i<4; i++)
-                {
-                        ret_value = readl((uintptr_t)(IPS_VF0_KEY+IV_OFFSET+4*i));
-                        printf("ret_value_iv = %x \n", ret_value);
-                        if(ret_value != iv[i]){
-                                printf("iv set failed \n");
-                                return -1;
-                        }
-                }
+	key = (unsigned int*)aes_key;
+	iv = (unsigned int*)aes_iv;
+	hashkey = (unsigned int*)hash_key;
 
 
-        }
-        if(hash_keylen !=0)
-        {
-                for(i=0; i<hash_keylen/4; i++)
-                         writel(hashkey[i],(uintptr_t)(IPS_VF0_KEY+HASHKEY_OFFSET + 4*i));
+	if((!aes_keylen) && (!hash_keylen))
+		return -1;
 
-                for(i=0; i<hash_keylen/4; i++)
-                {
-                        ret_value = readl((uintptr_t)(IPS_VF0_KEY+HASHKEY_OFFSET+4*i));
-                        if(ret_value != hashkey[i]){
-                                printf("hashkey set failed \n");
-                                return -1;
-                        }
-                }
+	if(aes_keylen != 0)
+	{
+		for(i=0; i<aes_keylen/4; i++)
+			writel(key[i], (uintptr_t)(IPS_VF0_KEY + 4*i));
+		for(i=0; i<4; i++)
+			writel(iv[i], (uintptr_t)(IPS_VF0_KEY+IV_OFFSET + 4*i));
+		  /*read and verify*/
+        	for(i=0;i<aes_keylen/4;i++)
+        	{
+                	ret_value = readl((uintptr_t)(IPS_VF0_KEY+4*i));
+			//printf("ret_value_key = %x \n", ret_value);
+               		 if(ret_value != key[i])
+                	{
+                        	printf("key set failed \n");
+                        	return -1;
+                	}
+        	}
 
-        }
+        	for(i=0; i<4; i++)
+        	{
+                	ret_value = readl((uintptr_t)(IPS_VF0_KEY+IV_OFFSET+4*i));
+			//printf("ret_value_iv = %x \n", ret_value);
+                	if(ret_value != iv[i]){
+                        	printf("iv set failed \n");
+                        	return -1;
+                	}
+        	}
 
 
+	}
+	if(hash_keylen !=0)
+	{
+		for(i=0; i<hash_keylen/4; i++)
+			 writel(hashkey[i],(uintptr_t)(IPS_VF0_KEY+HASHKEY_OFFSET + 4*i));
+
+		for(i=0; i<hash_keylen/4; i++)
+        	{
+                	ret_value = readl((uintptr_t)(IPS_VF0_KEY+HASHKEY_OFFSET+4*i));
+                	if(ret_value != hashkey[i]){
+                        	printf("hashkey set failed \n");
+                        	return -1;
+                	}
+        	}
+
+	}
 	return 0;
+
 }
-int ips_data_setup_sha(unsigned char *src, unsigned char *dst,struct ips_command* pcmd,int hash_alg,int hash_mode, int ende_flag, int proc_len)
+int ips_data_setup_sha(unsigned char *src, unsigned char *dst,struct ips_command* pcmd,int hash_alg,int hash_mode, int ende_flag, int proc_len, int ddt_mode)
 {
 	memset(pcmd,0,0x40);
         /*setup the actual cmd ring data from alg_ctx  or call back? */
@@ -724,7 +874,7 @@ int ips_data_setup_sha(unsigned char *src, unsigned char *dst,struct ips_command
         pcmd->aad_copy = 0;
         pcmd->encrypt = ende_flag;
         pcmd->ctx_idx = 0;
-        pcmd->ddt_mode = 0;
+        pcmd->ddt_mode = ddt_mode;
         pcmd->hash_mode = hash_mode;//0; //raw mode
         pcmd->cipher_mode = 0; //NULL ? ECB
         pcmd->hash_alg = hash_alg;//3;
@@ -737,59 +887,63 @@ int ips_data_setup_sha(unsigned char *src, unsigned char *dst,struct ips_command
 	pcmd->sw_id = 0;
         return 0;
 }
-int ips_data_setup_aes(unsigned char *src, unsigned char *dst,struct ips_command* pcmd, int cipher_alg,int cipher_mode, int ende_flag, int proc_len)
+
+
+int ips_data_setup_aes(unsigned char *src, unsigned char *dst,struct ips_command* pcmd, int cipher_alg,int cipher_mode, int ende_flag, int proc_len, int ddt_mode)
 {
 	int mode;
-        int cbc_submode = 0;
+	int cbc_submode = 0;
 
-        switch(cipher_mode)
-        {
-                case 0x10:
-                        mode = 0x01;
-                        cbc_submode = 0x0;
-                break;
+	switch(cipher_mode)
+	{
+		case 0x10:
+			mode = 0x01;
+			cbc_submode = 0x0;
+		break;
 
-                case 0x11:
-                        mode = 0x01;
-                        cbc_submode = 0x1;
-                break;
+		case 0x11:
+			mode = 0x01;
+			cbc_submode = 0x1;
+		break;
 
-                case 0x12:
-                        mode = 0x01;
-                        cbc_submode = 0x2;
-                break;
+		case 0x12:
+			mode = 0x01;
+			cbc_submode = 0x2;
+		break;
 
-                case 0x13:
-                        mode = 0x01;
-                        cbc_submode = 0x03;
-                break;
+		case 0x13:
+			mode = 0x01;
+			cbc_submode = 0x03;
+		break;
 
-                default:
-                        mode = cipher_mode;
-                break;
+		default:
+			mode = cipher_mode;
+		break;
 
-        }
-
-
-        memset(pcmd,0,0x40);
-        /*setup the actual cmd ring data from alg_ctx  or call back? */
+	}
+	memset(pcmd,0,0x40);
+	/*setup the actual cmd ring data from alg_ctx  or call back? */
         pcmd->src_pkt_addr_l = (unsigned long)src;
         pcmd->src_pkt_addr_h = 0;
         pcmd->dst_pkt_addr_l = (unsigned long)dst;
         pcmd->dst_pkt_addr_h = 0;
         pcmd->dst_pkt_off = 0;  //no offset
         pcmd->src_pkt_off = 0;
-        pcmd->pre_aad_len = 0;
+	if(cipher_mode == GCM_MODE)
+		pcmd->pre_aad_len = 20;
+	else
+		pcmd->pre_aad_len = 0;
         pcmd->post_aad_len = 0;
+	//printf("proc_len = %x \n", proc_len);
         pcmd->proc_len = proc_len;
-        if(cipher_mode == GCM_MODE)
-                pcmd->icv_offset = 16;
-        else
-                pcmd->icv_offset = 0;
+	if(cipher_mode == GCM_MODE)
+        	pcmd->icv_offset = 80;
+	else
+		pcmd->icv_offset = 0;
         pcmd->iv_offset = 0;
         pcmd->iv_enable = 0;
         pcmd->hm_key_size = 0;
-        if(ende_flag == 0)
+	if(ende_flag == 0)
                  pcmd->key_exp = 1;
         else
                  pcmd->key_exp = 0;
@@ -797,10 +951,13 @@ int ips_data_setup_aes(unsigned char *src, unsigned char *dst,struct ips_command
         pcmd->icv_append = 0;
         pcmd->icv_pt = 0;
         pcmd->icv_enc = 0;
-        pcmd->aad_copy = 0;
+	if(cipher_mode == GCM_MODE)
+		pcmd->aad_copy = 1;
+	else
+		pcmd->aad_copy = 0;
         pcmd->encrypt = ende_flag; //encrypt
         pcmd->ctx_idx = 0;
-        pcmd->ddt_mode = 0;
+        pcmd->ddt_mode = ddt_mode;
         pcmd->hash_mode = 0; //raw mode
         pcmd->cipher_mode = mode; //NULL ? ECB
         pcmd->hash_alg = 0;
@@ -808,11 +965,10 @@ int ips_data_setup_aes(unsigned char *src, unsigned char *dst,struct ips_command
         pcmd->ioc = 0;
         pcmd->icv_len = 0;
         pcmd->cbc_cs_sel = cbc_submode;
+	//printf("cbc_submode = %x \n", cbc_submode);
         pcmd->bk_sz_cfb = 0;
-        pcmd->sw_id = 0;
+	pcmd->sw_id = 0;
         return 0;
-
-
 }
 int ips_cmd_create(unsigned char *src, unsigned char *dst, int flag, int alg_flag, int alg_mode, int ende_flag, int proc_len)
 {
@@ -831,6 +987,24 @@ int ips_cmd_create(unsigned char *src, unsigned char *dst, int flag, int alg_fla
         	printf("command ring full! \n");
 	        return -1;
 	}
+	switch(flag)
+	{
+		case 0: //sha
+			ret_value = ips_data_setup_sha(src,dst,pcmd,alg_flag,alg_mode,ende_flag,proc_len,DIRECT_MODE);
+		break;
+		case 1: //aes
+			ret_value = ips_data_setup_aes(src,dst,pcmd,alg_flag,alg_mode,ende_flag,proc_len,DIRECT_MODE);
+		break;
+		case 2: //sha_ddt
+			ret_value = ips_data_setup_sha(src,dst,pcmd,alg_flag,alg_mode,ende_flag,proc_len,DDT_MODE);
+		break;
+		case 3: //aes_ddt
+			ret_value = ips_data_setup_aes(src,dst,pcmd,alg_flag,alg_mode,ende_flag,proc_len,DDT_MODE);
+		break;
+		default:
+		break;
+	}
+	#if 0
 	if(flag == 0){ //sha
 		ret_value = ips_data_setup_sha(src,dst,pcmd,alg_flag,alg_mode,ende_flag,proc_len);
 	}
@@ -838,21 +1012,24 @@ int ips_cmd_create(unsigned char *src, unsigned char *dst, int flag, int alg_fla
 
 		ret_value = ips_data_setup_aes(src,dst,pcmd,alg_flag,alg_mode,ende_flag,proc_len);
 	}
+	#endif
 	if(ret_value) {
                 printf("ips module data setup  case failed! \n");
 		return -1;
 	}
 	cmd_base = READ_REG(IPS_VF0_REG_RING_CTRL_0);
+	//memset((void*)(cmd_base + 64*producer_idx), 0x0, 0x40);
 	//printf("cmd_base = %x \n", cmd_base);
 	memcpy((void*)(uintptr_t)(cmd_base + 64*producer_idx), (void*)pcmd, 64);
 	//for (i = 0; i < 64; i++)
-              // printf("cmdring #_%#x  value= %#x\n", i, *(unsigned char*)(uintptr_t)(cmd_base + i));
-
+          //    printf("cmdring #_%#x  value= %#x\n", i, *(unsigned char*)(uintptr_t)(cmd_base + i));
 	producer_idx++;
 
 	producer_idx = producer_idx % MAX_CMD;
 
 	WRITE_REG(IPS_VF0_REG_C0_MAILBOX_0, producer_idx);
+	/**************reset WD_TIMER******************/
+	//reset_WD(0);
 	producer_idx = READ_REG(IPS_VF0_REG_C0_MAILBOX_0);
 	//printf("producer_idx = %x \n", producer_idx);
 	//heap_free(pcmd);
@@ -864,9 +1041,16 @@ int ips_status_polling()
 	int i;
 	int ret_value;
 	int status_base;
+	int producer_idx;
+	int consumer_idx;
 	struct status_ring* ring;
 	status_base = READ_REG(IPS_VF0_REG_RING_CTRL_4);
 	ring = (struct status_ring*)(uintptr_t)status_base;
+	/*enalbe watch dog timer*/
+	producer_idx = READ_REG(IPS_VF0_REG_C0_MAILBOX_0);
+        consumer_idx = READ_REG(IPS_VF0_REG_C0_MAILBOX_1);
+	//if(consumer_idx == producer_idx)
+	//	enable_WD(0);
 
 	for(i=0; i<10; i++)
 	{
@@ -877,6 +1061,5 @@ int ips_status_polling()
 	}
 	//printf("stsring ret_code  value= %#x\n", ring->ret_code);
         //printf("stsring sw_id value= %#x\n", ring->sw_id);
-
 	return 0;
 }

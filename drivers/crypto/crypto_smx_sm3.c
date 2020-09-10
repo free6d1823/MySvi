@@ -5,7 +5,7 @@
 #include "target/crypto_smx.h"
 #include "target/cmdline.h"
 #include "target/heap.h"
-#define DEBUG_PRINT
+//#define DEBUG_PRINT
 #define IPS_POLLING
 
 int sm3_function_test(unsigned char *psrc, unsigned char *pdst, int alg_flag, int ende_flag, int proc_len)
@@ -30,10 +30,10 @@ int sm3_function_test(unsigned char *psrc, unsigned char *pdst, int alg_flag, in
 	}
 	#endif
 	#ifdef DEBUG_PRINT
-        for(i=0; i<outlen+proc_len; i++) //proc_len
-                printf("pdst[i] =%x \n", pdst[i]);
-        for(i=0; i<outlen; i++)
-                printf("dgst = %x \n",dgst[i]);
+        for(i=0; i<outlen; i++) //proc_len
+                printf("pdst[i] =%x \n", pdst[proc_len+i]);
+       // for(i=0; i<outlen; i++)
+         //       printf("dgst = %x \n",dgst[i]);
 	#endif
         ret = str_cmp((pdst+proc_len), dgst, outlen);
         if(!ret)
@@ -44,13 +44,19 @@ int sm3_function_test(unsigned char *psrc, unsigned char *pdst, int alg_flag, in
 	}
 }
 
-static int se_smx_sm3(int argc, char *argv[])
+int se_smx_sm3()
 {
 	int ret;
 	int i;
-//	unsigned char src[] = {0x55,0x55,0x55,0x55,0x43,0x55,0x16,0x41,0x66,0x66,0x66,0x66,0x66,0x66,0x66,0x66,0x77,0x67,0x77,0x77,0x77,0x77,0x77,
-//				0x77,0x99,0x99,0x99,0x99,0x99,0x99,0x99,0x99,0x99,0x99,0x99,0x99,0x88,0x99,0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88,
-//				0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88,0x88};
+	/*unsigned char src[] = {	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //ki
+				0x00, 0x00, 0x00, 0x01, 0x89, 0xab, 0xcd, 0xef,   // i&label
+				0x01, 0x23, 0x45, 0x67, 0x00, 0x00, 0x00,0x80
+			      };
+	*/
+
 	unsigned char src[] = "abc";
 	int len = 3;
 	unsigned char *psrc;
@@ -66,19 +72,25 @@ static int se_smx_sm3(int argc, char *argv[])
 	ret = smx_init_clk();
 	if(!ret)
 		printf("smx module clock case pass! \n");
+	else
+		return -1;
 	ret = smx_module_reset();
 	if(!ret)
 		printf("smx module reset case pass! \n");
+	else
+		return -1;
 	ret = smx_dev_init();
 	if(!ret)
 		printf("smx module initialzie case pass! \n");
+	else
+		return -1;
 	ret = smx_key_iv_set();
 	if(!ret)
 		printf("smx module key_iv set case pass \n");
+	else
+		return -1;
 
         /*************************sm3 alg***********************************************/
-	ret = 0;//strcmp(argv[1],"sm3");
-	if(!ret){
 		ret = sm3_function_test(psrc, pdst, SM3_FLAG, ENCRYPT, len);
 		if(!ret){
 		 	printf("sm3 alg case pass! \n");
@@ -88,11 +100,7 @@ static int se_smx_sm3(int argc, char *argv[])
 		 	printf("sm3 alg case failed! \n");
 			return -1;
 		}
-	}
 	return 0;
 }
 
-MK_CMD(smx_sm3, se_smx_sm3, "Test crypto smx alg",
-	"smx_sm3  mode\n"
-	"	- sm3: test sm3 algorithm\n"
-);
+

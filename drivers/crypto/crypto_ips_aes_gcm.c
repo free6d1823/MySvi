@@ -1,0 +1,212 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include "target/crypto_ips.h"
+#include "target/cmdline.h"
+#include "target/heap.h"
+#define IPS_POLLING
+//#define DEBUG_PRINT
+
+	unsigned char src_gcm[60] = {0xd9,0x31,0x32,0x25,0xf8,0x84,0x06,0xe5,0xa5,0x59,0x09,0xc5,0xaf,0xf5,0x26,0x9a,0x86,0xa7,0xa9,0x53,0x15,0x34,0xf7,0xda,0x2e,0x4c,0x30,0x3d,0x8a,0x31,0x8a,0x72, 	     						0x1c,0x3c,0x0c,0x95,0x95,0x68,0x09,0x53,0x2f,0xcf,0x0e,0x24,0x49,0xa6,0xb5,0x25,0xb1,0x6a,0xed,0xf5,0xaa,0x0d,0xe6,0x57,0xba,0x63,0x7b,0x39 };
+	unsigned char key_128gcm[16] = {0xfe,0xff,0xe9,0x92,0x86,0x65,0x73,0x1c,0x6d,0x6a,0x8f,0x94,0x67,0x30,0x83,0x08};
+	unsigned char key_192gcm[24] = {0xfe,0xff,0xe9,0x92,0x86,0x65,0x73,0x1c,0x6d,0x6a,0x8f,0x94,0x67,0x30,0x83,0x08,0xfe,0xff,0xe9,0x92,0x86,0x65,0x73,0x1c};
+	unsigned char key_256gcm[32] = {0xfe,0xff,0xe9,0x92,0x86,0x65,0x73,0x1c,0x6d,0x6a,0x8f,0x94,0x67,0x30,0x83,0x08,0xfe,0xff,0xe9,0x92,0x86,0x65,0x73,0x1c,
+					0x6d,0x6a,0x8f,0x94,0x67,0x30,0x83,0x08};
+	unsigned char iv_gcm[16] = {0xca,0xfe,0xba,0xbe,0xfa,0xce,0xdb,0xad,0xde,0xca,0xf8,0x88,0x0,0x0,0x0,0x1};
+	unsigned char pre_aad[20] = {0xfe,0xed,0xfa,0xce,0xde,0xad,0xbe,0xef,0xfe,0xed,0xfa,0xce,0xde,0xad,0xbe,0xef,0xab,0xad,0xda,0xd2}; 
+	unsigned char dst_gcm_128[60]={0x42,0x83,0x1e,0xc2,0x21,0x77,0x74,0x24,0x4b,0x72,0x21,0xb7,0x84,0xd0,0xd4,0x9c,0xe3,0xaa,0x21,0x2f,0x2c,0x02,0xa4,0xe0,0x35,0xc1,0x7e,0x23,
+				0x29,0xac,0xa1,0x2e,0x21,0xd5,0x14,0xb2,0x54,0x66,0x93,0x1c,0x7d,0x8f,0x6a,0x5a,0xac,0x84,0xaa,0x05,0x1b,0xa3,0x0b,0x39,0x6a,0x0a,0xac,0x97,0x3d,0x58,0xe0,0x91};
+	unsigned char dst_gcm_192[60]={0xfe,0xdf,0x63,0x1c,0xf1,0x8b,0x06,0x8a,0x2d,0x0,0x69,0xb4,0x64,0x32,0xf6,0x24,0xe1,0x61,0xc8,0x44,0x27,0xe4,0xaf,0x26,0x4d,0x5e,0x7c,0x34,0xff,0x4c,0x69,
+                                       0x89,0x4e,0xa2,0xef,0xf5,0xbc,0xb8,0xa1,0xd2,0xc0,0xf2,0xae,0xee,0x33,0x80,0x0b,0xb1,0xd2,0xda,0x9f,0xba,0x4c,0x52,0x7c,0x4c,0x85,0xf4,0xce,0x7b};
+	unsigned char dst_gcm_256[60]={0x93,0x5d,0x84,0x92,0xd3,0x7a,0x1f,0x09,0x83,0xc3,0x17,0x56,0x5c,0x3d,0x42,0x08,0x49,0x15,0xba,0x8f,0xa8,0x77,0x59,0x1b,0x86,0x5a,0x11,0x48,0xce,
+                                       0x03,0x25,0x08,0x06,0xbc,0x85,0x39,0x42,0x21,0x8e,0x9d,0xd8,0x77,0x3a,0x37,0xcc,0xe6,0xdf,0x79,0xcb,0x83,0xaa,0xae,0xff,0xe6,0xee,0x52,0xf0,0xca,0x5b,0xb5};
+	unsigned char dst_gcmtag_128[16]={0x5b,0xc9,0x4f,0xbc,0x32,0x21,0xa5,0xdb,0x94,0xfa,0xe9,0x5a,0xe7,0x12,0x1a,0x47};
+	unsigned char dst_gcmtag_192[16]={0x61,0xfe,0x75,0x65,0xc5,0xf8,0x21,0xe5,0xaf,0x62,0xb8,0x5b,0x6d,0xd2,0xfb,0x14};
+	unsigned char dst_gcmtag_256[16]={0xeb,0x7c,0x4f,0x50,0x23,0xd3,0xf3,0xb3,0x65,0x81,0x2f,0x67,0x7f,0x52,0x0,0x56};
+
+static int aes_gcm_test(unsigned char *psrc, unsigned char *pdst, int alg_flag, int aes_bitlen, int aes_mode,  int proc_len)
+{
+	int i;
+	int ret;
+	int outlen;
+	unsigned char dst[60]={0x0};
+	unsigned char tag[16]={0x0};
+	memset(pdst,0,0x100);
+	memset(psrc+0x800,0,0x100);
+	//iv[15] = 0x01;
+	if(aes_mode == GCM_MODE){
+		outlen = 96;
+
+                if(aes_bitlen == AES_128){
+                       memcpy(dst,dst_gcm_128,60);
+		       memcpy(tag,dst_gcmtag_128,16);
+		}
+                if(aes_bitlen == AES_192){
+                       memcpy(dst,dst_gcm_192,60);
+		       memcpy(tag,dst_gcmtag_192,16);
+		}
+                if(aes_bitlen == AES_256){
+                       memcpy(dst,dst_gcm_256,60);
+		       memcpy(tag,dst_gcmtag_256,16);
+		}
+	}
+        /*1. hw encrypt*/
+	//printf("prepare ips_cmd_create proc_len = %x \n", proc_len);
+
+        ret = ips_cmd_create(psrc, pdst, alg_flag, aes_bitlen, aes_mode, ENCRYPT, proc_len);
+        if(ret) {
+                printf("ips module-ips_cmd_creaete for aes-encrypt failed! \n");
+		return -1;
+	}
+//	printf("ips_cmd done \n");
+	#ifdef IPS_POLLING
+        ret = ips_status_polling();
+        if(ret) {
+                printf("ips module-ips_status_polling for aes-encrypt failed! \n");
+		return -1;
+	}
+	#endif
+	#ifdef DEBUG_PRINT
+        for(i=0; i<outlen; i++)
+                printf("en_dst = %x \n",pdst[i]);
+	#endif
+
+        /*2. hw decrypt*/
+        ret = ips_cmd_create(pdst, psrc+0x800, alg_flag, aes_bitlen, aes_mode, DECRYPT, proc_len);
+        if(ret) {
+                printf("ips module-ips_cmd_creaete for aes-decrypt failed! \n");
+		return -1;
+	}
+	#ifdef IPS_POLLING
+        ret = ips_status_polling();
+        if(ret) {
+                printf("ips module-ips_status_polling for aes-decrypt failed! \n");
+		return -1;
+	}
+	#endif
+	#ifdef DEBUG_PRINT
+        for(i=0; i<outlen; i++)
+                printf("de_dst = %x \n",psrc[0x800+i]);
+	#endif
+	if(aes_mode == GCM_MODE)
+	{	ret = str_cmp(psrc,(psrc+0x800),20 );
+		if(ret){
+			printf("aad data not consistent! \n");
+			return -1;
+		}
+		ret = str_cmp((psrc+20), (psrc+0x814),60);
+		if(ret){
+                	printf("decrypt data and source data are different!\n");
+			return -1;
+		}
+
+        /*3. sw compare with engine*/
+
+	#ifdef DEBUG_PRINT
+         for(i=0; i<outlen; i++)
+                printf("sw_dst = %x \n",dst[i]);
+	#endif
+		ret = str_cmp(psrc,pdst, 20);
+                if(ret){
+                        printf("aad data not consistent! \n");
+                        return -1;
+                }
+                ret = str_cmp(pdst+20, dst, 60);
+                if(ret){
+                        printf("encrypt data and standard data are different!\n");
+                        return -1;
+                }
+		ret = str_cmp(pdst+80, tag, 16);
+		if(ret) {
+			printf("tag is not consistent! \n");
+			return -1;
+		}
+
+	}
+	return 0;
+}
+
+int se_ips_aes_gcm()
+{
+        int ret;
+        int i;
+        int len = 80;
+        unsigned char *hashkey;
+        unsigned char *psrc;
+        unsigned char *pdst;
+        //printf("enter into se_ips_aes \n");
+        hashkey = NULL;
+        psrc = (unsigned char*)IPS_SRC_BASE; //0x50000; //heap_alloc(32);
+        pdst = (unsigned char*)IPS_DST_BASE; //0x60000; //heap_alloc(32);
+        ret = ips_init_clk();
+        if(!ret)
+                printf("ips module clock case pass! \n");
+	else
+		return -1;
+        ret = ips_module_reset();
+        if(!ret)
+                printf("ips module reset case pass! \n");
+	else
+		return -1;
+        ret = ips_dev_init();
+        if(!ret)
+                printf("ips module initialzie case pass! \n");
+	else
+		return -1;
+
+        /***********************calculate aes-128-gcm********************************/
+        memcpy(psrc, pre_aad, 20);
+        memcpy(psrc+20, src_gcm, 60);
+        ret = ips_key_iv_set(key_128gcm,16,iv_gcm,hashkey,0);
+        if(!ret)
+                printf("ips module key_iv set case pass \n");
+	else
+		return -1;
+
+        ret = aes_gcm_test(psrc, pdst, AES_FLAG, AES_128, GCM_MODE, len);
+        if(!ret){
+                 printf("aes-128-gcm mode case pass! \n");
+        }
+        else{
+                 printf("aes-128-gcm mode case failed! \n");
+                 return -1;
+        }
+
+	 /***********************calculate aes-192-gcm********************************/
+        ret = ips_key_iv_set(key_192gcm,16,iv_gcm,hashkey,0);
+        if(!ret)
+                printf("ips module key_iv set case pass \n");
+	else
+		return -1;
+
+        ret = aes_gcm_test(psrc, pdst, AES_FLAG, AES_192, GCM_MODE, len);
+        if(!ret){
+                 printf("aes-192-gcm mode case pass! \n");
+        }
+        else{
+                 printf("aes-192-gcm mode case failed! \n");
+                 return -1;
+        }
+
+	/***********************calculate aes-256-gcm********************************/
+
+        ret = ips_key_iv_set(key_256gcm,16,iv_gcm,hashkey,0);
+        if(!ret)
+                printf("ips module key_iv set case pass \n");
+	else
+		return -1;
+
+        ret = aes_gcm_test(psrc, pdst, AES_FLAG, AES_256, GCM_MODE, len);
+        if(!ret){
+                 printf("aes-256-gcm mode case pass! \n");
+        }
+        else{
+                 printf("aes-256-gcm mode case failed! \n");
+                 return -1;
+        }
+
+	return 0;
+}
+
+

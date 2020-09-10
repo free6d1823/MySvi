@@ -1,2 +1,2 @@
-#define M4_IPS
-#define M4_SMX
+#define A76_IPS
+#define A76_SMX

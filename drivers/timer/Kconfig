@@ -1,0 +1,3 @@
+config DW_TIMER
+	bool "designware timer driver"
+

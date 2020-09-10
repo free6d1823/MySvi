@@ -507,7 +507,7 @@ static struct its_local* gic_its_basic_init(
 static int do_gic_its_test(int argc, char *argv[])
 {
 	uint64_t its_base = 0;
-	u32 devid, eventid;
+	u32 devid = 0, eventid;
 	bool test;
 
 	test = false;

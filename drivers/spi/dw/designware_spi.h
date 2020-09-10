@@ -91,11 +91,20 @@ struct dw_spi_priv {
 	void *cmdbuf;
 	void *databuf;
 	u16 clk_div;	/* baud rate divider*/
+	u8 slvoe;
 
 };
 
 #define SPI_NUM		4
 extern struct dw_spi_priv priv[SPI_NUM];
+extern struct dw_spi_priv priv_slave[SPI_NUM];
 
 int dw_spi_transfer_one_message(struct dw_spi_priv *, const void *, int , void *, int, bool);
+int spi_init(int index);
+void dw_write(struct dw_spi_priv *priv, u32 offset, u32 val);
+u32 dw_read(struct dw_spi_priv *priv, u32 offset);
+void spi_enable_chip(struct dw_spi_priv *priv, int enable);
+int spi_setcs(int cs);
+int spi_test();
+int spi_intr_test();
 

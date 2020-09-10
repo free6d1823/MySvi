@@ -1,2 +1,1 @@
-#define M4_IPS
-#define M4_SMX
+../../drivers/crypto/crypto_control.h

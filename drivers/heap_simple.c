@@ -44,6 +44,13 @@ int heap_switch(int argc, char *argv[])
 	return 0;
 }
 
+int heap_switch_direct(uintptr_t addr1, uintptr_t addr2)
+{
+
+	gp_buf = addr1;
+	gp_end = addr2;
+	return 0;
+}
 
 MK_CMD(heapswitch, heap_switch, "switch heap memory location to other address",
 		"heapswitch <start address> <end address>\n"

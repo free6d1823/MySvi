@@ -1,0 +1,3 @@
+config DW_PWM
+	bool "designware pwm driver"
+

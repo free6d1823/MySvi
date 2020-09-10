@@ -225,13 +225,15 @@ char* smmu_page_buf=NULL;
 void *current_page=NULL;
 void* alloc_pagesize(int size)
 {
+	void *alloc_page=NULL;
 	if (current_page == NULL)
 		current_page = smmu_page_buf;
+	alloc_page = current_page;
 	current_page = current_page + size*PAGE_SIZE;
 	if ((char*)current_page - (char*)smmu_page_buf > PAGE_SIZE*8)
 		dev_err(NULL,"page alloc failure\n");
 
-	return current_page;
+	return alloc_page;
 }
 static void *__arm_lpae_alloc_pages(size_t size)
 {
@@ -275,6 +277,8 @@ static void __arm_lpae_init_pte(struct arm_lpae_io_pgtable *data,
 	pte |= paddr_to_iopte(paddr, data);
 
 	__arm_lpae_set_pte(ptep, pte, &data->iop.cfg);
+
+	flush_dcache_addr(ptep);
 }
 
 static int arm_lpae_init_pte(struct arm_lpae_io_pgtable *data,
@@ -289,6 +293,7 @@ static int arm_lpae_init_pte(struct arm_lpae_io_pgtable *data,
 		/*Is using same mapping item for all SMMUs, so
 		ignore the warning*/
 		//WARN_ON(!selftest_running);
+		printf("sth wrong\n");
 		return -EEXIST;
 	}
 
@@ -679,9 +684,9 @@ arm_64_lpae_alloc_pgtable_s2(struct io_pgtable_cfg *cfg, void *cookie)
 		return NULL;
 
 	data = arm_lpae_alloc_pgtable(cfg);
+
 	if (!data)
 		return NULL;
-
 	/*
 	 * Concatenate PGDs at level 1 if possible in order to reduce
 	 * the depth of the stage-2 walk.
@@ -749,6 +754,7 @@ arm_64_lpae_alloc_pgtable_s2(struct io_pgtable_cfg *cfg, void *cookie)
 
 	/* Allocate pgd pages */
 	data->pgd = __arm_lpae_alloc_pages(data->pgd_size);
+
 	if (!data->pgd)
 		goto out_free_data;
 

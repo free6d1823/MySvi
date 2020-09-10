@@ -62,6 +62,10 @@
 #define GDC_FEATURE_TILE_CACHE_SIZE		(0x00f80000) /* log2(size of tile cache in 16x16 clusters) */
 #define GDC_FEATURE_POLYPHASS_FILTER	(0x07000000) /* Number of polyphase filter banks [2:0], log2(number of polyphase filter banks) */
 #define GDC_FEATURE_AXI_DATA_WIDTH		(0x38000000) /* AXI data width [2:0] log2(AXI_DATA_WIDTH)-5 */
+int gdc_dump(int id);
+int gdc_init();
+int gdc_dump_features(int id);
+int gdc_test(int id);
 
 int gdc_dump(int id);
 int gdc_init();

@@ -9,7 +9,7 @@
 #include <target/utils.h>
 #include <asm/io.h>
 
-#define LOGLEVEL 3
+#define LOGLEVEL 4
 #define dev_printk(dev, fmt, ...)				\
 ({								\
 	printf(fmt, ##__VA_ARGS__);				\
@@ -355,52 +355,7 @@ extern struct io_pgtable_init_fns io_pgtable_arm_64_lpae_s1_init_fns;
 extern struct io_pgtable_init_fns io_pgtable_arm_64_lpae_s2_init_fns;
 extern struct io_pgtable_init_fns io_pgtable_arm_v7s_init_fns;
 
-#define PAGE_SHIFT 12
-static inline __attribute_const__
-int __get_order(unsigned long size)
-{
-	int order;
-
-	size--;
-	size >>= PAGE_SHIFT;
-#if BITS_PER_LONG == 32
-	order = fls(size);
-#else
-	order = fls64(size);
-#endif
-	return order;
-}
-
-/**
- * get_order - Determine the allocation order of a memory size
- * @size: The size for which to get the order
- *
- * Determine the allocation order of a particular sized block of memory.  This
- * is on a logarithmic scale, where:
- *
- *	0 -> 2^0 * PAGE_SIZE and below
- *	1 -> 2^1 * PAGE_SIZE to 2^0 * PAGE_SIZE + 1
- *	2 -> 2^2 * PAGE_SIZE to 2^1 * PAGE_SIZE + 1
- *	3 -> 2^3 * PAGE_SIZE to 2^2 * PAGE_SIZE + 1
- *	4 -> 2^4 * PAGE_SIZE to 2^3 * PAGE_SIZE + 1
- *	...
- *
- * The order returned is used to find the smallest allocation granule required
- * to hold an object of the specified size.
- *
- * The result is undefined if the size is 0.
- *
- * This function may be used to initialise variables with compile time
- * evaluations of constants.
- */
-#define get_order(n)						\
-(								\
-	__builtin_constant_p(n) ? (				\
-		((n) == 0UL) ? BITS_PER_LONG - PAGE_SHIFT :	\
-		(((n) < (1UL << PAGE_SHIFT)) ? 0 :		\
-		 __ilog2((n) - 1) - PAGE_SHIFT + 1)		\
-	) :							\
-	__get_order(n)						\
-)
+bool smmu_buf_init();
+void smmu_init(uint64_t, int);
 
 #endif /* __IO_PGTABLE_H */

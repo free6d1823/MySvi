@@ -53,6 +53,9 @@ ENTRY(_start)
 	add	x0, x1, x0, LSL #STACK_SHIFT
 	mov	sp, x0
 
+	/* Enable SError interrupt */
+	msr	daifclr, #4
+
 	/* BOOT_CORE should be defined if CPUs wake up simultaneously */
 #ifdef BOOT_CORE
 	cmp	x19, BOOT_CORE

@@ -147,6 +147,11 @@ enum {
 	MK_BLK(lvl, pt, addr, addr, PTE_UXN | PTE_PXN | PTE_nG | PTE_AF | PTE_SH_INNER | \
 							PTE_AP_RW_EL0 | PTE_NS | PTE_MT(OUTER_WB_INNER_WB))
 
+/* make normal non-cacheable memory */
+#define MK_MEM_NC(lvl, pt, addr) \
+	MK_BLK(lvl, pt, addr, addr, PTE_UXN | PTE_PXN | PTE_nG | PTE_AF | PTE_SH_INNER | \
+							PTE_AP_RW_EL0 | PTE_NS | PTE_MT(OUTER_NC_INNER_NC))
+
 #define ATTR_MEMX (PTE_nG | PTE_AF | PTE_SH_INNER | \
 							PTE_AP_RW_EL0 | PTE_NS | PTE_MT(OUTER_WB_INNER_WB))
 
@@ -157,34 +162,52 @@ enum {
 #define MK_PAGE_MEMX(pt, addr) \
 	MK_PAGE(pt, addr, addr, ATTR_MEMX)
 
+/* pt is L2 */
 #define MK_DEV_2M(pt, addr) MK_DEV(2, pt, addr, PTE_NS)
 #define MK_DEV_2M_SECURE(pt, addr) MK_DEV(2, pt, addr, 0)
 
 #define MK_MEM_2M(pt, addr) MK_MEM(2, pt, addr)
+#define MK_MEM_NC_2M(pt, addr) MK_MEM_NC(2, pt, addr)
 #define MK_MEMX_2M(pt, addr) MK_MEMX(2, pt, addr)
 
+/* pt is L1 */
+#define MK_DEV_1G(pt, addr) MK_DEV(1, pt, addr, PTE_NS)
+#define MK_MEM_1G(pt, addr) MK_MEM(1, pt, addr)
+#define MK_MEM_NC_1G(pt, addr) MK_MEM_NC(1, pt, addr)
+
+
+/*******************************************************/
+/*******************************************************/
+
+
+/* pt is L3 */
+/* 8K */
 #define MK_PAGE_MEMX_2X(pt, addr) \
 	MK_PAGE_MEMX(pt, addr), \
 	MK_PAGE_MEMX(pt, addr + PAGE(1))
 
+/* 32K */
 #define MK_PAGE_MEMX_8X(pt, addr) \
 	MK_PAGE_MEMX_2X(pt, addr), \
 	MK_PAGE_MEMX_2X(pt, addr + PAGE(2)), \
 	MK_PAGE_MEMX_2X(pt, addr + PAGE(4)), \
 	MK_PAGE_MEMX_2X(pt, addr + PAGE(6))
 
+/* 128K */
 #define MK_PAGE_MEMX_32X(pt, addr) \
 	MK_PAGE_MEMX_8X(pt, addr), \
 	MK_PAGE_MEMX_8X(pt, addr + PAGE(8)), \
 	MK_PAGE_MEMX_8X(pt, addr + PAGE(0x10)), \
 	MK_PAGE_MEMX_8X(pt, addr + PAGE(0x18))
 
+/* 512K */
 #define MK_PAGE_MEMX_128X(pt, addr) \
 	MK_PAGE_MEMX_32X(pt, addr), \
 	MK_PAGE_MEMX_32X(pt, addr + PAGE(0x20)), \
 	MK_PAGE_MEMX_32X(pt, addr + PAGE(0x40)), \
 	MK_PAGE_MEMX_32X(pt, addr + PAGE(0x60))
 
+/* pt is L2 */
 #define MK_DEV_2M_8X(pt, addr) \
 	MK_DEV_2M(pt, addr), \
 	MK_DEV_2M(pt, addr + MB(2)), \
@@ -205,30 +228,18 @@ enum {
 	MK_DEV_2M_8X(pt, addr + MB(0x60)), \
 	MK_DEV_2M_8X(pt, addr + MB(0x70))
 
-#define MK_DEV_1G(pt, addr) \
-	MK_DEV_2M_64X(pt, addr), \
-	MK_DEV_2M_64X(pt, addr + MB(0x80)), \
-	MK_DEV_2M_64X(pt, addr + MB(0x100)), \
-	MK_DEV_2M_64X(pt, addr + MB(0x180)), \
-	MK_DEV_2M_64X(pt, addr + MB(0x200)), \
-	MK_DEV_2M_64X(pt, addr + MB(0x280)), \
-	MK_DEV_2M_64X(pt, addr + MB(0x300)), \
-	MK_DEV_2M_64X(pt, addr + MB(0x380))
-
-#define MK_DEV_2G(pt, addr) \
+/* pt is L1 */
+#define MK_DEV_1G_8X(pt, addr) \
 	MK_DEV_1G(pt, addr), \
-	MK_DEV_1G(pt, addr + GB(1))
+	MK_DEV_1G(pt, addr + GB(1)), \
+	MK_DEV_1G(pt, addr + GB(2)), \
+	MK_DEV_1G(pt, addr + GB(3)), \
+	MK_DEV_1G(pt, addr + GB(4)), \
+	MK_DEV_1G(pt, addr + GB(5)), \
+	MK_DEV_1G(pt, addr + GB(6)), \
+	MK_DEV_1G(pt, addr + GB(7))
 
-#define MK_DEV_2G_8X(pt, addr) \
-	MK_DEV_2G(pt, addr), \
-	MK_DEV_2G(pt, addr + GB(2)), \
-	MK_DEV_2G(pt, addr + GB(4)), \
-	MK_DEV_2G(pt, addr + GB(6)), \
-	MK_DEV_2G(pt, addr + GB(8)), \
-	MK_DEV_2G(pt, addr + GB(10)), \
-	MK_DEV_2G(pt, addr + GB(12)), \
-	MK_DEV_2G(pt, addr + GB(14))
-
+/* pt is L2 */
 #define MK_MEM_2M_8X(pt, addr) \
 	MK_MEM_2M(pt, addr), \
 	MK_MEM_2M(pt, addr + MB(2)), \
@@ -248,6 +259,28 @@ enum {
 	MK_MEM_2M_8X(pt, addr + MB(0x50)), \
 	MK_MEM_2M_8X(pt, addr + MB(0x60)), \
 	MK_MEM_2M_8X(pt, addr + MB(0x70))
+
+/* pt is L2 */
+#define MK_MEM_NC_2M_8X(pt, addr) \
+	MK_MEM_NC_2M(pt, addr), \
+	MK_MEM_NC_2M(pt, addr + MB(2)), \
+	MK_MEM_NC_2M(pt, addr + MB(4)), \
+	MK_MEM_NC_2M(pt, addr + MB(6)), \
+	MK_MEM_NC_2M(pt, addr + MB(8)), \
+	MK_MEM_NC_2M(pt, addr + MB(10)), \
+	MK_MEM_NC_2M(pt, addr + MB(12)), \
+	MK_MEM_NC_2M(pt, addr + MB(14))
+
+#define MK_MEM_NC_2M_64X(pt, addr) \
+	MK_MEM_NC_2M_8X(pt, addr), \
+	MK_MEM_NC_2M_8X(pt, addr + MB(0x10)), \
+	MK_MEM_NC_2M_8X(pt, addr + MB(0x20)), \
+	MK_MEM_NC_2M_8X(pt, addr + MB(0x30)), \
+	MK_MEM_NC_2M_8X(pt, addr + MB(0x40)), \
+	MK_MEM_NC_2M_8X(pt, addr + MB(0x50)), \
+	MK_MEM_NC_2M_8X(pt, addr + MB(0x60)), \
+	MK_MEM_NC_2M_8X(pt, addr + MB(0x70))
+
 
 #define pt_section __attribute__((section(".pagetable")))
 extern pt_section pte pagetable[][MAX_PTE_ENTRIES];

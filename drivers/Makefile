@@ -56,11 +56,13 @@ obj-$(CONFIG_DW_WDT) += watchdog/
 obj-$(CONFIG_DW_AHB_DMAC) += dma/ahb/
 obj-$(CONFIG_SE1000_CRYPTO) += crypto/
 obj-$(CONFIG_MBEDTLS_CRYPTO) += mbedtls/library/
-obj-$(CONFIG_GC355) += gc355/
-obj-$(CONFIG_GC520) += gc520/
+obj-$(CONFIG_GPU2) += gpu2/
 obj-$(CONFIG_VC8000E) += vc8000e/
 obj-$(CONFIG_VC8000D) += vc8000d/
 obj-$(CONFIG_GDC) += gdc/
 obj-$(CONFIG_CLK_DRIVER) += clk/
-
+obj-$(CONFIG_DW_TIMER) += timer/
+obj-$(CONFIG_DW_PWM) += pwm/
+obj-$(CONFIG_DW_MIPI_HOST) += mipi_host/
 obj-$(CONFIG_CDNS_QSPI) += qspi/
+obj-$(CONFIG_C71) += cisp_ss/c71/

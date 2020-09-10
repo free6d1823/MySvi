@@ -8,13 +8,12 @@
 enum {
 	L0,
 	L1,
-	L2_0,
-	L2_1,
-	L2_2,
-	L2_3,
-	L2_PCI_CONFIG_SPACE,
+	L2_0,   // [0G, 1G)
+	L2_1,   // [1G, 2G)
+	L2_2,   // [2G, 3G)
+	L2_3,   // [3G, 4G)
 
-	L3_SVI,
+	L3_SVI, // [0M, 2M)
 
 	PT_MAX,
 };
@@ -53,12 +52,20 @@ pt_section pte pagetable[PT_MAX][MAX_PTE_ENTRIES] = {
 
 	/* SMP_SS */
 	MK_DEV_2M(L2_1, 0x058000000),
+	MK_DEV_2M(L2_1, 0x058200000),
 
 	/* Actual RAM size depends on initial RAM and device memory settings */
+#if 1
 	MK_MEM_2M_64X(L2_1, 0x60000000),
 	MK_MEM_2M_64X(L2_1, 0x60000000 + MB(0x80)),
 	MK_MEM_2M_64X(L2_1, 0x60000000 + MB(0x100)),
 	MK_MEM_2M_64X(L2_1, 0x60000000 + MB(0x180)),
+#else
+	MK_MEM_NC_2M_64X(L2_1, 0x60000000),
+	MK_MEM_NC_2M_64X(L2_1, 0x60000000 + MB(0x80)),
+	MK_MEM_NC_2M_64X(L2_1, 0x60000000 + MB(0x100)),
+	MK_MEM_NC_2M_64X(L2_1, 0x60000000 + MB(0x180)),
+#endif
 
 	/* L2_2: 0x80000000 ~ 0xc0000000 */
 	MK_MEM_2M_64X(L2_2, 0x80000000),
@@ -113,6 +120,8 @@ pt_section pte pagetable[PT_MAX][MAX_PTE_ENTRIES] = {
 	/* CISP_SS */
 	MK_DEV_2M_8X(L2_3, 0x0E8000000),
 
+	/* GPU2_SS */
+	MK_DEV_2M_8X(L2_3, 0x0EC000000),
 	/*
 		PERI_SS
 		peri_dmac, peri_eic, peri_wdt_0 ~ 2, peri_tim_t0 ~ 1
@@ -125,9 +134,9 @@ pt_section pte pagetable[PT_MAX][MAX_PTE_ENTRIES] = {
 	/*
 		PCIe internal mapped memry
 	*/
-	MK_TBL(1, L1, L2_PCI_CONFIG_SPACE, 0x400000000, 0),
-	MK_DEV_2G_8X(L2_PCI_CONFIG_SPACE, 0x400000000),
-	MK_DEV_2G_8X(L2_PCI_CONFIG_SPACE, 0x400000000 + GB(0x10)),
+	MK_DEV_1G_8X(L1, 0x400000000),
+	MK_DEV_1G_8X(L1, 0x400000000 + GB(0x08)),
 
+	MK_MEM_NC_1G(L1, 0xC40000000),
 };
 

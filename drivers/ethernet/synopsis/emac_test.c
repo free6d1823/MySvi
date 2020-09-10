@@ -53,7 +53,7 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue, uint8_t rx_q,
 #endif
 
 	tx_q = queue;
-
+	puts("s\n");
 	tx_ret = dwceqos_xmit(lp, tx_q, (char*)sendBuf, sendLen, ptp);
 	if (!tx_ret) {
 		printf("%s: tx failed\n", __func__);
@@ -61,10 +61,10 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue, uint8_t rx_q,
 	}
 
 	/* Sleep for while let Tx complete*/
-	udelay(5);
+	udelay(1);
 	length = 0;
 	/* check the tx/rx status to make sure tx/rx is done */
-
+	puts("r\n");
 #ifdef EMAC_DEBUG
 	printf("*****status after Tx, before Recv*****\n");
 	dwceqos_show_status(lp, tx_q, rx_q);
@@ -86,6 +86,9 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue, uint8_t rx_q,
 			printf("Pkg Data:");
 			if (length > 64)
 				length = 64;
+#ifdef VCS_TEST
+			length = 16;
+#endif
 			for (i = 0; i < length; i++) {
 				if (i % 8 == 0) {
 					printf(" ");
@@ -100,16 +103,17 @@ bool emac_simSendRecv(struct net_local* lp, uint8_t queue, uint8_t rx_q,
 		}
 	}
 	if (success)
-		printf("emac send/receive data path test success\n");
+		printf("emac s/r success\n");
 	else
-		printf("failed: no buffer received\n");
-//#ifdef EMAC_DEBUG
+		printf("failed: no buffer\n");
+#ifdef EMAC_DEBUG
 	printf("*****status after Recv*****\n");
 	dwceqos_get_stats64(lp, 3);
 	dwceqos_show_status(lp, tx_q, rx_q);
 	printf("*****status end*****\n");
-//#endif
+#endif
 
+	dsb(sy);
 	return tx_ret;
 }
 
@@ -196,8 +200,12 @@ void emac_PTP_test(struct net_local* emac_dev,
 	memset(&emac_MTL_cfg, 0 , sizeof(struct dwceqos_MTL_cfg));
 	emac_MTL_cfg.rx_queues_count = 4;
 	emac_MTL_cfg.tx_queues_count = 4;
+
 	/* strict priority for tx rx */
+	emac_MTL_cfg.tx_sched_algorithm = MTL_TX_ALGORITHM_SP;
+	emac_MTL_cfg.rx_sched_algorithm = MTL_RX_ALGORITHM_SP;
 	emac_MTL_cfg.init_ptp = true;
+
 	/* enable specific test mode*/
 	emac_test_mode(emac_dev, &emac_MTL_cfg);
 
@@ -205,7 +213,7 @@ void emac_PTP_test(struct net_local* emac_dev,
 
 	emac_InitPTPPacket((u8*)sendBuf, &length);
 	printf("send out %d bytes PTP over ethernet packet\n", length);
-	if (emac_simSendRecv(emac_dev, 0, 0, sendBuf, length, true))
+	if (emac_simSendRecv(emac_dev, 3, 0, sendBuf, length, true))
 		printf("PTP test passed\n");
 	else
 	{
@@ -251,14 +259,15 @@ void emac_AVB_CBS_test(struct net_local* emac_dev,
 	emac_lpmode_config(emac_dev);
 
 	emac_InitAVBPacket((u8*)sendBuf, &length);
+#ifndef VCS_TEST
 	{ /* sanity check */
 		printf("\n before AVB packet received \n");
-		for (i = 1; i < emac_MTL_cfg.tx_queues_count; i++)
+		for (i = 0; i < emac_MTL_cfg.tx_queues_count; i++)
 			emac_show_CBS_info(emac_dev, i);
 
 		printf("current time = 0x%llx\n", time_get_current_time());
 	}
-
+#endif
 	/* sent tx_q=1 to make sure CBS works */
 	if (emac_simSendRecv(emac_dev, 3, 0, sendBuf, length, true))
 		printf("CBS test passed\n");
@@ -268,11 +277,13 @@ void emac_AVB_CBS_test(struct net_local* emac_dev,
 	}
 
 	printf("current end time = 0x%llx\n", time_get_current_time());
+#ifndef VCS_TEST
 	{ /* sanity check */
 		printf("\n after AVB packet received \n");
-		for (i = 1; i < emac_MTL_cfg.tx_queues_count; i++)
+		for (i = 0; i < emac_MTL_cfg.tx_queues_count; i++)
 			emac_show_CBS_info(emac_dev, i);
 	}
+#endif
 	dwceqos_tx_reclaim(emac_dev, 0);
 }
 

@@ -138,12 +138,14 @@ source drivers/watchdog/Kconfig
 source drivers/dma/ahb/Kconfig
 source drivers/crypto/Kconfig
 source drivers/mbedtls/library/Kconfig
-source drivers/gc355/Kconfig
-source drivers/gc520/Kconfig
+source drivers/gpu2/Kconfig
 source drivers/vc8000e/Kconfig
 source drivers/vc8000d/Kconfig
 source drivers/gdc/Kconfig
-
+source drivers/timer/Kconfig
+source drivers/pwm/Kconfig
+source drivers/mipi_host/Kconfig
+source drivers/cisp_ss/c71/Kconfig
 endmenu
 
 menu "Advanced kernel features"

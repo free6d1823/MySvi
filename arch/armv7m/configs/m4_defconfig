@@ -62,7 +62,8 @@ CONFIG_DEBUG_UART=y
 # CONFIG_DDR is not set
 CONFIG_ARCH_HAS_UART=y
 CONFIG_UART=y
-
+CONFIG_DW_TIMER=y
+CONFIG_DW_PWM=y
 #
 # CoreLink peripherals
 #

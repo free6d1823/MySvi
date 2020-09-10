@@ -6,29 +6,43 @@
 #include <target/cmdline.h>
 #include <std/string.h>
 #include "designware_spi.h"
+#include <target/clk.h>
+#include <target/irq.h>
 
 struct dw_spi_priv priv[SPI_NUM];
 
-static inline u32 dw_read(struct dw_spi_priv *priv, u32 offset)
+int gindex;
+
+inline u32 dw_read(struct dw_spi_priv *priv, u32 offset)
 {
 	return __raw_readl(priv->regs + offset);
 }
 
-static inline void dw_write(struct dw_spi_priv *priv, u32 offset, u32 val)
+inline void dw_write(struct dw_spi_priv *priv, u32 offset, u32 val)
 {
 	__raw_writel(val, priv->regs + offset);
 }
 
-static inline void spi_enable_chip(struct dw_spi_priv *priv, int enable)
+inline void spi_enable_chip(struct dw_spi_priv *priv, int enable)
 {
 	dw_write(priv, DW_SPI_SSIENR, (enable ? 1 : 0));
+}
+
+static inline void dw_spi_disable_all_irqs(struct dw_spi_priv *priv)
+{
+	dw_write(priv, DW_SPI_IMR, 0x0);/* mask all interrupt 0:mask 1:not mast */
+}
+
+static inline void dw_spi_enable_txo_irq(struct dw_spi_priv *priv)
+{
+	dw_write(priv, DW_SPI_IMR, 0x2);/* enable txo */
 }
 
 /* Restart the controller, disable all interrupts, clean rx fifo */
 static void spi_hw_init(struct dw_spi_priv *priv)
 {
 	spi_enable_chip(priv, 0);
-	dw_write(priv, DW_SPI_IMR, 0xff);
+	dw_spi_disable_all_irqs(priv);
 	spi_enable_chip(priv, 1);
 
 	/*
@@ -84,6 +98,7 @@ static inline u32 rx_max(struct dw_spi_priv *priv)
 static void dw_writer(struct dw_spi_priv *priv)
 {
 	u32 max = tx_max(priv);
+
 	u16 txw = 0;
 
 	while (max--) {
@@ -104,6 +119,7 @@ static void dw_writer(struct dw_spi_priv *priv)
 			priv->databuf += priv->bits_per_word >> 3;
 		}
 		dw_write(priv, DW_SPI_DR, txw);
+
 		priv->tx_currentlen++;
 	}
 }
@@ -112,10 +128,12 @@ static void dw_writer(struct dw_spi_priv *priv)
 static void dw_reader(struct dw_spi_priv *priv)
 {
 	u32 max = rx_max(priv);
+
 	u16 rxw;
 
 	while (max--) {
 		rxw = dw_read(priv, DW_SPI_DR);
+
 		if ((priv->isin) && (priv->rx_currentlen < priv->totallen) && (priv->rx_currentlen >= priv->cmdlen)) {
 			if (priv->bits_per_word == 8)
 				*(u8 *)(priv->databuf) = rxw;
@@ -170,7 +188,7 @@ int dw_spi_transfer_one_message(struct dw_spi_priv *priv,
 	cr0 = (priv->bits_per_word - 1) | (priv->type << SPI_FRF_OFFSET) |
 		((((priv->mode & SPI_CPOL) ? 1 : 0) << SPI_SCOL_OFFSET) |
 			(((priv->mode & SPI_CPHA) ? 1 : 0) << SPI_SCPH_OFFSET))|
-		(priv->tmode << SPI_TMOD_OFFSET);
+		(priv->tmode << SPI_TMOD_OFFSET) | (0 << SPI_SLVOE_OFFSET);
 
 	cr0 &= ~SPI_TMOD_MASK;
 	cr0 |= (priv->tmode << SPI_TMOD_OFFSET);
@@ -210,11 +228,10 @@ int dw_spi_transfer_one_message(struct dw_spi_priv *priv,
 	return ret;
 }
 
-int gindex;
-
-static int spi_init(int index)
+int spi_init(int index)
 {
 	gindex = index;
+	clk_enable(PERI1_SS_AHB_CLK, 1);
 
 	priv[index].regs = (void *)(uintptr_t)DW_SPI_REG_BASE(index);
 	priv[index].bits_per_word = 8;
@@ -228,7 +245,7 @@ static int spi_init(int index)
 	return 0;
 }
 
-static int spi_setcs(int cs)
+int spi_setcs(int cs)
 {
 	priv[gindex].cs = cs;
 	return 0;
@@ -244,6 +261,63 @@ static int dw_spi_read(const void *cmdbuf, int cmdlen, void *databuf, int datale
 	return dw_spi_transfer_one_message(&priv[gindex], cmdbuf, cmdlen, databuf, datalen, 1);
 }
 
+static void dw_spi_handle_irq(irq_t irq, void *ctx)
+{
+	dw_spi_disable_all_irqs(&priv[gindex]);
+
+	printf("Tx fifo overflow , generate an interrupt!!!\n");
+
+	/* clear intr RXOICR TXOICR RXUICR MSTICR */
+	dw_read(&priv[gindex], DW_SPI_TXOICR);
+
+	spi_enable_chip(&priv[gindex], 0);/* clean tx fifo */
+
+	dw_spi_enable_txo_irq(&priv[gindex]);
+	spi_enable_chip(&priv[gindex], 1);/* enable write reg RD , tx fifo empty*/
+
+}
+
+static void dw_spi_irq_init(struct dw_spi_priv *priv, bool enable)
+{
+	irq_t spi_irq = SPI_CON_IRQ(gindex);
+
+	if (enable == false) {
+		dw_spi_disable_all_irqs(priv);
+		irqc_disable_irq(spi_irq);
+	} else {
+		dw_spi_disable_all_irqs(priv);
+
+		irqc_configure_irq(spi_irq, 50, IRQ_LEVEL_TRIGGERED);
+		irq_register_vector(spi_irq, dw_spi_handle_irq, NULL);
+		irqc_enable_irq(spi_irq);
+
+		dw_spi_enable_txo_irq(priv);
+	}
+}
+
+int spi_intr_test()
+{
+
+	spi_init(0);
+	spi_setcs(0);
+
+	dw_spi_irq_init(&priv[gindex],true);
+
+	spi_enable_chip(&priv[gindex], 1);
+
+	int i = 0;
+	while(!(dw_read(&priv[gindex], DW_SPI_ISR)&0x02)){
+		dw_write(&priv[gindex], DW_SPI_DR, i++);
+		dw_read(&priv[gindex], DW_SPI_ISR);
+		dw_read(&priv[gindex], DW_SPI_SR);
+		if (300 == i){
+			break;
+		}
+	}
+
+	return 0;
+}
+
 int cmd_spi(int argc, char **argv)
 {
 	int index = 0;
@@ -252,11 +326,19 @@ int cmd_spi(int argc, char **argv)
 	if (argc < 2)
 		return -EUSAGE;
 
-	if (argv[1][0] == 'i') {
+	if (!strcmp("init", argv[1])) {
 
 		if (argc >= 3)
 			index = strtoul(argv[2], NULL, 0);
+
 		spi_init(index);
+
+		return 0;
+	}
+
+	if (!strcmp("intr", argv[1])) {
+		spi_intr_test();
+		dw_spi_irq_init(&priv[gindex], false);/* unregister irq . cmd test need. */
 		return 0;
 	}
 
@@ -290,6 +372,12 @@ int cmd_spi(int argc, char **argv)
 		return dw_spi_read(cmdbuf, cmdlen, databuf, datalen);
 
 	}
+
+	if (argv[1][0] == 's') {
+
+		return spi_test();
+
+	}
 	return -1;
 }
 
@@ -302,4 +390,8 @@ MK_CMD(spi, cmd_spi, "Designware spi host controller cmd",
 	"	-spi write <datalen> data in databuf through the cmd in <cmdbuf>\n"
 	" spi r cmdbuf cmdlen databuf datalen\n"
 	"	-spi read <datalen> data to databuf through the cmd in <cmdbuf>\n"
+	" spi slave\n"
+	"	-spi slave test\n"
+	" spi intr\n"
+	"	-spi interrupt test\n"
 );

@@ -1,0 +1,4 @@
+config GPU2
+	bool "GC355 and GPU620 support"
+	---help---
+	  GC355 and GPU620 driver.

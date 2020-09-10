@@ -329,6 +329,55 @@ int spinor_write(uint32_t address, void *buffer, uint32_t size)
 	return 0;
 }
 
+int spinor_test()
+{
+	uint8_t buf[1024];
+	uint8_t src[1024];
+	int i;
+	uint8_t reg_status;
+
+	for (i=0; i<sizeof(src); i++)
+		src[i] = i%256;
+
+	spi_init(0);
+
+	if(spinor_init() != 0)
+	{
+		return -1;
+	}
+	if(spinor_read(0, buf, sizeof(buf)) != 0)
+	{
+		return -1;
+	}
+	if(spinor_erase(0, 1024) != 0)
+	{
+		return -1;
+	}
+	if(spinor_read(0, buf, sizeof(buf)) != 0)
+	{
+		return -1;
+	}
+	if(spinor_write(0, src, 1024) != 0)
+	{
+		return -1;
+	}
+	if(spinor_read(0, buf, sizeof(buf)) != 0)
+	{
+		return -1;
+	}
+
+	for (i=0; i<sizeof(src); i++)
+	{
+		if(buf[i] == src[i]) {
+
+		} else {
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 int do_spinor(int argc, char *argv[])
 {
 	int ret = 0;
@@ -338,6 +387,16 @@ int do_spinor(int argc, char *argv[])
 
 	if (argc < 2)
 		return -EUSAGE;
+
+	if (argv[1][0] == 't') {
+		ret = spinor_test();
+
+		if (ret != 0) {
+			printf("spinor autotest success! \n");
+		} else {
+			printf("spinor autotest failed! \n");
+		}
+	}
 
 	if (argv[1][0] == 'i') {
 		ret = spinor_init();
@@ -398,6 +457,8 @@ int do_spinor(int argc, char *argv[])
 
 MK_CMD(spinor, do_spinor, "use spi master to read/write spinor flash(w25q32)",
 	"\n"
+	" spinor {test | t}\n"
+	"	-Auto test basic fuction\n"
 	" spinor {init | i}\n"
 	"	-Init flash\n"
 	" spinor {read | r} flashaddr memaddr size\n"

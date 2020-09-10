@@ -681,15 +681,15 @@ int dwceqos_rx(struct net_local *lp, int budget, u32 rx_q,
 	*length = 0;
 	while (n_descs < budget) {
 		if (!dwceqos_packet_avail(lp, rx_q)) {
-			int i = 50;
+			int i = 10;
 			while ((i > 0) && (!dwceqos_packet_avail(lp, rx_q))) {
 				i--;
-				udelay(2);
+				udelay(1);
 				if (i % 10 == 9)
-					printf("Rx not ready, keep wating\n");
+					printf("Rx no\n");
 			}
 			if (i == 0) {
-				printf("Rx not ready, time out, game over\n");
+				printf("Rx time out,die\n");
 				break;
 			}
 		} else {
@@ -1379,14 +1379,16 @@ static bool emac_init_ptp(struct net_local *lp)
 	u32 ptp_clk_rate;
 
 	reg = (lp->feature0 & GENMASK(12, 12)) >> 12;
+#ifdef EMAC_DEBUG
 	printf("1588 timestamp feture is %s\n\n",
 				reg ? "enabled" : "disabled");
+#endif
 	if (!reg) {
 		printf("error: PTP is not supported by HW\n");
 		return false;
 	}
 
-	ptp_clk_rate = 50000000; /* 50Mhz suppose */
+	ptp_clk_rate = 25000000; /* 25Mhz suppose */
 	/* MAC_Timestamp_control register 0xb00*/
 	value = (PTP_TCR_TSENA | PTP_TCR_TSCFUPDT | PTP_TCR_TSCTRLSSR |
 			 PTP_TCR_TSENALL | PTP_TCR_TSVER2ENA | PTP_TCR_TSIPENA |
@@ -1394,9 +1396,10 @@ static bool emac_init_ptp(struct net_local *lp)
 			 PTP_TCR_TSMSTRENA | PTP_TCR_SNAPTYPSEL_1);
 	dwceqos_write(lp, PTP_GMAC4_OFFSET + PTP_TCR, value);
 
-	/* need to check ptp reference clock with IC, suppose 50Mhz */
+	/* need to check ptp reference clock with IC, suppose 25Mhz */
 	config_sub_second_increment(lp->baseaddr + PTP_GMAC4_OFFSET,
-			50000000, 1, &sec_inc);
+			ptp_clk_rate, 1, &sec_inc);
+	/* need to change addend with other value, check the clk granunity */
 	config_addend(lp->baseaddr + PTP_GMAC4_OFFSET, 10);
 	init_systime(lp->baseaddr + PTP_GMAC4_OFFSET, 0, 1000);
 
@@ -1405,11 +1408,15 @@ static bool emac_init_ptp(struct net_local *lp)
 		u64 systime1, systime2;
 		systime1 = systime2 = 0;
 		get_systime(lp->baseaddr + PTP_GMAC4_OFFSET, &systime1);
-		udelay(1000);
+#ifdef VCS_TEST
+		udelay(10); /* is it able to detect 10us, check again */
+#else
+		udelay(100);
+#endif
 		get_systime(lp->baseaddr + PTP_GMAC4_OFFSET, &systime2);
 
 		if ((systime1 == 0) ||
-			(systime2 == 0) || (systime1 > systime2)) {
+			(systime2 == 0) || (systime1 >= systime2)) {
 			printf("PTP systime not correct t1=0x%llx, t2=0x%llx\n",
 						systime1, systime2);
 		} else {
@@ -1770,12 +1777,15 @@ static void mac_configure_cbs(struct net_local* lp,
 	void __iomem *ioaddr = lp->baseaddr;
 	u32 value;
 
+#ifndef VCS_TEST
 	printf("Queue %d configured as AVB. Parameters:\n", queue);
 	printf("\tsend_slope: 0x%08x\n", send_slope);
 	printf("\tidle_slope: 0x%08x\n", idle_slope);
 	printf("\thigh_credit: 0x%08x\n", high_credit);
 	printf("\tlow_credit: 0x%08x\n", low_credit);
-
+#else
+	printf("Queue %d as AVB\n", queue);
+#endif
 	dwmac4_qmode(ioaddr, queue, MTL_QUEUE_AVB);
 	/* enable AV algorithm */
 	value = readl(ioaddr + MTL_ETSX_CTRL_BASE_ADDR(queue));
@@ -1844,7 +1854,7 @@ static void mac_rx_queue_enable(struct net_local* lp,
 	value &= GMAC_RX_QUEUE_CLEAR(queue);
 	if (mode == MTL_QUEUE_AVB)
 		value |= GMAC_RX_AV_QUEUE_ENABLE(queue);
-	else if (mode == MTL_QUEUE_DCB)
+	else if (mode == MTL_QUEUE_DCB_GENERIC)
 		value |= GMAC_RX_DCB_QUEUE_ENABLE(queue);
 
 	dwceqos_write(lp, GMAC_RXQ_CTRL0, value);

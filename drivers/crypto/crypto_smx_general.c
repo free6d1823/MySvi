@@ -16,25 +16,32 @@
 #include "target/mbedtls/gcm.h"
 #include "target/mbedtls/cipher.h"
 //#define DEBUG_PRINT
-static int se_smx_general(int argc, char *argv[])
+int se_smx_general()
 {
 	int ret;
 	int i;
-
 	ret = smx_init_clk();
 	if(!ret)
 		printf("smx module clock case pass! \n");
+	else
+		return -1;
 	ret = smx_module_reset();
 	if(!ret)
 		printf("smx module reset case pass! \n");
-        /*************************sha1 alg***********************************************/
-	ret = strcmp(argv[1],"basic_reg");
-	if(!ret){
-		   smx_vfreg_read_write_test();
-		}
-	return 0;
+	else
+		return -1;
+	for(i=0; i<4; i++)
+	{
+		ret = smx_vfreg_read_write_test(i);
+		if(ret == -1)
+                {
+
+                        printf("vf%d read&write case failed!\n",i);
+                        break;
+                }
+                else
+                        printf("vf%d read&write case pass!\n",i);
+
+	}
+	return ret;
 }
-MK_CMD(smx, se_smx_general, "Test crypto_smx general function",
-	"smx general  mode\n"
-	"	- basic_reg test smx general register read and write!\n"
-);

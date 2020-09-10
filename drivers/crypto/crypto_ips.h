@@ -13,9 +13,10 @@
 #ifdef A76_IPS
 #define SMP_IPS_BASE	(0xe3800000)                                    //(0xb4890000)
 #endif
+/*for vcs test*/
+#define SMP_EIC_ADDR							0x58040000
+#define SMP_TEST_SUCC							0x81
 
-//#define SVI_VCS
-#define SVI_Z1
 /*system clock*/
 #define SYS_CLK_BASE							0x58100000
 #define SFC_CLK_OFFSET							0xd2b04
@@ -31,7 +32,7 @@
 #define IPS_GLOBAL							(SMP_IPS_BASE + (0x1b0000))
 #define IPS_MSI_CFG							(SMP_IPS_BASE + (0x1c0000))
 #define	IPS_MSI_CTRL							(SMP_IPS_BASE + (0x1d0000))
-#define	IPS_TOP_CTRL							(SMP_IPS_BASE + (0x230000)) 
+#define	IPS_TOP_CTRL							(SMP_IPS_BASE + (0x230000))  
 #define IPS_NS_IRQ							(SMP_IPS_BASE + (0x250000))
 #define IPS_SEC_IRQ							(SMP_IPS_BASE + (0x260000))
 #define	IPS_MSA_IRQ							(SMP_IPS_BASE + (0x270000))
@@ -122,9 +123,11 @@
 #define IPS_CMD_BASE                                                    (0x70000)
 #define IPS_STATUS_BASE                                                 (0x72000)
 #define IPS_SRC_BASE                                                    (0x73000)
-#define IPS_DST_BASE                                                    (0x74000)
-#define IPS_CMD_RING                                                    (0x75000)
-#define MBEDTLS_BUF                                                     (0x76000)
+#define IPS_DST_BASE                                                    (0x75000)
+#define IPS_CMD_RING                                                    (0x76000)
+#define IPS_DDT_SRC							(0x77000)
+#define IPS_DDT_DST							(0x77100)
+
 
 
 #endif
@@ -174,9 +177,11 @@
 #define IPS_VF0_HASHKEY30                                                (IPS_VF0_KEY + 0x1078)
 #define IPS_VF0_HASHKEY31                                                (IPS_VF0_KEY + 0x107c)
 //#define IPS_VFO_KEYADDR(addr, offset)					(addr + offset)
-#define MAX_CMD								8
+#define MAX_CMD								0x40
 #define SHA_FLAG							0
 #define AES_FLAG							1
+#define SHA_DDT_FLAG							2
+#define AES_DDT_FLAG							3
 #define ENCRYPT								1
 #define DECRYPT								0
 #define AES_128								1
@@ -204,6 +209,8 @@
 #define INIT_IV								0x0 //0x11
 #define IV_OFFSET							0x20
 #define HASHKEY_OFFSET							0x1000
+#define DDT_MODE							1
+#define DIRECT_MODE							0
 #define WRITE_REG(addr, value) (*(volatile unsigned int *)(addr) = value)
 #define READ_REG(addr) (*(volatile unsigned int *)(addr))
 struct ips_command {
@@ -236,10 +243,9 @@ struct ips_command {
         unsigned int cipher_alg : 3;
         unsigned int ioc : 1;
         /* aux_info  */
-        unsigned int icv_len : 6;
+        unsigned int icv_len : 7;
         unsigned int cbc_cs_sel : 2;
         unsigned int bk_sz_cfb : 7;
-        unsigned int reserved5 : 1;
         unsigned int sw_id : 16;
         unsigned int reserved1;
         unsigned int reserved2;
@@ -253,27 +259,46 @@ struct status_ring {
         unsigned int sw_id : 16;
         unsigned int reserved;
 };
+
+
+struct ddt_pdu {
+
+        unsigned int *pointer;
+        unsigned int len;
+};
+
+struct ddt_list {
+        struct ddt_pdu ddt_addr[2];
+};
+
+
 extern int ips_init_clk(void);
 extern int ips_module_reset();
 extern int ips_dev_init();
 extern int ips_key_iv_set();
-extern int ips_data_setup_sha(unsigned char *src, unsigned char *dst,struct ips_command* pcmd,int hash_alg,int hash_mode, int ende_flag, int proc_len);
-extern int ips_data_setup_aes(unsigned char *src, unsigned char *dst,struct ips_command* pcmd, int cipher_alg,int cipher_mode, int ende_flag, int proc_len);
+extern int ips_data_setup_sha(unsigned char *src, unsigned char *dst,struct ips_command* pcmd,int hash_alg,int hash_mode, int ende_flag, int proc_len, int ddt_mode);
+extern int ips_data_setup_aes(unsigned char *src, unsigned char *dst,struct ips_command* pcmd, int cipher_alg,int cipher_mode, int ende_flag, int proc_len,int ddt_mode);
 extern int ips_cmd_create(unsigned char *src, unsigned char *dst, int flag, int alg_flag, int alg_mode, int ende_flag, int proc_len);
 extern int ips_status_polling();
 extern int str_cmp(unsigned char *str1, unsigned  char *str2, int len);
-#ifdef SVI_VCS
+extern int sha_function_raw_test(unsigned char *psrc, unsigned char *pdst, int alg_flag, int sha_flag, int ende_flag, int proc_len);
+extern int aes_function_test(unsigned char *psrc, unsigned char *pdst, int alg_flag, int aes_bitlen, int aes_mode,  int proc_len);
 int se_ips_sharaw();
 int se_ips_shahmac();
-int se_ips_aes128();
+int se_ips_aes_128();
+int se_ips_aes_192();
+int se_ips_aes_256();
 int se_ips_general();
-int se_ips_aes();
-#endif
-
-#ifdef SVI_Z1
+int se_ips_aes_gcm();
+int se_ips_aes_cts();
+int se_ips_sha_ddt();
+int se_ips_aes_ddt();
+int se_ips_sha_multi_ddt();
+int se_ips_aes_multi_ddt();
+int se_ips_sha_intr();
+int se_ips_aes_intr();
 
 static int se_ips_aes(int argc, char *argv[]);
-#endif
 //static int se_ips_general(int argc, char *argv[]);
-extern int ips_vfreg_read_write_test();
+extern int ips_vfreg_read_write_test(int vf_no);
 #endif

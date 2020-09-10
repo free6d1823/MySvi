@@ -28,6 +28,9 @@ extern unsigned int cfgperiphbase;
 #define GICR_GIC3_CPU_SHIFT	17
 
 #define UART_BASE(n)		0x0E94A0000
+#define DW_I2C_REG_BASE(n)		(0x0E9020000 + (n*0x10000))
+#define DW_SPI_REG_BASE(n)		(0x0E96E0000 + (n*0x10000))
+#define DW_SPI_SLAVE_REG_BASE(n)		(0x0E96D0000 + (n*0x10000))
 
 #define CLK_RESET_REG_BASE			0x58100000
 

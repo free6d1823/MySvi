@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MAX_CPU_NUM		8
+#define MAX_CPU_NUM		6
 #define MAX_LLC_NUM		(MAX_CPU_NUM/2)
 
 #define CPUS_SHIFT		0

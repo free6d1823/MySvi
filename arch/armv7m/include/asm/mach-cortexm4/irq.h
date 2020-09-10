@@ -9,6 +9,8 @@
 #define IRQ__UART0	104
 #define UART_CON_IRQ	(1)
 #define DW_WDT_TRQ(n)	(10 + n)
+#define DW_TMR_TRQ(uid,tid)	(71+uid*SUPPORT_TIMER_INTER_MAX_NUM+ tid)
+#define DW_PWM_TRQ(uid)		(90+uid)
 
 #define NR_IRQS		(240)
 

@@ -101,7 +101,7 @@ void emac_InitPTPPacket(uint8_t *pktBuf, uint32_t* length)
 	memcpy(buf, &ptp_hdr, sizeof(ptp_hdr));
 
 	/* extra 2 to meet 64bytes tx packet */
-	*length = ETH_ALEN * 2 + 4+ 2 + ptp_hdr.MsgLength;
+	*length = ETH_ALEN * 2 + 4+ 2 + ptp_hdr.MsgLength + 2;
 	return;
 }
 

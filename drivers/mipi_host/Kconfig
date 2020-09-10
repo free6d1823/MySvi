@@ -1,0 +1,2 @@
+config DW_MIPI_HOST
+	bool "dw_mipi_host driver"

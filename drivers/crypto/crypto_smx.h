@@ -3,6 +3,7 @@
 /*Authore: yyq					     */
 /*change history			             */
 /*****************************************************/
+#include <target/irq.h>
 #include "target/crypto_control.h"
 
 #ifndef CRYPTO_SMX
@@ -18,17 +19,23 @@
 // Base address
 #define SMX_VF0_REG							(SMP_SMX_BASE + (0x000000))
 #define	SMX_VF0_KEY							(SMP_SMX_BASE + (0x010000))
+
+#define SMP_VCS
+//#define SMP_Z1
+#ifdef SMP_VCS
 #define SMX_GLOBAL							(SMP_SMX_BASE + (0x080000))
 #define SMX_MSI_CFG							(SMP_SMX_BASE + (0x090000))
 #define	SMX_MSI_CTRL							(SMP_SMX_BASE + (0x0a0000))
+#endif
 
-
-//#define SMX_XPU                                                         (SMP_SMX_BASE + (0x000000))
-//#define SMX_VF0_REG                                                     (SMP_SMX_BASE + (0x130000))
-//#define SMX_VF0_KEY                                                     (SMP_SMX_BASE + (0x140000))
-//#define SMX_GLOBAL                                                      (SMP_SMX_BASE + (0x1b0000))
-//#define SMX_MSI_CFG                                                     (SMP_SMX_BASE + (0x1c0000))
-//#define SMX_MSI_CTRL                                                    (SMP_SMX_BASE + (0x1d0000))
+//#define SMX_XPU                                                       (SMP_SMX_BASE + (0x000000))
+//#define SMX_VF0_REG                                                   (SMP_SMX_BASE + (0x130000))
+//#define SMX_VF0_KEY                                                   (SMP_SMX_BASE + (0x140000))
+#ifdef SMP_Z1
+#define SMX_GLOBAL                                                      (SMP_SMX_BASE + (0x1b0000))
+#define SMX_MSI_CFG                                                     (SMP_SMX_BASE + (0x1c0000))
+#define SMX_MSI_CTRL                                                    (SMP_SMX_BASE + (0x1d0000))
+#endif
 #define SMX_TOP_CTRL                                                    (SMP_SMX_BASE + (0x230000))
 
 
@@ -141,12 +148,18 @@
 #define SMX_STATUS_BASE							(0x53000)
 #define SMX_SRC_BASE							(0x55000)
 #define SMX_DST_BASE							(0x58000)
+#define SMX_DDT_SRC							(0x59000)
+#define SMX_DDT_DST							(0x5a000)
 #define SMX_CMD_RING                                                    (0x5b000)
 #define MBEDTLS_BUF                                                     (0x5e000)
 
 
-#define MAX_CMD								8
+#define MAX_CMD								0x40
 
+#define PB0_ED1								4
+#define PB0_ED0								3
+#define PB1_ED0								2
+#define PB1_ED1								1
 #define ENCRYPT								1
 #define DECRYPT								0
 
@@ -166,8 +179,11 @@
 
 #define SM3_FLAG							0
 #define SM4_FLAG							1
-
-
+#define SM3_DDT_FLAG							2
+#define SM4_DDT_FLAG							3
+#define DDT_MODE                                                        1
+#define DIRECT_MODE                                                     0
+#define IV_OFFSET							16
 
 #define WRITE_REG(addr, value) (*(volatile unsigned int *)(addr) = value)
 #define READ_REG(addr) (*(volatile unsigned int *)(addr))
@@ -238,13 +254,33 @@ extern int smx_init_clk(void);
 extern int smx_module_reset();
 extern int smx_dev_init();
 extern int smx_key_iv_set();
-extern int smx_data_setup_sm3(unsigned char *src, unsigned char *dst,struct smx_command* pcmd,int hash_mode, int ende_flag, int proc_len);
-extern int smx_data_setup_sm4(unsigned char *src, unsigned char *dst,struct smx_command* pcmd,int cipher_mode, int ende_flag, int proc_len);
+extern int smx_data_setup_sm3(unsigned char *src, unsigned char *dst,struct smx_command* pcmd,int hash_mode, int ende_flag, int proc_len,int ddt_mode);
+extern int smx_data_setup_sm4(unsigned char *src, unsigned char *dst,struct smx_command* pcmd,int cipher_mode, int ende_flag, int proc_len,int ddt_mode);
 extern int smx_cmd_create(unsigned char *src, unsigned char *dst, int flag, int alg_mode, int ende_flag, int proc_len);
+extern int sm4_function_test(unsigned char *psrc, unsigned char *pdst, int alg_flag, int sm4_mode,  int proc_len);
+extern int sm3_function_test(unsigned char *psrc, unsigned char *pdst, int alg_flag, int ende_flag, int proc_len);
 extern int smx_status_polling();
+extern void disable_smx_irq();
 extern int str_cmp(unsigned char *str1, unsigned  char *str2, int len);
-static int se_smx_sm3(int argc, char *argv[]);
-static int se_smx_sm4(int argc, char *argv[]);
+extern int smx_data_setup_partial_sm4(unsigned char *src, unsigned char *dst,struct smx_command* pcmd,int cipher_mode, int ende_flag, int proc_len,int src_offset, int dst_offset, int pre_aad_len, int post_aad_len, int icv_offset, int iv_en, int ioc, int p_begin, int p_end);
+int smx_cmd_partial_create(unsigned char *src, unsigned char *dst, int flag, int alg_mode, int ende_flag, int proc_len,int src_offset,int dst_offset, int pre_aad_len, int post_aad_len,int icv_offset, int iv_en,int ioc, int p_begin, int p_end );
+
+
+
+int se_smx_sm3();
+int se_smx_sm4();
+int se_smx_sm3_intr();
+int se_smx_sm4_intr();
+int se_smx_sm3_ddt();
+int se_smx_sm4_ddt();
+int se_smx_sm3_multi_ddt();
+int se_smx_sm4_multi_ddt();
+int se_smx_sm4_cts();
+int se_smx_sm3_partial();
+int se_smx_sm4_partial();
+int se_smx_sm4_keyport();
+//static int se_smx_sm3(int argc, char *argv[]);
+//static int se_smx_sm4(int argc, char *argv[]);
 //static int se_ips_general(int argc, char *argv[]);
 extern int smx_vfreg_read_write_test();
 

@@ -56,7 +56,6 @@ static int32_t gdc_platform_probe( struct platform_device *pdev )
     struct resource *gdc_res;
 
     // Initialize irq
-    //CJ TODO: If support two cores, GDC name must be different in device tree 
     gdc_res = platform_get_resource_byname( pdev,
                                             IORESOURCE_IRQ, "GDC" );
 
